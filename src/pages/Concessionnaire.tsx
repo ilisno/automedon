@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useMissions } from '@/context/missionsContext';
 import { useToast } from '@/hooks/use-toast';
 
 const Concessionnaire = () => {
@@ -10,6 +11,7 @@ const Concessionnaire = () => {
     heureLimite: '',
   });
 
+  const { ajouterMission } = useMissions();
   const { toast } = useToast();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -22,7 +24,11 @@ const Concessionnaire = () => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Form data:', formData);
+    ajouterMission({
+      ...formData,
+      depart: formData.lieuDepart,
+      arrivee: formData.lieuArrivee,
+    });
     setFormData({
       immatriculation: '',
       modele: '',
@@ -31,7 +37,7 @@ const Concessionnaire = () => {
       heureLimite: '',
     });
     toast({
-      title: 'Mission créée avec succès ✅',
+      title: 'Mission créée ✅',
       description: 'La mission a été créée avec succès.',
     });
   };
