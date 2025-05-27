@@ -1,20 +1,53 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
-import { Link } from 'react-router-dom'; // Import Link
+import { Link, useNavigate } from 'react-router-dom'; // Import useNavigate
+import { useToast } from '@/hooks/use-toast'; // Import useToast
 
 const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const { login } = useAuth();
+  const { login, user, profile, loading } = useAuth(); // Get user, profile, loading from context
+  const navigate = useNavigate(); // Initialize useNavigate
+  const { toast } = useToast(); // Initialize useToast
+
+  // Redirect if user is already logged in and profile is complete
+  useEffect(() => {
+    if (!loading && user && profile?.is_profile_complete) {
+      navigate('/');
+    } else if (!loading && user && !profile?.is_profile_complete) {
+       navigate('/complete-profile');
+    }
+  }, [user, profile, loading, navigate]);
+
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Login button clicked, attempting to log in...'); // Log when button is clicked
+    console.log('Login button clicked, attempting to log in...');
     try {
-      await login(email, password);
-      console.log('Login successful!'); // Log on success
-    } catch (error) {
-      console.error('Error logging in:', error); // Log on error
+      const { user: loggedInUser, profile: userProfile } = await login(email, password);
+      console.log('Login successful!');
+      // Redirection is now handled by the useEffect hook based on user/profile state
+      if (loggedInUser && userProfile?.is_profile_complete) {
+         toast({
+            title: 'Connexion réussie !',
+            description: 'Bienvenue !',
+          });
+         // navigate('/'); // useEffect handles this
+      } else if (loggedInUser && !userProfile?.is_profile_complete) {
+         toast({
+            title: 'Connexion réussie !',
+            description: 'Veuillez compléter votre profil.',
+          });
+         // navigate('/complete-profile'); // useEffect handles this
+      }
+
+    } catch (error: any) { // Catch error as any to access message
+      console.error('Error logging in:', error);
+       toast({
+        title: 'Échec de la connexion',
+        description: error.message || 'Veuillez vérifier vos identifiants.',
+        variant: 'destructive',
+      });
     }
   };
 
@@ -24,37 +57,32 @@ const Login = () => {
         <h2 className="text-2xl font-bold mb-6 text-center">Connexion</h2>
         <form onSubmit={handleSubmit}>
           <div className="mb-4">
-            <label htmlFor="email" className="block text-sm font-medium mb-1">
-              Email
-            </label>
-            <input
+            <Label htmlFor="email">Email</Label>
+            <Input
               type="email"
               id="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               required
             />
           </div>
           <div className="mb-4">
-            <label htmlFor="password" className="block text-sm font-medium mb-1">
-              Mot de passe
-            </label>
-            <input
+            <Label htmlFor="password">Mot de passe</Label>
+            <Input
               type="password"
               id="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               required
             />
           </div>
-          <button
+          <Button
             type="submit"
-            className="w-full bg-blue-500 text-white py-2 rounded-md hover:bg-blue-600 transition-colors"
+            className="w-full"
+            disabled={loading} // Disable button while loading
           >
-            Se connecter
-          </button>
+            {loading ? 'Connexion...' : 'Se connecter'}
+          </Button>
         </form>
         <p className="mt-4 text-center text-sm text-gray-600">
           Pas encore de compte ?{' '}

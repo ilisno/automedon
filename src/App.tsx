@@ -6,6 +6,7 @@ import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import Concessionnaire from "./pages/Concessionnaire";
 import Convoyeur from "./pages/Convoyeur";
+import CompleteProfile from "./pages/CompleteProfile"; // Import the new page
 import { MissionsProvider } from "./context/missionsContext";
 import Header from "./components/Header";
 import Login from "./components/Login";
@@ -27,6 +28,15 @@ const App = () => (
               <Route path="/" element={<Index />} />
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
+               {/* Add the new route for completing the profile */}
+              <Route
+                path="/complete-profile"
+                element={
+                  <ProtectedRoute> {/* Protect this route */}
+                    <CompleteProfile />
+                  </ProtectedRoute>
+                }
+              />
               <Route
                 path="/concessionnaire"
                 element={

@@ -1,27 +1,49 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/hooks/use-toast';
-import { Link } from 'react-router-dom'; // Import Link
+import { Link, useNavigate } from 'react-router-dom'; // Import useNavigate
+import { Input } from '@/components/ui/input'; // Import shadcn Input
+import { Label } from '@/components/ui/label'; // Import shadcn Label
+import { Button } from '@/components/ui/button'; // Import shadcn Button
+
 
 const Register = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const { register } = useAuth();
-  const { toast } = useToast();
+  const { register, user, profile, loading } = useAuth(); // Get user, profile, loading from context
+  const navigate = useNavigate(); // Initialize useNavigate
+  const { toast } = useToast(); // Initialize useToast
+
+   // Redirect if user is already logged in and profile is complete
+  useEffect(() => {
+    if (!loading && user && profile?.is_profile_complete) {
+      navigate('/');
+    } else if (!loading && user && !profile?.is_profile_complete) {
+       navigate('/complete-profile');
+    }
+  }, [user, profile, loading, navigate]);
+
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await register(email, password);
-      toast({
-        title: 'Inscription réussie !',
-        description: 'Vous pouvez maintenant vous connecter avec votre nouveau compte.',
-      });
-    } catch (error) {
+      const { user: registeredUser, profile: userProfile } = await register(email, password);
+      console.log('Registration successful!');
+       if (registeredUser) {
+         toast({
+            title: 'Inscription réussie !',
+            description: 'Veuillez compléter votre profil.',
+          });
+         // Redirection is handled by the useEffect hook based on user/profile state
+         // navigate('/complete-profile');
+       }
+
+    } catch (error: any) { // Catch error as any to access message
       console.error('Error registering:', error);
       toast({
         title: 'Échec de l\'inscription',
-        description: 'Veuillez réessayer.',
+        description: error.message || 'Veuillez réessayer.',
+        variant: 'destructive',
       });
     }
   };
@@ -32,37 +54,32 @@ const Register = () => {
         <h2 className="text-2xl font-bold mb-6 text-center">S'inscrire</h2>
         <form onSubmit={handleSubmit}>
           <div className="mb-4">
-            <label htmlFor="email" className="block text-sm font-medium mb-1">
-              Email
-            </label>
-            <input
+            <Label htmlFor="email">Email</Label>
+            <Input
               type="email"
               id="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               required
             />
           </div>
           <div className="mb-4">
-            <label htmlFor="password" className="block text-sm font-medium mb-1">
-              Mot de passe
-            </label>
-            <input
+            <Label htmlFor="password">Mot de passe</Label>
+            <Input
               type="password"
               id="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               required
             />
           </div>
-          <button
+          <Button
             type="submit"
-            className="w-full bg-blue-500 text-white py-2 rounded-md hover:bg-blue-600 transition-colors"
+            className="w-full"
+            disabled={loading} // Disable button while loading
           >
-            S'inscrire
-          </button>
+            {loading ? 'Inscription...' : 'S\'inscrire'}
+          </Button>
         </form>
         <p className="mt-4 text-center text-sm text-gray-600">
           Déjà un compte ?{' '}
