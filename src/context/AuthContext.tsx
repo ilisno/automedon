@@ -14,19 +14,35 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [user, setUser] = useState<any>(null);
 
   const login = async (email: string, password: string) => {
-    const { user, error } = await supabase.auth.signInWithPassword({ email, password });
-    if (error) throw error;
-    setUser(user);
+    console.log('AuthContext: Attempting login with email:', email); // Log start of login
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error) {
+      console.error('AuthContext: Supabase login error:', error); // Log Supabase error
+      throw error; // Re-throw the error so it can be caught in the component
+    }
+    console.log('AuthContext: Supabase login successful, user data:', data.user); // Log success with user data
+    setUser(data.user);
   };
 
   const register = async (email: string, password: string) => {
-    const { user, error } = await supabase.auth.signUp({ email, password });
-    if (error) throw error;
-    setUser(user);
+    console.log('AuthContext: Attempting registration with email:', email); // Log start of registration
+    const { data, error } = await supabase.auth.signUp({ email, password });
+    if (error) {
+      console.error('AuthContext: Supabase registration error:', error); // Log Supabase error
+      throw error; // Re-throw the error
+    }
+    console.log('AuthContext: Supabase registration successful, user data:', data.user); // Log success with user data
+    setUser(data.user);
   };
 
   const logout = async () => {
-    await supabase.auth.signOut();
+    console.log('AuthContext: Attempting logout'); // Log start of logout
+    const { error } = await supabase.auth.signOut();
+    if (error) {
+      console.error('AuthContext: Supabase logout error:', error); // Log Supabase error
+      throw error; // Re-throw the error
+    }
+    console.log('AuthContext: Supabase logout successful'); // Log success
     setUser(null);
   };
 

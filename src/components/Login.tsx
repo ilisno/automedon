@@ -9,10 +9,12 @@ const Login = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    console.log('Login button clicked, attempting to log in...'); // Log when button is clicked
     try {
       await login(email, password);
+      console.log('Login successful!'); // Log on success
     } catch (error) {
-      console.error('Error logging in:', error);
+      console.error('Error logging in:', error); // Log on error
     }
   };
 
