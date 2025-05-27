@@ -19,7 +19,7 @@ const Login = () => {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100">
       <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-sm">
-        <h2 className="text-2xl font-bold mb-6 text-center">Login</h2>
+        <h2 className="text-2xl font-bold mb-6 text-center">Connexion</h2>
         <form onSubmit={handleSubmit}>
           <div className="mb-4">
             <label htmlFor="email" className="block text-sm font-medium mb-1">
@@ -36,7 +36,7 @@ const Login = () => {
           </div>
           <div className="mb-4">
             <label htmlFor="password" className="block text-sm font-medium mb-1">
-              Password
+              Mot de passe
             </label>
             <input
               type="password"
@@ -51,13 +51,13 @@ const Login = () => {
             type="submit"
             className="w-full bg-blue-500 text-white py-2 rounded-md hover:bg-blue-600 transition-colors"
           >
-            Login
+            Se connecter
           </button>
         </form>
         <p className="mt-4 text-center text-sm text-gray-600">
-          Don't have an account?{' '}
+          Pas encore de compte ?{' '}
           <Link to="/register" className="text-blue-500 hover:underline">
-            Register here
+            S'inscrire ici
           </Link>
         </p>
       </div>
