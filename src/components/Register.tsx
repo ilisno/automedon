@@ -1,17 +1,27 @@
 import React, { useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
+import { useToast } from '@/hooks/use-toast';
 
 const Register = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const { register } = useAuth();
+  const { toast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
       await register(email, password);
+      toast({
+        title: 'Registration successful!',
+        description: 'You can now log in with your new account.',
+      });
     } catch (error) {
       console.error('Error registering:', error);
+      toast({
+        title: 'Registration failed',
+        description: 'Please try again.',
+      });
     }
   };
 
