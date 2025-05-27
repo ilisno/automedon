@@ -1,16 +1,27 @@
 import React from 'react';
 import { useAuth } from '@/context/AuthContext';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'; // Import Card components
+import { useMissions } from '@/context/missionsContext'; // Import useMissions
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'; // Import Tabs components
 
 const Account = () => {
   const { user, profile, loading } = useAuth();
+  const { missions } = useMissions(); // Get missions from context
+
+  // Filter missions for "En cours" and "Historique"
+  const currentMissions = missions.filter(
+    (mission) => mission.statut === 'en attente' || mission.statut === 'en cours'
+  );
+  const pastMissions = missions.filter(
+    (mission) => mission.statut === 'livrée'
+  );
+
 
   if (loading) {
     return <div className="min-h-screen flex items-center justify-center">Chargement du compte...</div>;
   }
 
   if (!user) {
-    // This case should ideally be handled by ProtectedRoute, but good to have a fallback
     return <div className="min-h-screen flex items-center justify-center">Veuillez vous connecter pour voir cette page.</div>;
   }
 
@@ -47,7 +58,7 @@ const Account = () => {
             {/* Icon placeholder */}
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">0</div> {/* Placeholder data */}
+            <div className="text-2xl font-bold">{currentMissions.length}</div> {/* Display count */}
           </CardContent>
         </Card>
          <Card>
@@ -78,6 +89,60 @@ const Account = () => {
           </CardContent>
         </Card>
       </div>
+
+      {/* Reservations Section with Tabs */}
+      <div className="mb-6">
+        <h2 className="text-3xl font-bold mb-4">Mes Réservations</h2>
+        <Tabs defaultValue="current">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="current">En cours ({currentMissions.length})</TabsTrigger>
+            <TabsTrigger value="history">Historique ({pastMissions.length})</TabsTrigger>
+          </TabsList>
+          <TabsContent value="current" className="mt-4 space-y-4">
+            {currentMissions.length > 0 ? (
+              currentMissions.map((mission) => (
+                <Card key={mission.id}>
+                  <CardHeader>
+                    <CardTitle>{mission.modele}</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p><strong>Immatriculation:</strong> {mission.immatriculation}</p>
+                    <p><strong>Départ:</strong> {mission.depart}</p>
+                    <p><strong>Arrivée:</strong> {mission.arrivee}</p>
+                    <p><strong>Heure limite:</strong> {new Date(mission.heureLimite).toLocaleString()}</p>
+                    <p><strong>Statut:</strong> {mission.statut}</p>
+                    {/* Add more details or actions here */}
+                  </CardContent>
+                </Card>
+              ))
+            ) : (
+              <p>Aucune mission en cours.</p>
+            )}
+          </TabsContent>
+          <TabsContent value="history" className="mt-4 space-y-4">
+             {pastMissions.length > 0 ? (
+              pastMissions.map((mission) => (
+                <Card key={mission.id}>
+                  <CardHeader>
+                    <CardTitle>{mission.modele}</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p><strong>Immatriculation:</strong> {mission.immatriculation}</p>
+                    <p><strong>Départ:</strong> {mission.depart}</p>
+                    <p><strong>Arrivée:</strong> {mission.arrivee}</p>
+                    <p><strong>Heure limite:</strong> {new Date(mission.heureLimite).toLocaleString()}</p>
+                    <p><strong>Statut:</strong> {mission.statut}</p>
+                    {/* Add more details or actions here */}
+                  </CardContent>
+                </Card>
+              ))
+            ) : (
+              <p>Aucune mission historique.</p>
+            )}
+          </TabsContent>
+        </Tabs>
+      </div>
+
 
       {/* Placeholder for Charts */}
       <Card className="mb-6">
