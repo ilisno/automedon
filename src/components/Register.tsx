@@ -14,14 +14,14 @@ const Register = () => {
     try {
       await register(email, password);
       toast({
-        title: 'Registration successful!',
-        description: 'You can now log in with your new account.',
+        title: 'Inscription réussie !',
+        description: 'Vous pouvez maintenant vous connecter avec votre nouveau compte.',
       });
     } catch (error) {
       console.error('Error registering:', error);
       toast({
-        title: 'Registration failed',
-        description: 'Please try again.',
+        title: 'Échec de l\'inscription',
+        description: 'Veuillez réessayer.',
       });
     }
   };
@@ -29,7 +29,7 @@ const Register = () => {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100">
       <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-sm">
-        <h2 className="text-2xl font-bold mb-6 text-center">Register</h2>
+        <h2 className="text-2xl font-bold mb-6 text-center">S'inscrire</h2>
         <form onSubmit={handleSubmit}>
           <div className="mb-4">
             <label htmlFor="email" className="block text-sm font-medium mb-1">
@@ -46,7 +46,7 @@ const Register = () => {
           </div>
           <div className="mb-4">
             <label htmlFor="password" className="block text-sm font-medium mb-1">
-              Password
+              Mot de passe
             </label>
             <input
               type="password"
@@ -61,13 +61,13 @@ const Register = () => {
             type="submit"
             className="w-full bg-blue-500 text-white py-2 rounded-md hover:bg-blue-600 transition-colors"
           >
-            Register
+            S'inscrire
           </button>
         </form>
         <p className="mt-4 text-center text-sm text-gray-600">
-          Already have an account?{' '}
+          Déjà un compte ?{' '}
           <Link to="/login" className="text-blue-500 hover:underline">
-            Login here
+            Se connecter ici
           </Link>
         </p>
       </div>
