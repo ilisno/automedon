@@ -7,6 +7,7 @@ import NotFound from "./pages/NotFound";
 import Concessionnaire from "./pages/Concessionnaire";
 import Convoyeur from "./pages/Convoyeur";
 import { MissionsProvider } from "./context/missionsContext";
+import Header from "./components/Header";
 
 const queryClient = new QueryClient();
 
@@ -16,6 +17,7 @@ const App = () => (
       <Toaster />
       <MissionsProvider>
         <BrowserRouter>
+          <Header />
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/concessionnaire" element={<Concessionnaire />} />
