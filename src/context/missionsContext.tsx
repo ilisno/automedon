@@ -11,7 +11,35 @@ type MissionsContextType = {
 const MissionsContext = createContext<MissionsContextType | undefined>(undefined);
 
 export const MissionsProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [missions, setMissions] = useState<Mission[]>([]);
+  const [missions, setMissions] = useState<Mission[]>([
+    {
+      id: uuidv4(),
+      immatriculation: 'AB-123-CD',
+      modele: 'Tesla Model S',
+      depart: 'Paris',
+      arrivee: 'Lyon',
+      heureLimite: new Date().toISOString(),
+      statut: 'en attente',
+    },
+    {
+      id: uuidv4(),
+      immatriculation: 'XY-456-ZZ',
+      modele: 'BMW i8',
+      depart: 'Marseille',
+      arrivee: 'Nice',
+      heureLimite: new Date().toISOString(),
+      statut: 'en cours',
+    },
+    {
+      id: uuidv4(),
+      immatriculation: 'QW-789-ER',
+      modele: 'Audi e-tron',
+      depart: 'Toulouse',
+      arrivee: 'Bordeaux',
+      heureLimite: new Date().toISOString(),
+      statut: 'livrée',
+    },
+  ]);
 
   const ajouterMission = (mission: Omit<Mission, 'id' | 'statut'>) => {
     const newMission: Mission = {

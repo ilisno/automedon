@@ -1,8 +1,10 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useMissions } from '@/context/missionsContext';
 
 const Index = () => {
   const navigate = useNavigate();
+  const { missions } = useMissions();
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gray-100">
@@ -20,6 +22,21 @@ const Index = () => {
         >
           Je suis convoyeur
         </button>
+      </div>
+      <div className="mt-12 w-full max-w-4xl">
+        <h2 className="text-2xl font-bold mb-4">Missions récentes</h2>
+        <div className="space-y-4">
+          {missions.slice(0, 3).map((mission) => (
+            <div key={mission.id} className="p-4 bg-white rounded-md shadow-md">
+              <h3 className="text-xl font-semibold">{mission.modele}</h3>
+              <p><strong>Immatriculation:</strong> {mission.immatriculation}</p>
+              <p><strong>Départ:</strong> {mission.depart}</p>
+              <p><strong>Arrivée:</strong> {mission.arrivee}</p>
+              <p><strong>Heure limite:</strong> {new Date(mission.heureLimite).toLocaleString()}</p>
+              <p><strong>Statut:</strong> {mission.statut}</p>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );
