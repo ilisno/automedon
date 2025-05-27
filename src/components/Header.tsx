@@ -1,19 +1,18 @@
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet'; // Import Sheet components
-import { Button } from '@/components/ui/button'; // Import Button component
-import { MenuIcon } from 'lucide-react'; // Import Menu icon
+import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { Button } from '@/components/ui/button';
+import { MenuIcon } from 'lucide-react';
 
 const Header = () => {
   const location = useLocation();
   const { user, logout } = useAuth();
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false); // State for mobile menu
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const handleLogout = async () => {
     try {
       await logout();
-      // Optionally close mobile menu after logout
       setIsMobileMenuOpen(false);
     } catch (error) {
       console.error('Error logging out:', error);
@@ -25,12 +24,10 @@ const Header = () => {
   return (
     <header className="bg-blue-600 text-white shadow-md">
       <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-        {/* Make title clickable */}
         <Link to="/" className="text-2xl font-bold hover:text-gray-300">
           <h1>Automédon</h1>
         </Link>
 
-        {/* Desktop Navigation */}
         <nav className="hidden md:flex space-x-4">
           <Link
             to="/"
@@ -40,6 +37,13 @@ const Header = () => {
           </Link>
           {user ? (
             <>
+              {/* Add link to Account page */}
+              <Link
+                to="/account"
+                className={`hover:text-gray-300 ${location.pathname === '/account' ? 'text-gray-300' : ''}`}
+              >
+                Mon Compte
+              </Link>
               <Link
                 to="/concessionnaire"
                 className={`hover:text-gray-300 ${location.pathname === '/concessionnaire' ? 'text-gray-300' : ''}`}
@@ -56,7 +60,7 @@ const Header = () => {
                 onClick={handleLogout}
                 className="hover:text-gray-300 focus:outline-none"
               >
-                Déconnexion {/* Translated Logout */}
+                Déconnexion
               </button>
             </>
           ) : (
@@ -65,19 +69,18 @@ const Header = () => {
                 to="/login"
                 className={`hover:text-gray-300 ${location.pathname === '/login' ? 'text-gray-300' : ''}`}
               >
-                Connexion {/* Translated Login */}
+                Connexion
               </Link>
               <Link
                 to="/register"
                 className={`hover:text-gray-300 ${location.pathname === '/register' ? 'text-gray-300' : ''}`}
               >
-                S'inscrire {/* Translated Register */}
+                S'inscrire
               </Link>
             </>
           )}
         </nav>
 
-        {/* Mobile Menu Button */}
         <div className="md:hidden">
           <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
             <SheetTrigger asChild>
@@ -91,28 +94,36 @@ const Header = () => {
                  <Link
                     to="/"
                     className={`text-lg font-medium hover:text-blue-600 ${location.pathname === '/' ? 'text-blue-600' : ''}`}
-                    onClick={closeMobileMenu} // Close menu on click
+                    onClick={closeMobileMenu}
                   >
                     Accueil
                   </Link>
                 {user ? (
                   <>
+                     {/* Add link to Account page in mobile menu */}
+                    <Link
+                      to="/account"
+                      className={`text-lg font-medium hover:text-blue-600 ${location.pathname === '/account' ? 'text-blue-600' : ''}`}
+                      onClick={closeMobileMenu}
+                    >
+                      Mon Compte
+                    </Link>
                     <Link
                       to="/concessionnaire"
                       className={`text-lg font-medium hover:text-blue-600 ${location.pathname === '/concessionnaire' ? 'text-blue-600' : ''}`}
-                      onClick={closeMobileMenu} // Close menu on click
+                      onClick={closeMobileMenu}
                     >
                       Concessionnaire
                     </Link>
                     <Link
                       to="/convoyeur"
                       className={`text-lg font-medium hover:text-blue-600 ${location.pathname === '/convoyeur' ? 'text-blue-600' : ''}`}
-                      onClick={closeMobileMenu} // Close menu on click
+                      onClick={closeMobileMenu}
                     >
                       Convoyeur
                     </Link>
                     <button
-                      onClick={() => { handleLogout(); closeMobileMenu(); }} // Logout and close menu
+                      onClick={() => { handleLogout(); closeMobileMenu(); }}
                       className="text-lg font-medium text-left hover:text-blue-600 focus:outline-none"
                     >
                       Déconnexion
@@ -123,14 +134,14 @@ const Header = () => {
                     <Link
                       to="/login"
                       className={`text-lg font-medium hover:text-blue-600 ${location.pathname === '/login' ? 'text-blue-600' : ''}`}
-                      onClick={closeMobileMenu} // Close menu on click
+                      onClick={closeMobileMenu}
                     >
                       Connexion
                     </Link>
                     <Link
                       to="/register"
                       className={`text-lg font-medium hover:text-blue-600 ${location.pathname === '/register' ? 'text-blue-600' : ''}`}
-                      onClick={closeMobileMenu} // Close menu on click
+                      onClick={closeMobileMenu}
                     >
                       S'inscrire
                     </Link>
