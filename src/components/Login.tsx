@@ -2,9 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { Link, useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
-import { Input } from '@/components/ui/input'; // Import Input
-import { Label } from '@/components/ui/label'; // Import Label
-import { Button } from '@/components/ui/button'; // Import Button
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Button } from '@/components/ui/button';
 
 
 const Login = () => {
