@@ -8,6 +8,10 @@ import Concessionnaire from "./pages/Concessionnaire";
 import Convoyeur from "./pages/Convoyeur";
 import { MissionsProvider } from "./context/missionsContext";
 import Header from "./components/Header";
+import Login from "./components/Login";
+import Register from "./components/Register";
+import ProtectedRoute from "./components/ProtectedRoute";
+import { AuthProvider } from "./context/AuthContext";
 
 const queryClient = new QueryClient();
 
@@ -15,18 +19,36 @@ const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
       <Toaster />
-      <MissionsProvider>
-        <BrowserRouter>
-          <Header />
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/concessionnaire" element={<Concessionnaire />} />
-            <Route path="/convoyeur" element={<Convoyeur />} />
-            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </BrowserRouter>
-      </MissionsProvider>
+      <AuthProvider>
+        <MissionsProvider>
+          <BrowserRouter>
+            <Header />
+            <Routes>
+              <Route path="/" element={<Index />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/register" element={<Register />} />
+              <Route
+                path="/concessionnaire"
+                element={
+                  <ProtectedRoute>
+                    <Concessionnaire />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/convoyeur"
+                element={
+                  <ProtectedRoute>
+                    <Convoyeur />
+                  </ProtectedRoute>
+                }
+              />
+              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </BrowserRouter>
+        </MissionsProvider>
+      </AuthProvider>
     </TooltipProvider>
   </QueryClientProvider>
 );
