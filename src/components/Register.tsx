@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/hooks/use-toast';
+import { Link } from 'react-router-dom'; // Import Link
 
 const Register = () => {
   const [email, setEmail] = useState('');
@@ -63,6 +64,12 @@ const Register = () => {
             Register
           </button>
         </form>
+        <p className="mt-4 text-center text-sm text-gray-600">
+          Already have an account?{' '}
+          <Link to="/login" className="text-blue-500 hover:underline">
+            Login here
+          </Link>
+        </p>
       </div>
     </div>
   );
