@@ -1,18 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/hooks/use-toast';
-import { Link, useNavigate } from 'react-router-dom'; // Import useNavigate
-import { Input } from '@/components/ui/input'; // Import shadcn Input
-import { Label } from '@/components/ui/label'; // Import shadcn Label
-import { Button } from '@/components/ui/button'; // Import shadcn Button
+import { Link, useNavigate } from 'react-router-dom';
+import { Input } from '@/components/ui/input'; // Import Input
+import { Label } from '@/components/ui/label'; // Import Label
+import { Button } from '@/components/ui/button'; // Import Button
 
 
 const Register = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const { register, user, profile, loading } = useAuth(); // Get user, profile, loading from context
-  const navigate = useNavigate(); // Initialize useNavigate
-  const { toast } = useToast(); // Initialize useToast
+  const { register, user, profile, loading } = useAuth();
+  const navigate = useNavigate();
+  const { toast } = useToast();
 
    // Redirect if user is already logged in and profile is complete
   useEffect(() => {
@@ -76,7 +76,7 @@ const Register = () => {
           <Button
             type="submit"
             className="w-full"
-            disabled={loading} // Disable button while loading
+            disabled={loading}
           >
             {loading ? 'Inscription...' : 'S\'inscrire'}
           </Button>
