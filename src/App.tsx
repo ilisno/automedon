@@ -5,7 +5,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import Concessionnaire from "./pages/Concessionnaire";
-import Convoyeur from from "./pages/Convoyeur";
+import Convoyeur from "./pages/Convoyeur"; {/* Corrected: Removed extra 'from' */}
 import { MissionsProvider } from "./context/missionsContext";
 import Header from "./components/Header";
 import AuthPage from "./pages/AuthPage";
@@ -21,7 +21,7 @@ const App = () => (
     <TooltipProvider>
       <Toaster />
       <AuthProvider>
-        <MissionsProvider> {/* Moved MissionsProvider here to wrap BrowserRouter */}
+        <MissionsProvider>
           <BrowserRouter>
             <Header />
             <Routes>
