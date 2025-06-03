@@ -75,49 +75,57 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const login = async (email: string, password: string): Promise<{ user: User | null; profile: Profile | null }> => {
     console.log('AuthContext: Attempting login with email:', email);
     setLoading(true);
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-    setLoading(false); // Set loading to false after the login attempt
-    if (error) {
-      console.error('AuthContext: Supabase login error:', error);
-      throw error;
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) {
+        console.error('AuthContext: Supabase login error:', error);
+        throw error;
+      }
+      console.log('AuthContext: Supabase login successful, user data:', data.user);
+      // The onAuthStateChange listener will update user and profile, but we can also update here for immediate feedback
+      setUser(data.user);
+      const userProfile = data.user ? await getProfile(data.user.id) : null;
+      setProfile(userProfile);
+      return { user: data.user, profile: userProfile };
+    } finally {
+      setLoading(false); // Ensure loading is false after the operation
     }
-    console.log('AuthContext: Supabase login successful, user data:', data.user);
-    // The onAuthStateChange listener will update user and profile, but we can also update here for immediate feedback
-    setUser(data.user);
-    const userProfile = data.user ? await getProfile(data.user.id) : null;
-    setProfile(userProfile);
-    return { user: data.user, profile: userProfile };
   };
 
   const register = async (email: string, password: string): Promise<{ user: User | null; profile: Profile | null }> => {
     console.log('AuthContext: Attempting registration with email:', email);
     setLoading(true);
-    const { data, error } = await supabase.auth.signUp({ email, password });
-    setLoading(false); // Set loading to false after the registration attempt
-    if (error) {
-      console.error('AuthContext: Supabase registration error:', error);
-      throw error;
+    try {
+      const { data, error } = await supabase.auth.signUp({ email, password });
+      if (error) {
+        console.error('AuthContext: Supabase registration error:', error);
+        throw error;
+      }
+      console.log('AuthContext: Supabase registration successful, user data:', data.user);
+      setUser(data.user);
+      const userProfile = data.user ? await getProfile(data.user.id) : null;
+      setProfile(userProfile);
+      return { user: data.user, profile: userProfile };
+    } finally {
+      setLoading(false); // Ensure loading is false after the operation
     }
-    console.log('AuthContext: Supabase registration successful, user data:', data.user);
-    // The onAuthStateChange listener will update user and profile, but we can also update here for immediate feedback
-    setUser(data.user);
-    const userProfile = data.user ? await getProfile(data.user.id) : null;
-    setProfile(userProfile);
-    return { user: data.user, profile: userProfile };
   };
 
   const logout = async () => {
     console.log('AuthContext: Attempting logout');
     setLoading(true); // Indicate that logout is in progress
-    const { error } = await supabase.auth.signOut();
-    if (error) {
-      console.error('AuthContext: Supabase logout error:', error);
-      setLoading(false); // If there's an error, ensure loading is reset
-      throw error;
+    try {
+      const { error } = await supabase.auth.signOut();
+      if (error) {
+        console.error('AuthContext: Supabase logout error:', error);
+        throw error;
+      }
+      console.log('AuthContext: Supabase logout successful (waiting for onAuthStateChange to update state)');
+      // State (user, profile, loading) will be updated by the onAuthStateChange listener
+      // when it receives the 'SIGNED_OUT' event.
+    } finally {
+      setLoading(false); // Ensure loading is false after the operation
     }
-    console.log('AuthContext: Supabase logout successful (waiting for onAuthStateChange to update state)');
-    // State (user, profile, loading) will be updated by the onAuthStateChange listener
-    // when it receives the 'SIGNED_OUT' event.
   };
 
   return (
