@@ -3,13 +3,13 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import { MenuIcon } from 'lucide-react';
-import { useSupabaseClient } from '@supabase/auth-ui-react'; // Import useSupabaseClient
+import { supabase } from '@/lib/supabaseClient'; // Import directly from our client
 import { useAuth } from '@/context/AuthContext'; // Import the new AuthContext for profile
 
 const Header = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const supabase = useSupabaseClient();
+  // const supabase = useSupabaseClient(); // No longer needed, imported directly
   const { user, profile } = useAuth(); // Get user and profile from our AuthContext
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
