@@ -5,11 +5,9 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import Concessionnaire from "./pages/Concessionnaire";
-import Convoyeur from "./pages/Convoyeur";
+import Convoyeur from from "./pages/Convoyeur";
 import { MissionsProvider } from "./context/missionsContext";
 import Header from "./components/Header";
-// import { SessionContextProvider } from '@supabase/auth-ui-react'; // Removed as it's redundant with AuthProvider
-// import { supabase } from './lib/supabaseClient'; // No longer needed here directly for SessionContextProvider
 import AuthPage from "./pages/AuthPage";
 import CompleteProfile from "./pages/CompleteProfile";
 import Account from "./pages/Account";
@@ -22,49 +20,50 @@ const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
       <Toaster />
-      {/* SessionContextProvider removed, AuthProvider now handles session */}
       <AuthProvider>
-        <BrowserRouter>
-          <Header />
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/auth" element={<AuthPage />} />
-            <Route
-              path="/complete-profile"
-              element={
-                <ProtectedRoute>
-                  <CompleteProfile />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/account"
-              element={
-                <ProtectedRoute>
-                  <Account />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/concessionnaire"
-              element={
-                <ProtectedRoute>
-                  <Concessionnaire />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/convoyeur"
-              element={
-                <ProtectedRoute>
-                  <Convoyeur />
-                </ProtectedRoute>
-              }
-            />
-            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </BrowserRouter>
+        <MissionsProvider> {/* Moved MissionsProvider here to wrap BrowserRouter */}
+          <BrowserRouter>
+            <Header />
+            <Routes>
+              <Route path="/" element={<Index />} />
+              <Route path="/auth" element={<AuthPage />} />
+              <Route
+                path="/complete-profile"
+                element={
+                  <ProtectedRoute>
+                    <CompleteProfile />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/account"
+                element={
+                  <ProtectedRoute>
+                    <Account />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/concessionnaire"
+                element={
+                  <ProtectedRoute>
+                    <Concessionnaire />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/convoyeur"
+                element={
+                  <ProtectedRoute>
+                    <Convoyeur />
+                  </ProtectedRoute>
+                }
+              />
+              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </BrowserRouter>
+        </MissionsProvider>
       </AuthProvider>
     </TooltipProvider>
   </QueryClientProvider>
