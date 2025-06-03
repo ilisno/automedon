@@ -147,27 +147,27 @@ const CompleteProfile = () => {
         <h2 className="text-2xl font-bold mb-6 text-center">Compléter votre profil</h2>
         <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="col-span-1">
-            <Label htmlFor="first_name">Prénom</Label>
+            <Label htmlFor="first_name" className="block mb-1">Prénom</Label>
             <Input id="first_name" name="first_name" value={formData.first_name} onChange={handleChange} required />
           </div>
           <div className="col-span-1">
-            <Label htmlFor="last_name">Nom</Label>
+            <Label htmlFor="last_name" className="block mb-1">Nom</Label>
             <Input id="last_name" name="last_name" value={formData.last_name} onChange={handleChange} required />
           </div>
           <div className="col-span-1">
-            <Label htmlFor="phone">Téléphone</Label>
+            <Label htmlFor="phone" className="block mb-1">Téléphone</Label>
             <Input id="phone" name="phone" value={formData.phone} onChange={handleChange} required />
           </div>
            <div className="col-span-1">
-            <Label htmlFor="date_of_birth">Date de naissance</Label>
+            <Label htmlFor="date_of_birth" className="block mb-1">Date de naissance</Label>
             <Input type="date" id="date_of_birth" name="date_of_birth" value={formData.date_of_birth} onChange={handleChange} required />
           </div>
            <div className="col-span-2">
-            <Label htmlFor="languages">Langues (séparées par des virgules)</Label>
+            <Label htmlFor="languages" className="block mb-1">Langues (séparées par des virgules)</Label>
             <Input id="languages" name="languages" value={formData.languages} onChange={handleChange} placeholder="Ex: Français, Anglais" />
           </div>
           <div className="col-span-2">
-            <Label htmlFor="company_type">Type de société</Label>
+            <Label htmlFor="company_type" className="block mb-1">Type de société</Label>
              <Select onValueChange={(value) => handleSelectChange('company_type', value)} value={formData.company_type} required>
               <SelectTrigger>
                 <SelectValue placeholder="Sélectionner le type" />
@@ -180,31 +180,31 @@ const CompleteProfile = () => {
             </Select>
           </div>
           <div className="col-span-2">
-            <Label htmlFor="siret">SIRET</Label>
+            <Label htmlFor="siret" className="block mb-1">SIRET</Label>
             <Input id="siret" name="siret" value={formData.siret} onChange={handleChange} />
           </div>
           <div className="col-span-2">
-            <Label htmlFor="address">Adresse</Label>
+            <Label htmlFor="address" className="block mb-1">Adresse</Label>
             <Input id="address" name="address" value={formData.address} onChange={handleChange} required />
           </div>
           <div className="col-span-1">
-            <Label htmlFor="postal_code">Code postal</Label>
+            <Label htmlFor="postal_code" className="block mb-1">Code postal</Label>
             <Input id="postal_code" name="postal_code" value={formData.postal_code} onChange={handleChange} required />
           </div>
           <div className="col-span-1">
-            <Label htmlFor="city">Ville</Label>
+            <Label htmlFor="city" className="block mb-1">Ville</Label>
             <Input id="city" name="city" value={formData.city} onChange={handleChange} required />
           </div>
           <div className="col-span-1">
-            <Label htmlFor="driver_license_number">Numéro de permis</Label>
+            <Label htmlFor="driver_license_number" className="block mb-1">Numéro de permis</Label>
             <Input id="driver_license_number" name="driver_license_number" value={formData.driver_license_number} onChange={handleChange} required />
           </div>
           <div className="col-span-1">
-            <Label htmlFor="license_issue_date">Date d'obtention du permis</Label>
+            <Label htmlFor="license_issue_date" className="block mb-1">Date d'obtention du permis</Label>
             <Input type="date" id="license_issue_date" name="license_issue_date" value={formData.license_issue_date} onChange={handleChange} required />
           </div>
            <div className="col-span-2">
-            <Label htmlFor="license_issue_city">Ville de délivrance du permis</Label>
+            <Label htmlFor="license_issue_city" className="block mb-1">Ville de délivrance du permis</Label>
             <Input id="license_issue_city" name="license_issue_city" value={formData.license_issue_city} onChange={handleChange} required />
           </div>
 
