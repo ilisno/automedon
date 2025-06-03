@@ -66,23 +66,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         setUser(null);
         setProfile(null);
       }
-      setLoading(false);
+      setLoading(false); // Always set loading to false after state change is processed
     });
-
-    // Initial check
-    const checkInitialAuth = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      console.log('Initial session check:', session);
-      if (session) {
-        setUser(session.user);
-        const userProfile = await getProfile(session.user.id);
-        setProfile(userProfile);
-      }
-      setLoading(false);
-    };
-
-    checkInitialAuth();
-
 
     return () => subscription.unsubscribe();
   }, []); // Empty dependency array means this effect runs once on mount
@@ -91,12 +76,13 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     console.log('AuthContext: Attempting login with email:', email);
     setLoading(true);
     const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-    setLoading(false);
+    setLoading(false); // Set loading to false after the login attempt
     if (error) {
       console.error('AuthContext: Supabase login error:', error);
       throw error;
     }
     console.log('AuthContext: Supabase login successful, user data:', data.user);
+    // The onAuthStateChange listener will update user and profile, but we can also update here for immediate feedback
     setUser(data.user);
     const userProfile = data.user ? await getProfile(data.user.id) : null;
     setProfile(userProfile);
@@ -107,14 +93,14 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     console.log('AuthContext: Attempting registration with email:', email);
     setLoading(true);
     const { data, error } = await supabase.auth.signUp({ email, password });
-     setLoading(false);
+    setLoading(false); // Set loading to false after the registration attempt
     if (error) {
       console.error('AuthContext: Supabase registration error:', error);
       throw error;
     }
     console.log('AuthContext: Supabase registration successful, user data:', data.user);
+    // The onAuthStateChange listener will update user and profile, but we can also update here for immediate feedback
     setUser(data.user);
-     // Profile is created by trigger, fetch it
     const userProfile = data.user ? await getProfile(data.user.id) : null;
     setProfile(userProfile);
     return { user: data.user, profile: userProfile };
@@ -122,16 +108,16 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const logout = async () => {
     console.log('AuthContext: Attempting logout');
-    setLoading(true);
+    setLoading(true); // Indicate that logout is in progress
     const { error } = await supabase.auth.signOut();
-    setLoading(false);
     if (error) {
       console.error('AuthContext: Supabase logout error:', error);
+      setLoading(false); // If there's an error, ensure loading is reset
       throw error;
     }
-    console.log('AuthContext: Supabase logout successful');
-    setUser(null);
-    setProfile(null);
+    console.log('AuthContext: Supabase logout successful (waiting for onAuthStateChange to update state)');
+    // State (user, profile, loading) will be updated by the onAuthStateChange listener
+    // when it receives the 'SIGNED_OUT' event.
   };
 
   return (
