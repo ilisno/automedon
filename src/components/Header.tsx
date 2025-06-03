@@ -3,15 +3,14 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import { MenuIcon } from 'lucide-react';
-import { useSession, useSupabaseClient } from '@supabase/auth-ui-react'; // Import useSession and useSupabaseClient
+import { useSupabaseClient } from '@supabase/auth-ui-react'; // Import useSupabaseClient
 import { useAuth } from '@/context/AuthContext'; // Import the new AuthContext for profile
 
 const Header = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const supabase = useSupabaseClient();
-  const session = useSession(); // Get session from Supabase Auth UI context
-  const { profile } = useAuth(); // Get profile from our new AuthContext
+  const { user, profile } = useAuth(); // Get user and profile from our AuthContext
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const handleLogout = async () => {
@@ -40,7 +39,7 @@ const Header = () => {
           >
             Accueil
           </Link>
-          {session ? ( // Check for session instead of user
+          {user ? ( // Check for user from AuthContext
             <>
               <Link
                 to="/account"
@@ -98,7 +97,7 @@ const Header = () => {
                   >
                     Accueil
                   </Link>
-                {session ? ( // Check for session instead of user
+                {user ? ( // Check for user from AuthContext
                   <>
                     <Link
                       to="/account"

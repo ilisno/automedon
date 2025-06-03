@@ -3,18 +3,18 @@ import { ThemeSupa } from '@supabase/auth-ui-shared';
 import { supabase } from '@/lib/supabaseClient';
 import { useNavigate } from 'react-router-dom';
 import { useEffect } from 'react';
-import { useSession } from '@supabase/auth-ui-react';
+import { useAuth } from '@/context/AuthContext'; // Import useAuth
 
 const AuthPage = () => {
   const navigate = useNavigate();
-  const session = useSession(); // Get the session from Supabase Auth UI context
+  const { user } = useAuth(); // Get the user from AuthContext
 
   useEffect(() => {
-    if (session) {
-      // If a session exists, redirect to the home page or a dashboard
+    if (user) {
+      // If a user exists, redirect to the home page or a dashboard
       navigate('/');
     }
-  }, [session, navigate]);
+  }, [user, navigate]);
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100 p-4">
