@@ -66,23 +66,12 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         setUser(null);
         setProfile(null);
       }
-      setLoading(false);
+      setLoading(false); // Always set loading to false after state change is processed
     });
 
-    // Initial check
-    const checkInitialAuth = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      console.log('Initial session check:', session);
-      if (session) {
-        setUser(session.user);
-        const userProfile = await getProfile(session.user.id);
-        setProfile(userProfile);
-      }
-      setLoading(false);
-    };
-
-    checkInitialAuth();
-
+    // The onAuthStateChange listener fires immediately with the current session,
+    // so a separate initial check is often redundant and can cause issues.
+    // We rely solely on the subscription to manage the initial loading state.
 
     return () => subscription.unsubscribe();
   }, []); // Empty dependency array means this effect runs once on mount
