@@ -12,6 +12,7 @@ import NotFound from "./pages/NotFound";
 import Concessionnaire from "./pages/Concessionnaire";
 import Convoyeur from "./pages/Convoyeur";
 import Login from "./pages/Login";
+import CreateMission from "./pages/CreateMission"; // Import the new page
 
 const queryClient = new QueryClient();
 
@@ -40,6 +41,7 @@ const AppContent = () => {
       <Route path="/concessionnaire" element={<Concessionnaire />} />
       <Route path="/convoyeur" element={<Convoyeur />} />
       <Route path="/login" element={<Login />} />
+      <Route path="/create-mission" element={<CreateMission />} /> {/* New route */}
       {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
       <Route path="*" element={<NotFound />} />
     </Routes>
