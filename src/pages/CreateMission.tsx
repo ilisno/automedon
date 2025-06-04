@@ -5,8 +5,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { showSuccess } from "@/utils/toast";
 import Header from "@/components/Header";
+import { useMissions } from "@/context/MissionsContext"; // Import useMissions
 
 const CreateMission = () => {
+  const { ajouterMission } = useMissions(); // Utilisation du hook de contexte
+
   const [immatriculation, setImmatriculation] = useState("");
   const [modele, setModele] = useState("");
   const [lieuDepart, setLieuDepart] = useState("");
@@ -15,14 +18,15 @@ const CreateMission = () => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const missionData = {
+    
+    // Appel de la fonction ajouterMission du contexte
+    ajouterMission({
       immatriculation,
       modele,
       lieuDepart,
       lieuArrivee,
       heureLimite,
-    };
-    console.log("Données de la mission :", missionData);
+    });
 
     // Vider le formulaire
     setImmatriculation("");
