@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { Menu, LogIn, LogOut } from "lucide-react";
+import { Menu, LogIn, LogOut, User } from "lucide-react"; // Import User icon
 import { useIsMobile } from "@/hooks/use-mobile";
 import { supabase } from "@/integrations/supabase/client";
 import { Session } from "@supabase/supabase-js";
@@ -41,9 +41,14 @@ const Header = () => {
         Convoyeur
       </Link>
       {session ? (
-        <Button variant="ghost" onClick={handleLogout} className="text-lg font-medium hover:text-primary-foreground transition-colors">
-          <LogOut className="mr-2 h-5 w-5" /> Déconnexion
-        </Button>
+        <>
+          <Link to="/account" className="text-lg font-medium hover:text-primary-foreground transition-colors flex items-center">
+            <User className="mr-2 h-5 w-5" /> Mon Compte
+          </Link>
+          <Button variant="ghost" onClick={handleLogout} className="text-lg font-medium hover:text-primary-foreground transition-colors">
+            <LogOut className="mr-2 h-5 w-5" /> Déconnexion
+          </Button>
+        </>
       ) : (
         <Link to="/login">
           <Button variant="ghost" className="text-lg font-medium hover:text-primary-foreground transition-colors">

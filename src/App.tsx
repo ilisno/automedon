@@ -6,7 +6,7 @@ import { BrowserRouter, Routes, Route, useNavigate } from "react-router-dom";
 import { SessionContextProvider } from "@supabase/auth-helpers-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useEffect } from "react";
-import { MissionsProvider } from "@/context/MissionsContext"; // Import MissionsProvider
+import { MissionsProvider } from "@/context/MissionsContext";
 
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
@@ -14,6 +14,7 @@ import Concessionnaire from "./pages/Concessionnaire";
 import Convoyeur from "./pages/Convoyeur";
 import Login from "./pages/Login";
 import CreateMission from "./pages/CreateMission";
+import Account from "./pages/Account"; // Import the new Account page
 
 const queryClient = new QueryClient();
 
@@ -43,6 +44,7 @@ const AppContent = () => {
       <Route path="/convoyeur" element={<Convoyeur />} />
       <Route path="/login" element={<Login />} />
       <Route path="/create-mission" element={<CreateMission />} />
+      <Route path="/account" element={<Account />} /> {/* New route for Account page */}
       {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
       <Route path="*" element={<NotFound />} />
     </Routes>
@@ -56,7 +58,7 @@ const App = () => (
       <Sonner />
       <SessionContextProvider supabaseClient={supabase}>
         <BrowserRouter>
-          <MissionsProvider> {/* Wrap with MissionsProvider */}
+          <MissionsProvider>
             <AppContent />
           </MissionsProvider>
         </BrowserRouter>
