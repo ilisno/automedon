@@ -1,15 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Textarea } from '@/components/ui/textarea';
+import { supabase } from '@/lib/supabaseClient';
+import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Button } from '@/components/ui/button';
+import { Textarea } from '@/components/ui/textarea'; // Assuming you might need a textarea for languages or comments
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'; // For company type
 
 const CompleteProfile = () => {
-  const { user, profile, updateProfile, loading } = useAuth();
+  const { user, getProfile } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -18,7 +19,7 @@ const CompleteProfile = () => {
     last_name: '',
     phone: '',
     date_of_birth: '',
-    languages: [] as string[],
+    languages: '', // Storing as comma-separated string for simplicity in form
     company_type: '',
     siret: '',
     address: '',
@@ -27,181 +28,191 @@ const CompleteProfile = () => {
     driver_license_number: '',
     license_issue_date: '',
     license_issue_city: '',
-    role: '' as 'concessionnaire' | 'convoyeur' | '',
   });
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!loading && user && profile) {
-      // Pre-fill form with existing profile data if available
-      setFormData({
-        first_name: profile.first_name || '',
-        last_name: profile.last_name || '',
-        phone: profile.phone || '',
-        date_of_birth: profile.date_of_birth || '',
-        languages: profile.languages || [],
-        company_type: profile.company_type || '',
-        siret: profile.siret || '',
-        address: profile.address || '',
-        postal_code: profile.postal_code || '',
-        city: profile.city || '',
-        driver_license_number: profile.driver_license_number || '',
-        license_issue_date: profile.license_issue_date || '',
-        license_issue_city: profile.license_issue_city || '',
-        role: profile.role || '',
-      });
-    }
-  }, [loading, user, profile]);
+    const fetchProfile = async () => {
+      if (user) {
+        const profile = await getProfile(user.id);
+        if (profile && profile.is_profile_complete) {
+          // If profile is already complete, redirect
+          navigate('/');
+        } else if (profile) {
+          // If profile exists but is incomplete, pre-fill form if data exists
+          setFormData({
+            first_name: profile.first_name || '',
+            last_name: profile.last_name || '',
+            phone: profile.phone || '',
+            date_of_birth: profile.date_of_birth || '',
+            languages: Array.isArray(profile.languages) ? profile.languages.join(', ') : profile.languages || '',
+            company_type: profile.company_type || '',
+            siret: profile.siret || '',
+            address: profile.address || '',
+            postal_code: profile.postal_code || '',
+            city: profile.city || '',
+            driver_license_number: profile.driver_license_number || '',
+            license_issue_date: profile.license_issue_date || '',
+            license_issue_city: profile.license_issue_city || '',
+          });
+        }
+      } else {
+        // If no user, redirect to login
+        navigate('/login');
+      }
+      setLoading(false);
+    };
+
+    fetchProfile();
+  }, [user, navigate, getProfile]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
+    setFormData({
+      ...formData,
+      [name]: value,
+    });
   };
 
   const handleSelectChange = (name: string, value: string) => {
-    setFormData({ ...formData, [name]: value });
+    setFormData({
+      ...formData,
+      [name]: value,
+    });
   };
 
-  const handleLanguageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      languages: value.split(',').map(lang => lang.trim()).filter(lang => lang !== '')
-    }));
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) {
       toast({
         title: 'Erreur',
-        description: 'Utilisateur non authentifié.',
+        description: 'Vous devez être connecté pour compléter votre profil.',
         variant: 'destructive',
       });
       return;
     }
 
-    const updates = {
-      ...formData,
-      is_profile_complete: true,
-    };
+    setLoading(true);
 
-    const updatedProfile = await updateProfile(user.id, updates);
+    // Convert comma-separated languages string to array
+    const languagesArray = formData.languages.split(',').map(lang => lang.trim()).filter(lang => lang !== '');
 
-    if (updatedProfile) {
+    const { error } = await supabase
+      .from('profiles')
+      .update({
+        first_name: formData.first_name,
+        last_name: formData.last_name,
+        phone: formData.phone,
+        date_of_birth: formData.date_of_birth || null, // Supabase expects null for empty date
+        languages: languagesArray,
+        company_type: formData.company_type,
+        siret: formData.siret,
+        address: formData.address,
+        postal_code: formData.postal_code,
+        city: formData.city,
+        driver_license_number: formData.driver_license_number,
+        license_issue_date: formData.license_issue_date || null, // Supabase expects null for empty date
+        license_issue_city: formData.license_issue_city,
+        is_profile_complete: true, // Mark profile as complete
+      })
+      .eq('id', user.id);
+
+    if (error) {
+      console.error('Error updating profile:', error);
       toast({
-        title: 'Profil mis à jour ✅',
-        description: 'Votre profil a été complété avec succès.',
-      });
-      navigate('/'); // Redirect to home or dashboard after profile completion
-    } else {
-      toast({
-        title: 'Erreur',
-        description: 'Échec de la mise à jour du profil.',
+        title: 'Erreur lors de la mise à jour du profil',
+        description: error.message,
         variant: 'destructive',
       });
+      setLoading(false);
+    } else {
+      toast({
+        title: 'Profil mis à jour avec succès !',
+        description: 'Votre profil est maintenant complet.',
+      });
+      // Refresh user state in AuthContext if needed, or just rely on redirect
+      // await getProfile(user.id); // Optional: refresh profile in context
+      navigate('/'); // Redirect to home page
     }
   };
 
   if (loading) {
-    return <div className="min-h-screen flex items-center justify-center">Chargement du profil...</div>;
-  }
-
-  if (!user) {
-    return <div className="min-h-screen flex items-center justify-center">Veuillez vous connecter pour compléter votre profil.</div>;
+    return <div className="min-h-screen flex items-center justify-center">Chargement...</div>;
   }
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gray-100 p-4">
-      <div className="w-full max-w-2xl bg-white p-8 rounded-lg shadow-md">
-        <h2 className="text-2xl font-bold text-center mb-6">Compléter votre profil</h2>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="first_name">Prénom</Label>
-              <Input id="first_name" name="first_name" value={formData.first_name} onChange={handleChange} required />
-            </div>
-            <div>
-              <Label htmlFor="last_name">Nom</Label>
-              <Input id="last_name" name="last_name" value={formData.last_name} onChange={handleChange} required />
-            </div>
+    <div className="min-h-screen flex items-center justify-center bg-gray-100 p-4">
+      <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-2xl">
+        <h2 className="text-2xl font-bold mb-6 text-center">Compléter votre profil</h2>
+        <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="col-span-1">
+            <Label htmlFor="first_name">Prénom</Label>
+            <Input id="first_name" name="first_name" value={formData.first_name} onChange={handleChange} required />
           </div>
-
-          <div>
-            <Label htmlFor="role">Vous êtes :</Label>
-            <Select name="role" value={formData.role} onValueChange={(value) => handleSelectChange('role', value)} required>
+          <div className="col-span-1">
+            <Label htmlFor="last_name">Nom</Label>
+            <Input id="last_name" name="last_name" value={formData.last_name} onChange={handleChange} required />
+          </div>
+          <div className="col-span-1">
+            <Label htmlFor="phone">Téléphone</Label>
+            <Input id="phone" name="phone" value={formData.phone} onChange={handleChange} required />
+          </div>
+           <div className="col-span-1">
+            <Label htmlFor="date_of_birth">Date de naissance</Label>
+            <Input type="date" id="date_of_birth" name="date_of_birth" value={formData.date_of_birth} onChange={handleChange} required />
+          </div>
+           <div className="col-span-2">
+            <Label htmlFor="languages">Langues (séparées par des virgules)</Label>
+            <Input id="languages" name="languages" value={formData.languages} onChange={handleChange} placeholder="Ex: Français, Anglais" />
+          </div>
+          <div className="col-span-2">
+            <Label htmlFor="company_type">Type de société</Label>
+             <Select onValueChange={(value) => handleSelectChange('company_type', value)} value={formData.company_type} required>
               <SelectTrigger>
-                <SelectValue placeholder="Sélectionnez votre rôle" />
+                <SelectValue placeholder="Sélectionner le type" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="concessionnaire">Concessionnaire</SelectItem>
                 <SelectItem value="convoyeur">Convoyeur</SelectItem>
+                <SelectItem value="autre">Autre</SelectItem>
               </SelectContent>
             </Select>
           </div>
-
-          <div>
-            <Label htmlFor="phone">Téléphone</Label>
-            <Input id="phone" name="phone" type="tel" value={formData.phone} onChange={handleChange} />
+          <div className="col-span-2">
+            <Label htmlFor="siret">SIRET</Label>
+            <Input id="siret" name="siret" value={formData.siret} onChange={handleChange} />
           </div>
-
-          <div>
-            <Label htmlFor="date_of_birth">Date de naissance</Label>
-            <Input id="date_of_birth" name="date_of_birth" type="date" value={formData.date_of_birth} onChange={handleChange} />
-          </div>
-
-          <div>
-            <Label htmlFor="languages">Langues (séparées par des virgules)</Label>
-            <Input id="languages" name="languages" value={formData.languages.join(', ')} onChange={handleLanguageChange} />
-          </div>
-
-          {formData.role === 'concessionnaire' && (
-            <>
-              <div>
-                <Label htmlFor="company_type">Type d'entreprise</Label>
-                <Input id="company_type" name="company_type" value={formData.company_type} onChange={handleChange} />
-              </div>
-              <div>
-                <Label htmlFor="siret">Numéro SIRET</Label>
-                <Input id="siret" name="siret" value={formData.siret} onChange={handleChange} />
-              </div>
-            </>
-          )}
-
-          {formData.role === 'convoyeur' && (
-            <>
-              <div>
-                <Label htmlFor="driver_license_number">Numéro de permis de conduire</Label>
-                <Input id="driver_license_number" name="driver_license_number" value={formData.driver_license_number} onChange={handleChange} />
-              </div>
-              <div>
-                <Label htmlFor="license_issue_date">Date de délivrance du permis</Label>
-                <Input id="license_issue_date" name="license_issue_date" type="date" value={formData.license_issue_date} onChange={handleChange} />
-              </div>
-              <div>
-                <Label htmlFor="license_issue_city">Ville de délivrance du permis</Label>
-                <Input id="license_issue_city" name="license_issue_city" value={formData.license_issue_city} onChange={handleChange} />
-              </div>
-            </>
-          )}
-
-          <div>
+          <div className="col-span-2">
             <Label htmlFor="address">Adresse</Label>
-            <Textarea id="address" name="address" value={formData.address} onChange={handleChange} />
+            <Input id="address" name="address" value={formData.address} onChange={handleChange} required />
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="postal_code">Code Postal</Label>
-              <Input id="postal_code" name="postal_code" value={formData.postal_code} onChange={handleChange} />
-            </div>
-            <div>
-              <Label htmlFor="city">Ville</Label>
-              <Input id="city" name="city" value={formData.city} onChange={handleChange} />
-            </div>
+          <div className="col-span-1">
+            <Label htmlFor="postal_code">Code postal</Label>
+            <Input id="postal_code" name="postal_code" value={formData.postal_code} onChange={handleChange} required />
+          </div>
+          <div className="col-span-1">
+            <Label htmlFor="city">Ville</Label>
+            <Input id="city" name="city" value={formData.city} onChange={handleChange} required />
+          </div>
+          <div className="col-span-1">
+            <Label htmlFor="driver_license_number">Numéro de permis</Label>
+            <Input id="driver_license_number" name="driver_license_number" value={formData.driver_license_number} onChange={handleChange} required />
+          </div>
+          <div className="col-span-1">
+            <Label htmlFor="license_issue_date">Date d'obtention du permis</Label>
+            <Input type="date" id="license_issue_date" name="license_issue_date" value={formData.license_issue_date} onChange={handleChange} required />
+          </div>
+           <div className="col-span-2">
+            <Label htmlFor="license_issue_city">Ville de délivrance du permis</Label>
+            <Input id="license_issue_city" name="license_issue_city" value={formData.license_issue_city} onChange={handleChange} required />
           </div>
 
-          <Button type="submit" className="w-full">
-            Compléter le profil
-          </Button>
+          <div className="col-span-2">
+            <Button type="submit" className="w-full" disabled={loading}>
+              {loading ? 'Enregistrement...' : 'Enregistrer le profil'}
+            </Button>
+          </div>
         </form>
       </div>
     </div>

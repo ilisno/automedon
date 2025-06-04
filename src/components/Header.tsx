@@ -1,23 +1,19 @@
 import React, { useState } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
+import { useAuth } from '@/context/AuthContext';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import { MenuIcon } from 'lucide-react';
-import { supabase } from '@/lib/supabaseClient'; // Import directly from our client
-import { useAuth } from '@/context/AuthContext'; // Import the new AuthContext for profile
 
 const Header = () => {
   const location = useLocation();
-  const navigate = useNavigate();
-  // const supabase = useSupabaseClient(); // No longer needed, imported directly
-  const { user, profile } = useAuth(); // Get user and profile from our AuthContext
+  const { user, logout } = useAuth();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const handleLogout = async () => {
     try {
-      await supabase.auth.signOut();
+      await logout();
       setIsMobileMenuOpen(false);
-      navigate('/auth'); // Redirect to auth page after logout
     } catch (error) {
       console.error('Error logging out:', error);
     }
@@ -39,30 +35,27 @@ const Header = () => {
           >
             Accueil
           </Link>
-          {user ? ( // Check for user from AuthContext
+          {user ? (
             <>
+              {/* Add link to Account page */}
               <Link
                 to="/account"
                 className={`hover:text-gray-300 ${location.pathname === '/account' ? 'text-gray-300' : ''}`}
               >
                 Mon Compte
               </Link>
-              {profile?.role === 'concessionnaire' && (
-                <Link
-                  to="/concessionnaire"
-                  className={`hover:text-gray-300 ${location.pathname === '/concessionnaire' ? 'text-gray-300' : ''}`}
-                >
-                  Concessionnaire
-                </Link>
-              )}
-              {profile?.role === 'convoyeur' && (
-                <Link
-                  to="/convoyeur"
-                  className={`hover:text-gray-300 ${location.pathname === '/convoyeur' ? 'text-gray-300' : ''}`}
-                >
-                  Convoyeur
-                </Link>
-              )}
+              <Link
+                to="/concessionnaire"
+                className={`hover:text-gray-300 ${location.pathname === '/concessionnaire' ? 'text-gray-300' : ''}`}
+              >
+                Concessionnaire
+              </Link>
+              <Link
+                to="/convoyeur"
+                className={`hover:text-gray-300 ${location.pathname === '/convoyeur' ? 'text-gray-300' : ''}`}
+              >
+                Convoyeur
+              </Link>
               <button
                 onClick={handleLogout}
                 className="hover:text-gray-300 focus:outline-none"
@@ -71,12 +64,20 @@ const Header = () => {
               </button>
             </>
           ) : (
-            <Link
-              to="/auth" // Link to the new unified auth page
-              className={`hover:text-gray-300 ${location.pathname === '/auth' ? 'text-gray-300' : ''}`}
-            >
-              Connexion / S'inscrire
-            </Link>
+            <>
+              <Link
+                to="/login"
+                className={`hover:text-gray-300 ${location.pathname === '/login' ? 'text-gray-300' : ''}`}
+              >
+                Connexion
+              </Link>
+              <Link
+                to="/register"
+                className={`hover:text-gray-300 ${location.pathname === '/register' ? 'text-gray-300' : ''}`}
+              >
+                S'inscrire
+              </Link>
+            </>
           )}
         </nav>
 
@@ -97,8 +98,9 @@ const Header = () => {
                   >
                     Accueil
                   </Link>
-                {user ? ( // Check for user from AuthContext
+                {user ? (
                   <>
+                     {/* Add link to Account page in mobile menu */}
                     <Link
                       to="/account"
                       className={`text-lg font-medium hover:text-blue-600 ${location.pathname === '/account' ? 'text-blue-600' : ''}`}
@@ -106,24 +108,20 @@ const Header = () => {
                     >
                       Mon Compte
                     </Link>
-                    {profile?.role === 'concessionnaire' && (
-                      <Link
-                        to="/concessionnaire"
-                        className={`text-lg font-medium hover:text-blue-600 ${location.pathname === '/concessionnaire' ? 'text-blue-600' : ''}`}
-                        onClick={closeMobileMenu}
-                      >
-                        Concessionnaire
-                      </Link>
-                    )}
-                    {profile?.role === 'convoyeur' && (
-                      <Link
-                        to="/convoyeur"
-                        className={`text-lg font-medium hover:text-blue-600 ${location.pathname === '/convoyeur' ? 'text-blue-600' : ''}`}
-                        onClick={closeMobileMenu}
-                      >
-                        Convoyeur
-                      </Link>
-                    )}
+                    <Link
+                      to="/concessionnaire"
+                      className={`text-lg font-medium hover:text-blue-600 ${location.pathname === '/concessionnaire' ? 'text-blue-600' : ''}`}
+                      onClick={closeMobileMenu}
+                    >
+                      Concessionnaire
+                    </Link>
+                    <Link
+                      to="/convoyeur"
+                      className={`text-lg font-medium hover:text-blue-600 ${location.pathname === '/convoyeur' ? 'text-blue-600' : ''}`}
+                      onClick={closeMobileMenu}
+                    >
+                      Convoyeur
+                    </Link>
                     <button
                       onClick={() => { handleLogout(); closeMobileMenu(); }}
                       className="text-lg font-medium text-left hover:text-blue-600 focus:outline-none"
@@ -132,13 +130,22 @@ const Header = () => {
                     </button>
                   </>
                 ) : (
-                  <Link
-                    to="/auth" // Link to the new unified auth page
-                    className={`text-lg font-medium hover:text-blue-600 ${location.pathname === '/auth' ? 'text-blue-600' : ''}`}
-                    onClick={closeMobileMenu}
-                  >
-                    Connexion / S'inscrire
-                  </Link>
+                  <>
+                    <Link
+                      to="/login"
+                      className={`text-lg font-medium hover:text-blue-600 ${location.pathname === '/login' ? 'text-blue-600' : ''}`}
+                      onClick={closeMobileMenu}
+                    >
+                      Connexion
+                    </Link>
+                    <Link
+                      to="/register"
+                      className={`text-lg font-medium hover:text-blue-600 ${location.pathname === '/register' ? 'text-blue-600' : ''}`}
+                      onClick={closeMobileMenu}
+                    >
+                      S'inscrire
+                    </Link>
+                  </>
                 )}
               </nav>
             </SheetContent>
