@@ -1,12 +1,33 @@
-import React from "react";
-import { Link } from "react-router-dom";
+import React, { useEffect, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { Menu } from "lucide-react";
+import { Menu, LogIn, LogOut } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { supabase } from "@/integrations/supabase/client";
+import { Session } from "@supabase/supabase-js";
 
 const Header = () => {
   const isMobile = useIsMobile();
+  const navigate = useNavigate();
+  const [session, setSession] = useState<Session | null>(null);
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    navigate("/login");
+  };
 
   const navLinks = (
     <>
@@ -19,6 +40,17 @@ const Header = () => {
       <Link to="/convoyeur" className="text-lg font-medium hover:text-primary-foreground transition-colors">
         Convoyeur
       </Link>
+      {session ? (
+        <Button variant="ghost" onClick={handleLogout} className="text-lg font-medium hover:text-primary-foreground transition-colors">
+          <LogOut className="mr-2 h-5 w-5" /> Déconnexion
+        </Button>
+      ) : (
+        <Link to="/login">
+          <Button variant="ghost" className="text-lg font-medium hover:text-primary-foreground transition-colors">
+            <LogIn className="mr-2 h-5 w-5" /> Connexion
+          </Button>
+        </Link>
+      )}
     </>
   );
 
