@@ -39,22 +39,25 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   // Function to fetch user profile
   const fetchProfile = async (userId: string): Promise<Profile | null> => {
-    setLoading(true);
+    console.log('AuthContext: fetchProfile started for userId:', userId);
+    setLoading(true); // Sets loading to true
     const { data, error } = await supabase
       .from('profiles')
       .select('*')
       .eq('id', userId)
       .single();
-    setLoading(false);
+    setLoading(false); // Sets loading to false after the fetch
     if (error) {
       console.error('AuthContext: Error fetching profile:', error);
       return null;
     }
+    console.log('AuthContext: Profile fetched:', data);
     return data as Profile;
   };
 
   // Function to update user profile
   const updateProfile = async (userId: string, updates: Partial<Profile>): Promise<Profile | null> => {
+    console.log('AuthContext: updateProfile started for userId:', userId, 'updates:', updates);
     setLoading(true);
     const { data, error } = await supabase
       .from('profiles')
@@ -68,39 +71,56 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       return null;
     }
     setProfile(data as Profile); // Update local state with new profile data
+    console.log('AuthContext: Profile updated:', data);
     return data as Profile;
   };
 
   // Effect to listen for auth state changes and fetch profile
   useEffect(() => {
+    console.log('AuthContext: useEffect mounted, starting auth state listener and initial session check.');
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       console.log('Auth state changed:', event, session);
       if (session) {
         setUser(session.user);
+        console.log('AuthContext: User set:', session.user);
         const userProfile = await fetchProfile(session.user.id);
         setProfile(userProfile);
+        console.log('AuthContext: Profile set after auth state change:', userProfile);
       } else {
         setUser(null);
         setProfile(null);
+        console.log('AuthContext: User and profile cleared (signed out).');
       }
       setLoading(false); // Always set loading to false after state change is processed
+      console.log('AuthContext: Loading set to false after auth state change.');
     });
 
     // Initial check for session on mount
     const getInitialSession = async () => {
+      console.log('AuthContext: getInitialSession started.');
       const { data: { session } } = await supabase.auth.getSession();
       if (session) {
         setUser(session.user);
+        console.log('AuthContext: Initial user set:', session.user);
         const userProfile = await fetchProfile(session.user.id);
         setProfile(userProfile);
+        console.log('AuthContext: Initial profile set:', userProfile);
+      } else {
+        console.log('AuthContext: No initial session found.');
       }
-      setLoading(false);
+      setLoading(false); // Always set loading to false after initial session check
+      console.log('AuthContext: Loading set to false after initial session check.');
     };
 
     getInitialSession();
 
-    return () => subscription.unsubscribe();
-  }, []);
+    return () => {
+      subscription.unsubscribe();
+      console.log('AuthContext: Auth state subscription unsubscribed.');
+    };
+  }, []); // Empty dependency array, runs once on mount
+
+  console.log('AuthContext: Render - loading:', loading, 'user:', user?.id, 'profile:', profile);
 
   return (
     <AuthContext.Provider value={{ user, profile, loading, fetchProfile, updateProfile }}>
