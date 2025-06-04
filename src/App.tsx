@@ -3,7 +3,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, useNavigate } from "react-router-dom";
-import { SessionContextProvider } from "@supabase/auth-helpers-react"; // Corrected import path
+import { SessionContextProvider } from "@supabase/auth-helpers-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useEffect } from "react";
 
@@ -21,8 +21,8 @@ const AppContent = () => {
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === 'SIGNED_OUT' || !session) {
-        // Redirect to login if not authenticated and not on login page
-        if (window.location.pathname !== "/login") {
+        // Redirect to login if not authenticated and not on login page or home page
+        if (window.location.pathname !== "/login" && window.location.pathname !== "/") {
           navigate("/login");
         }
       } else if (session && window.location.pathname === "/login") {
