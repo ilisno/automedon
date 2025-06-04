@@ -41,18 +41,28 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const fetchProfile = async (userId: string): Promise<Profile | null> => {
     console.log('AuthContext: fetchProfile started for userId:', userId);
     setLoading(true); // Sets loading to true
-    const { data, error } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', userId)
-      .single();
-    setLoading(false); // Sets loading to false after the fetch
-    if (error) {
-      console.error('AuthContext: Error fetching profile:', error);
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', userId)
+        .single();
+
+      if (error) {
+        console.error('AuthContext: Error fetching profile:', error);
+        console.error('AuthContext: Full error object:', JSON.stringify(error, null, 2));
+        return null;
+      }
+      console.log('AuthContext: Profile fetched:', data);
+      return data as Profile;
+    } catch (err) {
+      console.error('AuthContext: Unexpected error during fetchProfile:', err);
+      console.error('AuthContext: Full unexpected error object:', JSON.stringify(err, null, 2));
       return null;
+    } finally {
+      setLoading(false); // Ensure loading is always set to false
+      console.log('AuthContext: fetchProfile finished, loading set to false.');
     }
-    console.log('AuthContext: Profile fetched:', data);
-    return data as Profile;
   };
 
   // Function to update user profile
@@ -91,8 +101,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         setProfile(null);
         console.log('AuthContext: User and profile cleared (signed out).');
       }
-      setLoading(false); // Always set loading to false after state change is processed
-      console.log('AuthContext: Loading set to false after auth state change.');
+      // setLoading(false); // This line is now handled by fetchProfile's finally block
+      console.log('AuthContext: Auth state change processed.');
     });
 
     // Initial check for session on mount
@@ -107,9 +117,10 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         console.log('AuthContext: Initial profile set:', userProfile);
       } else {
         console.log('AuthContext: No initial session found.');
+        setLoading(false); // Ensure loading is false if no session
       }
-      setLoading(false); // Always set loading to false after initial session check
-      console.log('AuthContext: Loading set to false after initial session check.');
+      // setLoading(false); // This line is now handled by fetchProfile's finally block or the else branch
+      console.log('AuthContext: Initial session check processed.');
     };
 
     getInitialSession();
