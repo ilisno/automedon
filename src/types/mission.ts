@@ -5,7 +5,7 @@ export type Mission = {
   depart: string;
   arrivee: string;
   heureLimite: string; // ISO format
-  statut: 'en attente' | 'en cours' | 'livrée';
+  statut: 'en attente' | 'acceptée' | 'en cours' | 'livrée'; // Added 'acceptée'
   commentaires?: string;
   photos?: File[];
 };

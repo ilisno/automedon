@@ -4,21 +4,40 @@ import { Mission } from '@/types/mission';
 
 const Convoyeur = () => {
   const { missions, mettreAJourStatut } = useMissions();
-  const [commentaires, setCommentaires] = useState<string>('');
-  const [photos, setPhotos] = useState<File[]>([]);
+  const [commentaires, setCommentaires] = useState<{ [key: string]: string }>({});
+  const [photos, setPhotos] = useState<{ [key: string]: File[] }>({});
 
   const handlePrendreEnCharge = (id: string) => {
-    mettreAJourStatut(id, 'en cours');
+    mettreAJourStatut(id, 'acceptée'); // Change status to 'acceptée'
+  };
+
+  const handleDebutMission = (id: string) => {
+    mettreAJourStatut(id, 'en cours'); // Change status to 'en cours'
   };
 
   const handleMarquerCommeLivree = (id: string) => {
     mettreAJourStatut(id, 'livrée');
+    // Clear comments and photos for this mission
+    setCommentaires(prev => {
+      const newState = { ...prev };
+      delete newState[id];
+      return newState;
+    });
+    setPhotos(prev => {
+      const newState = { ...prev };
+      delete newState[id];
+      return newState;
+    });
   };
 
-  const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleCommentChange = (id: string, value: string) => {
+    setCommentaires(prev => ({ ...prev, [id]: value }));
+  };
+
+  const handlePhotoChange = (id: string, e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
-      setPhotos(Array.from(e.target.files));
-      console.log('Photos:', Array.from(e.target.files));
+      setPhotos(prev => ({ ...prev, [id]: Array.from(e.target.files) }));
+      console.log(`Photos for mission ${id}:`, Array.from(e.target.files));
     }
   };
 
@@ -52,6 +71,14 @@ const Convoyeur = () => {
                 Prendre en charge
               </button>
             )}
+            {mission.statut === 'acceptée' && (
+              <button
+                onClick={() => handleDebutMission(mission.id)}
+                className="mt-4 bg-yellow-500 text-white py-2 px-4 rounded-md hover:bg-yellow-600 transition-colors"
+              >
+                Débuter la mission
+              </button>
+            )}
             {mission.statut === 'en cours' && (
               <>
                 <button
@@ -66,8 +93,8 @@ const Convoyeur = () => {
                   </label>
                   <textarea
                     id={`commentaires-${mission.id}`}
-                    value={commentaires}
-                    onChange={(e) => setCommentaires(e.target.value)}
+                    value={commentaires[mission.id] || ''}
+                    onChange={(e) => handleCommentChange(mission.id, e.target.value)}
                     className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
@@ -79,7 +106,7 @@ const Convoyeur = () => {
                     type="file"
                     id={`photos-${mission.id}`}
                     multiple
-                    onChange={handlePhotoChange}
+                    onChange={(e) => handlePhotoChange(mission.id, e)}
                     className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>

@@ -28,7 +28,7 @@ export const MissionsProvider: React.FC<{ children: ReactNode }> = ({ children }
       depart: 'Marseille',
       arrivee: 'Nice',
       heureLimite: new Date().toISOString(),
-      statut: 'en cours',
+      statut: 'acceptée', // Changed from 'en cours' to 'acceptée'
     },
     {
       id: uuidv4(),
