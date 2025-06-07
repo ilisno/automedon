@@ -7,9 +7,10 @@ import NotFound from "./pages/NotFound";
 import Concessionnaire from "./pages/Concessionnaire";
 import Convoyeur from "./pages/Convoyeur";
 import CompleteProfile from "./pages/CompleteProfile";
-import Account from "./pages/Account"; // Import the new Account page
+import Account from "./pages/Account";
 import { MissionsProvider } from "./context/missionsContext";
 import Header from "./components/Header";
+import Footer from "./components/Footer"; // Import the new Footer component
 import Login from "./components/Login";
 import Register from "./components/Register";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -37,7 +38,6 @@ const App = () => (
                   </ProtectedRoute>
                 }
               />
-               {/* Add the new protected route for the Account page */}
               <Route
                 path="/account"
                 element={
@@ -65,6 +65,7 @@ const App = () => (
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>
+            <Footer /> {/* Add the Footer component here */}
           </BrowserRouter>
         </MissionsProvider>
       </AuthProvider>
