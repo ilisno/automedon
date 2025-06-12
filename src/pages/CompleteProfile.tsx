@@ -104,17 +104,17 @@ const CompleteProfile = () => {
         first_name: formData.first_name,
         last_name: formData.last_name,
         phone: formData.phone,
-        date_of_birth: formData.date_of_birth || null, // Supabase expects null for empty date
-        languages: languagesArray,
+        date_of_birth: formData.company_type === 'convoyeur' ? formData.date_of_birth || null : null,
+        languages: formData.company_type === 'convoyeur' ? languagesArray : null,
         company_type: formData.company_type,
         role: formData.company_type, // IMPORTANT: Update role based on company_type
-        siret: formData.siret,
+        siret: formData.company_type === 'concessionnaire' ? formData.siret : null,
         address: formData.address,
         postal_code: formData.postal_code,
         city: formData.city,
-        driver_license_number: formData.driver_license_number,
-        license_issue_date: formData.license_issue_date || null, // Supabase expects null for empty date
-        license_issue_city: formData.license_issue_city,
+        driver_license_number: formData.company_type === 'convoyeur' ? formData.driver_license_number : null,
+        license_issue_date: formData.company_type === 'convoyeur' ? formData.license_issue_date || null : null,
+        license_issue_city: formData.company_type === 'convoyeur' ? formData.license_issue_city : null,
         is_profile_complete: true, // Mark profile as complete
       })
       .eq('id', user.id);
@@ -146,7 +146,7 @@ const CompleteProfile = () => {
     <div className="min-h-screen flex items-center justify-center bg-gray-100 p-4">
       <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-2xl">
         <h2 className="text-2xl font-bold mb-6 text-center">Compléter votre profil</h2>
-        <form onSubmit={handleSubmit} className="space-y-4"> {/* Changed to space-y-4 for vertical spacing */}
+        <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <Label htmlFor="first_name">Prénom</Label>
             <Input id="first_name" name="first_name" value={formData.first_name} onChange={handleChange} required />
@@ -159,16 +159,10 @@ const CompleteProfile = () => {
             <Label htmlFor="phone">Téléphone</Label>
             <Input id="phone" name="phone" value={formData.phone} onChange={handleChange} required />
           </div>
+
+          {/* Company Type Selection - Always visible */}
           <div>
-            <Label htmlFor="date_of_birth">Date de naissance</Label>
-            <Input type="date" id="date_of_birth" name="date_of_birth" value={formData.date_of_birth} onChange={handleChange} required />
-          </div>
-          <div>
-            <Label htmlFor="languages">Langues (séparées par des virgules)</Label>
-            <Input id="languages" name="languages" value={formData.languages} onChange={handleChange} placeholder="Ex: Français, Anglais" />
-          </div>
-          <div>
-            <Label htmlFor="company_type">Type de société</Label>
+            <Label htmlFor="company_type">Vous êtes un(e)</Label>
              <Select onValueChange={(value) => handleSelectChange('company_type', value)} value={formData.company_type} required>
               <SelectTrigger>
                 <SelectValue placeholder="Sélectionner le type" />
@@ -180,34 +174,72 @@ const CompleteProfile = () => {
               </SelectContent>
             </Select>
           </div>
-          <div>
-            <Label htmlFor="siret">SIRET</Label>
-            <Input id="siret" name="siret" value={formData.siret} onChange={handleChange} />
-          </div>
-          <div>
-            <Label htmlFor="address">Adresse</Label>
-            <Input id="address" name="address" value={formData.address} onChange={handleChange} required />
-          </div>
-          <div>
-            <Label htmlFor="postal_code">Code postal</Label>
-            <Input id="postal_code" name="postal_code" value={formData.postal_code} onChange={handleChange} required />
-          </div>
-          <div>
-            <Label htmlFor="city">Ville</Label>
-            <Input id="city" name="city" value={formData.city} onChange={handleChange} required />
-          </div>
-          <div>
-            <Label htmlFor="driver_license_number">Numéro de permis</Label>
-            <Input id="driver_license_number" name="driver_license_number" value={formData.driver_license_number} onChange={handleChange} required />
-          </div>
-          <div>
-            <Label htmlFor="license_issue_date">Date d'obtention du permis</Label>
-            <Input type="date" id="license_issue_date" name="license_issue_date" value={formData.license_issue_date} onChange={handleChange} required />
-          </div>
-          <div>
-            <Label htmlFor="license_issue_city">Ville de délivrance du permis</Label>
-            <Input id="license_issue_city" name="license_issue_city" value={formData.license_issue_city} onChange={handleChange} required />
-          </div>
+
+          {/* Concessionnaire Specific Fields */}
+          {formData.company_type === 'concessionnaire' && (
+            <>
+              <div>
+                <Label htmlFor="siret">SIRET</Label>
+                <Input id="siret" name="siret" value={formData.siret} onChange={handleChange} required />
+              </div>
+              <div>
+                <Label htmlFor="address">Adresse de l'entreprise</Label>
+                <Input id="address" name="address" value={formData.address} onChange={handleChange} required />
+              </div>
+              <div>
+                <Label htmlFor="postal_code">Code postal de l'entreprise</Label>
+                <Input id="postal_code" name="postal_code" value={formData.postal_code} onChange={handleChange} required />
+              </div>
+              <div>
+                <Label htmlFor="city">Ville de l'entreprise</Label>
+                <Input id="city" name="city" value={formData.city} onChange={handleChange} required />
+              </div>
+            </>
+          )}
+
+          {/* Convoyeur Specific Fields */}
+          {formData.company_type === 'convoyeur' && (
+            <>
+              <div>
+                <Label htmlFor="date_of_birth">Date de naissance</Label>
+                <Input type="date" id="date_of_birth" name="date_of_birth" value={formData.date_of_birth} onChange={handleChange} required />
+              </div>
+              <div>
+                <Label htmlFor="languages">Langues (séparées par des virgules)</Label>
+                <Input id="languages" name="languages" value={formData.languages} onChange={handleChange} placeholder="Ex: Français, Anglais" />
+              </div>
+              <div>
+                <Label htmlFor="driver_license_number">Numéro de permis</Label>
+                <Input id="driver_license_number" name="driver_license_number" value={formData.driver_license_number} onChange={handleChange} required />
+              </div>
+              <div>
+                <Label htmlFor="license_issue_date">Date d'obtention du permis</Label>
+                <Input type="date" id="license_issue_date" name="license_issue_date" value={formData.license_issue_date} onChange={handleChange} required />
+              </div>
+              <div>
+                <Label htmlFor="license_issue_city">Ville de délivrance du permis</Label>
+                <Input id="license_issue_city" name="license_issue_city" value={formData.license_issue_city} onChange={handleChange} required />
+              </div>
+            </>
+          )}
+
+          {/* Common fields (address, postal_code, city) for 'autre' or if not specified */}
+          {formData.company_type === 'autre' && (
+            <>
+              <div>
+                <Label htmlFor="address">Adresse</Label>
+                <Input id="address" name="address" value={formData.address} onChange={handleChange} required />
+              </div>
+              <div>
+                <Label htmlFor="postal_code">Code postal</Label>
+                <Input id="postal_code" name="postal_code" value={formData.postal_code} onChange={handleChange} required />
+              </div>
+              <div>
+                <Label htmlFor="city">Ville</Label>
+                <Input id="city" name="city" value={formData.city} onChange={handleChange} required />
+              </div>
+            </>
+          )}
 
           <div>
             <Button type="submit" className="w-full" disabled={loading}>
