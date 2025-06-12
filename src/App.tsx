@@ -8,13 +8,15 @@ import Concessionnaire from "./pages/Concessionnaire";
 import Convoyeur from "./pages/Convoyeur";
 import CompleteProfile from "./pages/CompleteProfile";
 import Account from "./pages/Account";
-import CGVPage from "./pages/CGVPage"; // Import the new CGVPage
+import CGVPage from "./pages/CGVPage";
+import AdminDashboard from "./pages/AdminDashboard"; // Import the new AdminDashboard
 import { MissionsProvider } from "./context/missionsContext";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
 import Login from "./components/Login";
 import Register from "./components/Register";
 import ProtectedRoute from "./components/ProtectedRoute";
+import AdminProtectedRoute from "./components/AdminProtectedRoute"; // Import the new AdminProtectedRoute
 import { AuthProvider } from "./context/AuthContext";
 
 const queryClient = new QueryClient();
@@ -63,7 +65,15 @@ const App = () => (
                   </ProtectedRoute>
                 }
               />
-              <Route path="/cgv" element={<CGVPage />} /> {/* Add the new CGV route */}
+              <Route
+                path="/admin-dashboard"
+                element={
+                  <AdminProtectedRoute>
+                    <AdminDashboard />
+                  </AdminProtectedRoute>
+                }
+              />
+              <Route path="/cgv" element={<CGVPage />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>

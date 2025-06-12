@@ -7,7 +7,7 @@ import { MenuIcon } from 'lucide-react';
 
 const Header = () => {
   const location = useLocation();
-  const { user, logout } = useAuth();
+  const { user, profile, logout } = useAuth();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const handleLogout = async () => {
@@ -37,7 +37,14 @@ const Header = () => {
           </Link>
           {user ? (
             <>
-              {/* Add link to Account page */}
+              {profile?.role === 'admin' && (
+                <Link
+                  to="/admin-dashboard"
+                  className={`hover:text-gray-300 ${location.pathname === '/admin-dashboard' ? 'text-gray-300' : ''}`}
+                >
+                  Admin
+                </Link>
+              )}
               <Link
                 to="/account"
                 className={`hover:text-gray-300 ${location.pathname === '/account' ? 'text-gray-300' : ''}`}
@@ -100,7 +107,15 @@ const Header = () => {
                   </Link>
                 {user ? (
                   <>
-                     {/* Add link to Account page in mobile menu */}
+                    {profile?.role === 'admin' && (
+                      <Link
+                        to="/admin-dashboard"
+                        className={`text-lg font-medium hover:text-blue-600 ${location.pathname === '/admin-dashboard' ? 'text-blue-600' : ''}`}
+                        onClick={closeMobileMenu}
+                      >
+                        Admin
+                      </Link>
+                    )}
                     <Link
                       to="/account"
                       className={`text-lg font-medium hover:text-blue-600 ${location.pathname === '/account' ? 'text-blue-600' : ''}`}
