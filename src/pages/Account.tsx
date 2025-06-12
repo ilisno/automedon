@@ -1,7 +1,8 @@
 import React from 'react';
 import { useAuth } from '@/context/AuthContext';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'; // Import Card components
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Link } from 'react-router-dom';
+import ConcessionnaireAccount from '@/components/ConcessionnaireAccount'; // Import the new component
 
 const Account = () => {
   const { user, profile, loading } = useAuth();
@@ -11,7 +12,6 @@ const Account = () => {
   }
 
   if (!user) {
-    // This case should ideally be handled by ProtectedRoute, but good to have a fallback
     return <div className="min-h-screen flex items-center justify-center">Veuillez vous connecter pour voir cette page.</div>;
   }
 
@@ -33,6 +33,12 @@ const Account = () => {
     );
   }
 
+  // Render specific account view based on role
+  if (profile.role === 'concessionnaire') {
+    return <ConcessionnaireAccount />;
+  }
+
+  // Default rendering for other roles or if no specific view is defined
   return (
     <div className="container mx-auto px-4 py-8">
       <h1 className="text-3xl font-bold mb-6">Mon Compte</h1>
@@ -65,25 +71,6 @@ const Account = () => {
             </Link>
           </CardContent>
         </Card>
-      )}
-
-      {profile.role === 'concessionnaire' && (
-        <>
-          <Card className="mb-6 bg-green-50 border-green-200">
-            <CardHeader>
-              <CardTitle className="text-green-700">Espace Concessionnaire</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="mb-4">Gérez vos missions de convoyage et suivez leur statut.</p>
-              <Link to="/concessionnaire">
-                <Button className="bg-green-600 hover:bg-green-700">Créer une nouvelle mission</Button>
-              </Link>
-              {/* Future: Display list of missions created by this concessionnaire */}
-              <h3 className="text-xl font-semibold mt-6 mb-3">Mes Missions Actives</h3>
-              <p>Liste de vos missions en cours ou en attente...</p>
-            </CardContent>
-          </Card>
-        </>
       )}
 
       {profile.role === 'convoyeur' && (
