@@ -27,7 +27,7 @@ type AuthContextType = {
   profile: Profile | null;
   loading: boolean;
   login: (email: string, password: string) => Promise<{ user: User | null; profile: Profile | null }>;
-  register: (email: string, password: string) => Promise<{ user: User | null; profile: Profile | null }>;
+  register: (email: string, password: string, companyType: string) => Promise<{ user: User | null; profile: Profile | null }>;
   logout: () => Promise<void>;
   getProfile: (userId: string) => Promise<Profile | null>;
 };
@@ -103,10 +103,19 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     return { user: data.user, profile: userProfile };
   };
 
-  const register = async (email: string, password: string): Promise<{ user: User | null; profile: Profile | null }> => {
-    console.log('AuthContext: Attempting registration with email:', email);
+  const register = async (email: string, password: string, companyType: string): Promise<{ user: User | null; profile: Profile | null }> => {
+    console.log('AuthContext: Attempting registration with email:', email, 'companyType:', companyType);
     setLoading(true);
-    const { data, error } = await supabase.auth.signUp({ email, password });
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: {
+          company_type: companyType,
+          // You can add first_name, last_name here if you want them at signup
+        },
+      },
+    });
      setLoading(false);
     if (error) {
       console.error('AuthContext: Supabase registration error:', error);

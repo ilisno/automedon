@@ -1,6 +1,7 @@
 import React from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'; // Import Card components
+import { Link } from 'react-router-dom';
 
 const Account = () => {
   const { user, profile, loading } = useAuth();
@@ -14,6 +15,24 @@ const Account = () => {
     return <div className="min-h-screen flex items-center justify-center">Veuillez vous connecter pour voir cette page.</div>;
   }
 
+  if (!profile || !profile.is_profile_complete) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-gray-100 p-4">
+        <Card className="w-full max-w-md text-center">
+          <CardHeader>
+            <CardTitle>Profil incomplet</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="mb-4">Veuillez compléter votre profil pour accéder à toutes les fonctionnalités.</p>
+            <Link to="/complete-profile">
+              <Button>Compléter mon profil</Button>
+            </Link>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   return (
     <div className="container mx-auto px-4 py-8">
       <h1 className="text-3xl font-bold mb-6">Mon Compte</h1>
@@ -25,21 +44,80 @@ const Account = () => {
         </CardHeader>
         <CardContent>
           <p><strong>Email:</strong> {user.email}</p>
-          {profile ? (
-            <>
-              <p><strong>Prénom:</strong> {profile.first_name || 'Non renseigné'}</p>
-              <p><strong>Nom:</strong> {profile.last_name || 'Non renseigné'}</p>
-              <p><strong>Téléphone:</strong> {profile.phone || 'Non renseigné'}</p>
-              <p><strong>Type de société:</strong> {profile.company_type || 'Non renseigné'}</p>
-              {/* Add other profile fields as needed */}
-            </>
-          ) : (
-            <p>Chargement du profil ou profil incomplet...</p>
-          )}
+          <p><strong>Prénom:</strong> {profile.first_name || 'Non renseigné'}</p>
+          <p><strong>Nom:</strong> {profile.last_name || 'Non renseigné'}</p>
+          <p><strong>Téléphone:</strong> {profile.phone || 'Non renseigné'}</p>
+          <p><strong>Type de société:</strong> {profile.company_type || 'Non renseigné'}</p>
+          <p><strong>Rôle:</strong> {profile.role || 'Non défini'}</p>
+          {/* Add other profile fields as needed */}
         </CardContent>
       </Card>
 
-      {/* Placeholder for Statistics */}
+      {profile.role === 'admin' && (
+        <Card className="mb-6 bg-blue-50 border-blue-200">
+          <CardHeader>
+            <CardTitle className="text-blue-700">Accès Administrateur</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="mb-4">En tant qu'administrateur, vous avez accès à toutes les données et la gestion des tarifs.</p>
+            <Link to="/admin-dashboard">
+              <Button className="bg-blue-600 hover:bg-blue-700">Accéder au Tableau de Bord Admin</Button>
+            </Link>
+          </CardContent>
+        </Card>
+      )}
+
+      {profile.role === 'concessionnaire' && (
+        <>
+          <Card className="mb-6 bg-green-50 border-green-200">
+            <CardHeader>
+              <CardTitle className="text-green-700">Espace Concessionnaire</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="mb-4">Gérez vos missions de convoyage et suivez leur statut.</p>
+              <Link to="/concessionnaire">
+                <Button className="bg-green-600 hover:bg-green-700">Créer une nouvelle mission</Button>
+              </Link>
+              {/* Future: Display list of missions created by this concessionnaire */}
+              <h3 className="text-xl font-semibold mt-6 mb-3">Mes Missions Actives</h3>
+              <p>Liste de vos missions en cours ou en attente...</p>
+            </CardContent>
+          </Card>
+        </>
+      )}
+
+      {profile.role === 'convoyeur' && (
+        <>
+          <Card className="mb-6 bg-purple-50 border-purple-200">
+            <CardHeader>
+              <CardTitle className="text-purple-700">Espace Convoyeur</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="mb-4">Consultez les missions disponibles et gérez celles que vous avez acceptées.</p>
+              <Link to="/convoyeur">
+                <Button className="bg-purple-600 hover:bg-purple-700">Voir les missions disponibles</Button>
+              </Link>
+              {/* Future: Display list of missions assigned to/accepted by this convoyeur */}
+              <h3 className="text-xl font-semibold mt-6 mb-3">Mes Missions Attribuées</h3>
+              <p>Liste de vos missions acceptées ou en cours...</p>
+            </CardContent>
+          </Card>
+        </>
+      )}
+
+      {profile.role === 'autre' && (
+        <Card className="mb-6 bg-gray-50 border-gray-200">
+          <CardHeader>
+            <CardTitle className="text-gray-700">Votre Espace</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p>Bienvenue sur votre compte. Votre rôle est défini comme "Autre".</p>
+            <p className="mt-2">Si vous souhaitez changer votre rôle ou accéder à des fonctionnalités spécifiques, veuillez contacter l'administrateur.</p>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Placeholder for Statistics - visible for all roles, but data might vary */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">

@@ -5,11 +5,13 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 
 const Register = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [companyType, setCompanyType] = useState(''); // New state for company type
   const { register, user, profile, loading } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -27,7 +29,7 @@ const Register = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const { user: registeredUser, profile: userProfile } = await register(email, password);
+      const { user: registeredUser, profile: userProfile } = await register(email, password, companyType); // Pass companyType
       console.log('Registration successful!');
        if (registeredUser) {
          toast({
@@ -72,6 +74,19 @@ const Register = () => {
               onChange={(e) => setPassword(e.target.value)}
               required
             />
+          </div>
+          <div className="mb-4">
+            <Label htmlFor="companyType">Vous êtes un(e)</Label>
+            <Select onValueChange={setCompanyType} value={companyType} required>
+              <SelectTrigger>
+                <SelectValue placeholder="Sélectionner votre rôle" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="concessionnaire">Concessionnaire</SelectItem>
+                <SelectItem value="convoyeur">Convoyeur</SelectItem>
+                <SelectItem value="autre">Autre</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
           <Button
             type="submit"

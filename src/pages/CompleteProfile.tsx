@@ -107,6 +107,7 @@ const CompleteProfile = () => {
         date_of_birth: formData.date_of_birth || null, // Supabase expects null for empty date
         languages: languagesArray,
         company_type: formData.company_type,
+        role: formData.company_type, // IMPORTANT: Update role based on company_type
         siret: formData.siret,
         address: formData.address,
         postal_code: formData.postal_code,
