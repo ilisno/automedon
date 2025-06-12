@@ -41,6 +41,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   // Function to fetch user profile
   const getProfile = async (userId: string): Promise<Profile | null> => {
+    console.log('AuthContext: Attempting to fetch profile for user ID:', userId);
     const { data, error } = await supabase
       .from('profiles')
       .select('*')
@@ -48,9 +49,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       .single();
     if (error) {
       console.error('AuthContext: Error fetching profile:', error);
-      // Don't throw here, just return null or handle appropriately
       return null;
     }
+    console.log('AuthContext: Profile fetched:', data);
     return data as Profile;
   };
 
@@ -58,6 +59,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       console.log('Auth state changed:', event, session);
+      setLoading(true); // Set loading to true at the start of any auth state change
       if (session) {
         setUser(session.user);
         const userProfile = await getProfile(session.user.id);
@@ -66,19 +68,26 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         setUser(null);
         setProfile(null);
       }
-      setLoading(false);
+      setLoading(false); // Set loading to false after all async operations are done
+      console.log('AuthContext: Loading set to false after auth state change.');
     });
 
     // Initial check
     const checkInitialAuth = async () => {
+      console.log('AuthContext: Performing initial auth check...');
+      setLoading(true); // Ensure loading is true during initial check
       const { data: { session } } = await supabase.auth.getSession();
-      console.log('Initial session check:', session);
+      console.log('AuthContext: Initial session data:', session);
       if (session) {
         setUser(session.user);
         const userProfile = await getProfile(session.user.id);
         setProfile(userProfile);
+      } else {
+        setUser(null);
+        setProfile(null);
       }
-      setLoading(false);
+      setLoading(false); // Set loading to false after initial check is complete
+      console.log('AuthContext: Loading set to false after initial check.');
     };
 
     checkInitialAuth();
@@ -91,15 +100,16 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     console.log('AuthContext: Attempting login with email:', email);
     setLoading(true);
     const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-    setLoading(false);
     if (error) {
       console.error('AuthContext: Supabase login error:', error);
+      setLoading(false); // Ensure loading is false on error
       throw error;
     }
     console.log('AuthContext: Supabase login successful, user data:', data.user);
     setUser(data.user);
     const userProfile = data.user ? await getProfile(data.user.id) : null;
     setProfile(userProfile);
+    setLoading(false); // Set loading to false after profile is fetched
     return { user: data.user, profile: userProfile };
   };
 
@@ -116,9 +126,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         },
       },
     });
-     setLoading(false);
     if (error) {
       console.error('AuthContext: Supabase registration error:', error);
+      setLoading(false); // Ensure loading is false on error
       throw error;
     }
     console.log('AuthContext: Supabase registration successful, user data:', data.user);
@@ -126,6 +136,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
      // Profile is created by trigger, fetch it
     const userProfile = data.user ? await getProfile(data.user.id) : null;
     setProfile(userProfile);
+    setLoading(false); // Set loading to false after profile is fetched
     return { user: data.user, profile: userProfile };
   };
 
@@ -133,14 +144,15 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     console.log('AuthContext: Attempting logout');
     setLoading(true);
     const { error } = await supabase.auth.signOut();
-    setLoading(false);
     if (error) {
       console.error('AuthContext: Supabase logout error:', error);
+      setLoading(false); // Ensure loading is false on error
       throw error;
     }
     console.log('AuthContext: Supabase logout successful');
     setUser(null);
     setProfile(null);
+    setLoading(false); // Set loading to false after logout
   };
 
   return (
