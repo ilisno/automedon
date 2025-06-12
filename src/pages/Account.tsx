@@ -3,6 +3,7 @@ import { useAuth } from '@/context/AuthContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Link } from 'react-router-dom';
 import ConcessionnaireAccount from '@/components/ConcessionnaireAccount'; // Import the new component
+import { Button } from '@/components/ui/button'; // Added this import
 
 const Account = () => {
   const { user, profile, loading } = useAuth();
