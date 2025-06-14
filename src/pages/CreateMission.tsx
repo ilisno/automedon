@@ -1,14 +1,17 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { showSuccess } from "@/utils/toast";
+import { showSuccess, showError } from "@/utils/toast";
 import Header from "@/components/Header";
-import { useMissions } from "@/context/MissionsContext"; // Import useMissions
+import { useMissions } from "@/context/MissionsContext";
+import { supabase } from "@/integrations/supabase/client";
 
 const CreateMission = () => {
-  const { ajouterMission } = useMissions(); // Utilisation du hook de contexte
+  const { addMission } = useMissions();
+  const [concessionnaireId, setConcessionnaireId] = useState<string | null>(null);
+  const [loadingUser, setLoadingUser] = useState(true);
 
   const [immatriculation, setImmatriculation] = useState("");
   const [modele, setModele] = useState("");
@@ -16,27 +19,55 @@ const CreateMission = () => {
   const [lieuArrivee, setLieuArrivee] = useState("");
   const [heureLimite, setHeureLimite] = useState("");
 
-  const handleSubmit = (e: React.FormEvent) => {
+  useEffect(() => {
+    const fetchUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        setConcessionnaireId(user.id);
+      } else {
+        showError("Vous devez être connecté pour créer une mission.");
+      }
+      setLoadingUser(false);
+    };
+    fetchUser();
+  }, []);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Appel de la fonction ajouterMission du contexte
-    ajouterMission({
-      immatriculation,
-      modele,
-      lieuDepart,
-      lieuArrivee,
-      heureLimite,
-    });
+    if (!concessionnaireId) {
+      showError("Impossible de créer la mission : utilisateur non identifié.");
+      return;
+    }
 
-    // Vider le formulaire
-    setImmatriculation("");
-    setModele("");
-    setLieuDepart("");
-    setLieuArrivee("");
-    setHeureLimite("");
+    try {
+      await addMission({
+        immatriculation,
+        modele,
+        lieuDepart,
+        lieuArrivee,
+        heureLimite,
+        concessionnaire_id: concessionnaireId,
+      });
 
-    showSuccess("Mission créée avec succès ✅");
+      // Vider le formulaire
+      setImmatriculation("");
+      setModele("");
+      setLieuDepart("");
+      setLieuArrivee("");
+      setHeureLimite("");
+    } catch (error) {
+      // Error handled by useMutation in MissionsContext
+    }
   };
+
+  if (loadingUser) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-100 dark:bg-gray-900">
+        <p className="text-gray-700 dark:text-gray-300">Chargement...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100">

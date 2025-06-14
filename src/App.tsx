@@ -14,9 +14,9 @@ import Concessionnaire from "./pages/Concessionnaire";
 import Convoyeur from "./pages/Convoyeur";
 import Login from "./pages/Login";
 import CreateMission from "./pages/CreateMission";
-import Account from "./pages/Account";
-import Contact from "./pages/Contact"; // Import the new Contact page
-import CGV from "./pages/CGV"; // Import the new CGV page
+import AccountRedirect from "./pages/AccountRedirect"; // Import the new AccountRedirect page
+import Contact from "./pages/Contact";
+import CGV from "./pages/CGV";
 
 const queryClient = new QueryClient();
 
@@ -46,9 +46,9 @@ const AppContent = () => {
       <Route path="/convoyeur" element={<Convoyeur />} />
       <Route path="/login" element={<Login />} />
       <Route path="/create-mission" element={<CreateMission />} />
-      <Route path="/account" element={<Account />} />
-      <Route path="/contact" element={<Contact />} /> {/* New route for Contact page */}
-      <Route path="/cgv" element={<CGV />} /> {/* New route for CGV page */}
+      <Route path="/account-redirect" element={<AccountRedirect />} /> {/* New route for AccountRedirect page */}
+      <Route path="/contact" element={<Contact />} />
+      <Route path="/cgv" element={<CGV />} />
       {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
       <Route path="*" element={<NotFound />} />
     </Routes>
