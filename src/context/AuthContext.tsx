@@ -41,7 +41,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   // Function to fetch user profile
   const getProfile = async (userId: string): Promise<Profile | null> => {
-    console.log('AuthContext: Attempting to fetch profile for user ID:', userId);
+    console.log('AuthContext: getProfile - Starting fetch for user ID:', userId);
     const { data, error } = await supabase
       .from('profiles')
       .select('*')
@@ -49,16 +49,16 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       .single();
 
     if (error) {
-      console.error('AuthContext: Error fetching profile for user ID', userId, ':', error);
+      console.error('AuthContext: getProfile - Error fetching profile for user ID', userId, ':', error);
       return null;
     }
 
     if (!data) {
-      console.warn('AuthContext: No profile found for user ID:', userId);
+      console.warn('AuthContext: getProfile - No profile data returned for user ID:', userId);
       return null;
     }
 
-    console.log('AuthContext: Profile fetched successfully for user ID', userId, ':', data);
+    console.log('AuthContext: getProfile - Profile data received for user ID', userId, ':', data);
     return data as Profile;
   };
 
@@ -72,10 +72,13 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         const userProfile = await getProfile(session.user.id);
         setProfile(userProfile);
         console.log('AuthContext: Profile after auth state change:', userProfile); // Added log
+        console.log('AuthContext: Finished processing auth state change for event:', event); // NEW LOG
       } else {
         setUser(null);
         setProfile(null);
+        console.log('AuthContext: Finished processing auth state change for signed out user.'); // NEW LOG
       }
+      console.log('AuthContext: About to set loading to false (onAuthStateChange).'); // NEW LOG
       setLoading(false); // Set loading to false after all async operations are done
       console.log('AuthContext: Loading set to false after auth state change.');
     });
@@ -91,10 +94,13 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         const userProfile = await getProfile(session.user.id);
         setProfile(userProfile);
         console.log('AuthContext: Profile after initial check:', userProfile); // Added log
+        console.log('AuthContext: Finished initial auth check with session.'); // NEW LOG
       } else {
         setUser(null);
         setProfile(null);
+        console.log('AuthContext: Finished initial auth check without session.'); // NEW LOG
       }
+      console.log('AuthContext: About to set loading to false (checkInitialAuth).'); // NEW LOG
       setLoading(false); // Set loading to false after initial check is complete
       console.log('AuthContext: Loading set to false after initial check.');
     };
