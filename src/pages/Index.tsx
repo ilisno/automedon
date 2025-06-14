@@ -1,5 +1,5 @@
-import { MadeWithDyad } from "@/components/made-with-dyad";
 import Header from "@/components/Header";
+import Footer from "@/components/Footer"; // Import the new Footer component
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 
@@ -31,7 +31,7 @@ const Index = () => {
           </Button>
         </div>
       </main>
-      <MadeWithDyad />
+      <Footer /> {/* Add the Footer component here */}
     </div>
   );
 };
