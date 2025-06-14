@@ -16,7 +16,7 @@ import { Textarea } from '@/components/ui/textarea';
 
 const ConvoyeurAccount = () => {
   const { user, profile, getProfile } = useAuth();
-  const { missions, loadingMissions, errorMissions, mettreAJourStatut, updateMissionDetails } = useMissions();
+  const { missions, loadingMissions, errorMissions, mettreAJourStatut, updateMissionDetails, assignerConvoyeur } = useMissions(); // Added assignerConvoyeur
   const { toast } = useToast();
 
   const [formData, setFormData] = useState({
@@ -133,8 +133,34 @@ const ConvoyeurAccount = () => {
     }
   };
 
+  const availableMissions = missions.filter(mission => mission.statut === 'en attente');
   const myAcceptedMissions = missions.filter(mission => mission.convoyeur_id === user?.id && (mission.statut === 'acceptée' || mission.statut === 'en cours'));
   const myCompletedMissions = missions.filter(mission => mission.convoyeur_id === user?.id && mission.statut === 'livrée');
+
+  const handlePrendreEnCharge = async (id: string) => {
+    if (!user) {
+      toast({
+        title: 'Erreur',
+        description: 'Vous devez être connecté pour prendre en charge une mission.',
+        variant: 'destructive',
+      });
+      return;
+    }
+    try {
+      await assignerConvoyeur(id, user.id); // Assign convoyeur and set status to 'acceptée'
+      toast({
+        title: 'Mission acceptée ✅',
+        description: 'Vous avez pris en charge cette mission.',
+      });
+    } catch (error: any) {
+      console.error('Error taking charge of mission:', error);
+      toast({
+        title: 'Échec de l\'acceptation',
+        description: error.message || 'Une erreur est survenue lors de la prise en charge.',
+        variant: 'destructive',
+      });
+    }
+  };
 
   const handleDebutMission = async (id: string) => {
     try {
@@ -199,7 +225,7 @@ const ConvoyeurAccount = () => {
       console.log(`Photos for mission ${id}:`, Array.from(e.target.files));
       toast({
         title: 'Photos sélectionnées',
-        description: `${Array.from(e.target.files).length} photo(s) prête(s) à être soumise(s).`,
+        description: `${Array.from(e.target.files).length} fichier(s) sélectionné(s).`,
       });
     }
   };
@@ -209,8 +235,9 @@ const ConvoyeurAccount = () => {
       <h1 className="text-3xl font-bold mb-6">Mon Espace Convoyeur</h1>
 
       <Tabs defaultValue="profile" className="w-full">
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-4"> {/* Added a tab for available missions */}
           <TabsTrigger value="profile">Mes Infos</TabsTrigger>
+          <TabsTrigger value="available-missions">Missions disponibles</TabsTrigger>
           <TabsTrigger value="track-missions">Mes missions</TabsTrigger>
           <TabsTrigger value="history">Historique des missions</TabsTrigger>
         </TabsList>
@@ -273,6 +300,42 @@ const ConvoyeurAccount = () => {
                   </Button>
                 </div>
               </form>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Missions disponibles Tab */}
+        <TabsContent value="available-missions">
+          <Card>
+            <CardHeader>
+              <CardTitle>Missions disponibles</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {loadingMissions ? (
+                <p>Chargement des missions...</p>
+              ) : errorMissions ? (
+                <p className="text-red-500">Erreur: {errorMissions}</p>
+              ) : availableMissions.length === 0 ? (
+                <p>Aucune mission disponible pour le moment.</p>
+              ) : (
+                <div className="space-y-4">
+                  {availableMissions.map((mission) => (
+                    <div key={mission.id} className="p-4 bg-white rounded-md shadow-md border border-gray-200">
+                      <h2 className="text-xl font-bold mb-2">{mission.modele} - {mission.immatriculation}</h2>
+                      <p><strong>Départ:</strong> {mission.depart}</p>
+                      <p><strong>Arrivée:</strong> {mission.arrivee}</p>
+                      <p><strong>Heure limite:</strong> {new Date(mission.heureLimite).toLocaleString()}</p>
+                      <p><strong>Statut:</strong> {mission.statut}</p>
+                      <Button
+                        onClick={() => handlePrendreEnCharge(mission.id)}
+                        className="mt-4 bg-green-500 text-white hover:bg-green-600"
+                      >
+                        Prendre en charge
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>

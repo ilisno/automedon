@@ -15,7 +15,7 @@ import { Mission } from '@/types/mission';
 
 const ConcessionnaireAccount = () => {
   const { user, profile, getProfile } = useAuth();
-  const { missions, loadingMissions, errorMissions } = useMissions();
+  const { missions, loadingMissions, errorMissions, ajouterMission } = useMissions(); // Added ajouterMission
   const { toast } = useToast();
 
   const [formData, setFormData] = useState({
@@ -29,6 +29,17 @@ const ConcessionnaireAccount = () => {
     city: profile?.city || '',
   });
   const [isUpdatingProfile, setIsUpdatingProfile] = useState(false);
+
+  // State for new mission form
+  const [newMissionFormData, setNewMissionFormData] = useState({
+    immatriculation: '',
+    modele: '',
+    lieuDepart: '',
+    lieuArrivee: '',
+    heureLimite: '',
+  });
+  const [isCreatingMission, setIsCreatingMission] = useState(false);
+
 
   useEffect(() => {
     if (profile) {
@@ -107,6 +118,50 @@ const ConcessionnaireAccount = () => {
     }
   };
 
+  // Handlers for new mission form
+  const handleNewMissionChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setNewMissionFormData({
+      ...newMissionFormData,
+      [name]: value,
+    });
+  };
+
+  const handleNewMissionSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsCreatingMission(true);
+    try {
+      await ajouterMission({
+        immatriculation: newMissionFormData.immatriculation,
+        modele: newMissionFormData.modele,
+        depart: newMissionFormData.lieuDepart,
+        arrivee: newMissionFormData.lieuArrivee,
+        heureLimite: newMissionFormData.heureLimite,
+      });
+      setNewMissionFormData({
+        immatriculation: '',
+        modele: '',
+        lieuDepart: '',
+        lieuArrivee: '',
+        heureLimite: '',
+      });
+      toast({
+        title: 'Mission créée ✅',
+        description: 'La mission a été créée avec succès.',
+      });
+    } catch (error: any) {
+      console.error('Error creating mission:', error);
+      toast({
+        title: 'Échec de la création de mission',
+        description: error.message || 'Une erreur est survenue lors de la création de la mission.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsCreatingMission(false);
+    }
+  };
+
+
   const concessionnaireMissions = missions.filter(
     (mission) => mission.concessionnaire_id === user?.id
   );
@@ -169,15 +224,15 @@ const ConcessionnaireAccount = () => {
                   <Input id="siret" name="siret" value={formData.siret} onChange={handleChange} />
                 </div>
                 <div className="md:col-span-2">
-                  <Label htmlFor="address">Adresse</Label>
+                  <Label htmlFor="address">Adresse de l'entreprise</Label>
                   <Input id="address" name="address" value={formData.address} onChange={handleChange} required />
                 </div>
                 <div>
-                  <Label htmlFor="postal_code">Code postal</Label>
+                  <Label htmlFor="postal_code">Code postal de l'entreprise</Label>
                   <Input id="postal_code" name="postal_code" value={formData.postal_code} onChange={handleChange} required />
                 </div>
                 <div>
-                  <Label htmlFor="city">Ville</Label>
+                  <Label htmlFor="city">Ville de l'entreprise</Label>
                   <Input id="city" name="city" value={formData.city} onChange={handleChange} required />
                 </div>
                 <div className="md:col-span-2">
@@ -190,17 +245,87 @@ const ConcessionnaireAccount = () => {
           </Card>
         </TabsContent>
 
-        {/* Créer une mission Tab */}
+        {/* Créer une mission Tab (now contains the form) */}
         <TabsContent value="create-mission">
           <Card>
             <CardHeader>
-              <CardTitle>Créer une nouvelle mission</CardTitle>
+              <CardTitle>Créer une nouvelle mission de convoyage</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="mb-4">Cliquez sur le bouton ci-dessous pour créer une nouvelle mission de convoyage.</p>
-              <Link to="/concessionnaire">
-                <Button className="w-full bg-blue-600 hover:bg-blue-700">Accéder au formulaire de création de mission</Button>
-              </Link>
+              <form onSubmit={handleNewMissionSubmit} className="w-full space-y-4">
+                <div className="mb-4">
+                  <Label htmlFor="immatriculation" className="block text-sm font-medium mb-1">
+                    Immatriculation
+                  </Label>
+                  <Input
+                    type="text"
+                    id="immatriculation"
+                    name="immatriculation"
+                    value={newMissionFormData.immatriculation}
+                    onChange={handleNewMissionChange}
+                    required
+                  />
+                </div>
+                <div className="mb-4">
+                  <Label htmlFor="modele" className="block text-sm font-medium mb-1">
+                    Modèle
+                  </Label>
+                  <Input
+                    type="text"
+                    id="modele"
+                    name="modele"
+                    value={newMissionFormData.modele}
+                    onChange={handleNewMissionChange}
+                    required
+                  />
+                </div>
+                <div className="mb-4">
+                  <Label htmlFor="lieuDepart" className="block text-sm font-medium mb-1">
+                    Lieu de départ
+                  </Label>
+                  <Input
+                    type="text"
+                    id="lieuDepart"
+                    name="lieuDepart"
+                    value={newMissionFormData.lieuDepart}
+                    onChange={handleNewMissionChange}
+                    required
+                  />
+                </div>
+                <div className="mb-4">
+                  <Label htmlFor="lieuArrivee" className="block text-sm font-medium mb-1">
+                    Lieu d’arrivée
+                  </Label>
+                  <Input
+                    type="text"
+                    id="lieuArrivee"
+                    name="lieuArrivee"
+                    value={newMissionFormData.lieuArrivee}
+                    onChange={handleNewMissionChange}
+                    required
+                  />
+                </div>
+                <div className="mb-4">
+                  <Label htmlFor="heureLimite" className="block text-sm font-medium mb-1">
+                    Heure limite de livraison
+                  </Label>
+                  <Input
+                    type="datetime-local"
+                    id="heureLimite"
+                    name="heureLimite"
+                    value={newMissionFormData.heureLimite}
+                    onChange={handleNewMissionChange}
+                    required
+                  />
+                </div>
+                <Button
+                  type="submit"
+                  className="w-full bg-blue-500 text-white py-2 rounded-md hover:bg-blue-600 transition-colors"
+                  disabled={isCreatingMission}
+                >
+                  {isCreatingMission ? 'Création...' : 'Créer la mission'}
+                </Button>
+              </form>
             </CardContent>
           </Card>
         </TabsContent>

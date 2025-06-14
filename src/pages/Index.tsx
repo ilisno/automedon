@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useMissions } from '@/context/missionsContext';
+import { useAuth } from '@/context/AuthContext'; // Import useAuth
 
 const Index = () => {
   const navigate = useNavigate();
   const { missions } = useMissions();
+  const { user, loading: authLoading } = useAuth(); // Get user and auth loading state
   const [search, setSearch] = useState({
     depart: '',
     arrivee: '',
@@ -29,6 +31,18 @@ const Index = () => {
     );
   });
 
+  const handleRoleButtonClick = (role: 'concessionnaire' | 'convoyeur') => {
+    if (authLoading) {
+      // Do nothing if auth is still loading
+      return;
+    }
+    if (user) {
+      navigate('/account'); // If logged in, go to account page
+    } else {
+      navigate('/login'); // If not logged in, go to login page
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-500 to-blue-700 text-white">
       <div className="container mx-auto px-4 py-16">
@@ -38,13 +52,15 @@ const Index = () => {
           <div className="space-x-4">
             <button
               className="px-6 py-3 bg-white text-blue-500 rounded-md hover:bg-gray-100 transition-colors"
-              onClick={() => navigate('/concessionnaire')}
+              onClick={() => handleRoleButtonClick('concessionnaire')}
+              disabled={authLoading}
             >
               Je suis concessionnaire
             </button>
             <button
               className="px-6 py-3 bg-white text-blue-500 rounded-md hover:bg-gray-100 transition-colors"
-              onClick={() => navigate('/convoyeur')}
+              onClick={() => handleRoleButtonClick('convoyeur')}
+              disabled={authLoading}
             >
               Je suis convoyeur
             </button>

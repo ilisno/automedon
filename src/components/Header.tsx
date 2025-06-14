@@ -51,18 +51,7 @@ const Header = () => {
               >
                 Mon Compte
               </Link>
-              <Link
-                to="/concessionnaire"
-                className={`hover:text-gray-300 ${location.pathname === '/concessionnaire' ? 'text-gray-300' : ''}`}
-              >
-                Concessionnaire
-              </Link>
-              <Link
-                to="/convoyeur"
-                className={`hover:text-gray-300 ${location.pathname === '/convoyeur' ? 'text-gray-300' : ''}`}
-              >
-                Convoyeur
-              </Link>
+              {/* Removed direct links to /concessionnaire and /convoyeur */}
               <button
                 onClick={handleLogout}
                 className="hover:text-gray-300 focus:outline-none"
@@ -123,20 +112,7 @@ const Header = () => {
                     >
                       Mon Compte
                     </Link>
-                    <Link
-                      to="/concessionnaire"
-                      className={`text-lg font-medium hover:text-blue-600 ${location.pathname === '/concessionnaire' ? 'text-blue-600' : ''}`}
-                      onClick={closeMobileMenu}
-                    >
-                      Concessionnaire
-                    </Link>
-                    <Link
-                      to="/convoyeur"
-                      className={`text-lg font-medium hover:text-blue-600 ${location.pathname === '/convoyeur' ? 'text-blue-600' : ''}`}
-                      onClick={closeMobileMenu}
-                    >
-                      Convoyeur
-                    </Link>
+                    {/* Removed direct links to /concessionnaire and /convoyeur */}
                     <button
                       onClick={() => { handleLogout(); closeMobileMenu(); }}
                       className="text-lg font-medium text-left hover:text-blue-600 focus:outline-none"
