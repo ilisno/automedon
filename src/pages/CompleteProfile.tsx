@@ -132,8 +132,7 @@ const CompleteProfile = () => {
         title: 'Profil mis à jour avec succès !',
         description: 'Votre profil est maintenant complet.',
       });
-      // Refresh user state in AuthContext if needed, or just rely on redirect
-      // await getProfile(user.id); // Optional: refresh profile in context
+      await getProfile(user.id); // IMPORTANT: Refresh profile in AuthContext
       navigate('/'); // Redirect to home page
     }
   };

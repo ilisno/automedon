@@ -2,8 +2,9 @@ import React from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Link } from 'react-router-dom';
-import ConcessionnaireAccount from '@/components/ConcessionnaireAccount'; // Import the new component
-import { Button } from '@/components/ui/button'; // Added this import
+import ConcessionnaireAccount from '@/components/ConcessionnaireAccount';
+import ConvoyeurAccount from '@/components/ConvoyeurAccount'; // Import the new component
+import { Button } from '@/components/ui/button';
 
 const Account = () => {
   const { user, profile, loading } = useAuth();
@@ -39,6 +40,10 @@ const Account = () => {
     return <ConcessionnaireAccount />;
   }
 
+  if (profile.role === 'convoyeur') {
+    return <ConvoyeurAccount />;
+  }
+
   // Default rendering for other roles or if no specific view is defined
   return (
     <div className="container mx-auto px-4 py-8">
@@ -72,25 +77,6 @@ const Account = () => {
             </Link>
           </CardContent>
         </Card>
-      )}
-
-      {profile.role === 'convoyeur' && (
-        <>
-          <Card className="mb-6 bg-purple-50 border-purple-200">
-            <CardHeader>
-              <CardTitle className="text-purple-700">Espace Convoyeur</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="mb-4">Consultez les missions disponibles et gérez celles que vous avez acceptées.</p>
-              <Link to="/convoyeur">
-                <Button className="bg-purple-600 hover:bg-purple-700">Voir les missions disponibles</Button>
-              </Link>
-              {/* Future: Display list of missions assigned to/accepted by this convoyeur */}
-              <h3 className="text-xl font-semibold mt-6 mb-3">Mes Missions Attribuées</h3>
-              <p>Liste de vos missions acceptées ou en cours...</p>
-            </CardContent>
-          </Card>
-        </>
       )}
 
       {profile.role === 'autre' && (
