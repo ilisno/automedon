@@ -51,7 +51,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       console.error('AuthContext: Error fetching profile:', error);
       return null;
     }
-    console.log('AuthContext: Profile fetched:', data);
+    console.log('AuthContext: Profile fetched successfully:', data); // Added log
     return data as Profile;
   };
 
@@ -64,6 +64,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         setUser(session.user);
         const userProfile = await getProfile(session.user.id);
         setProfile(userProfile);
+        console.log('AuthContext: Profile after auth state change:', userProfile); // Added log
       } else {
         setUser(null);
         setProfile(null);
@@ -82,6 +83,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         setUser(session.user);
         const userProfile = await getProfile(session.user.id);
         setProfile(userProfile);
+        console.log('AuthContext: Profile after initial check:', userProfile); // Added log
       } else {
         setUser(null);
         setProfile(null);
@@ -99,60 +101,71 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const login = async (email: string, password: string): Promise<{ user: User | null; profile: Profile | null }> => {
     console.log('AuthContext: Attempting login with email:', email);
     setLoading(true);
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-    if (error) {
-      console.error('AuthContext: Supabase login error:', error);
-      setLoading(false); // Ensure loading is false on error
-      throw error;
+    try { // Added try-catch for login
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) {
+        console.error('AuthContext: Supabase login error:', error);
+        throw error;
+      }
+      console.log('AuthContext: Supabase login successful, user data:', data.user);
+      setUser(data.user);
+      const userProfile = data.user ? await getProfile(data.user.id) : null;
+      setProfile(userProfile);
+      console.log('AuthContext: Profile after login:', userProfile); // Added log
+      return { user: data.user, profile: userProfile };
+    } finally { // Ensure loading is set to false in finally block
+      setLoading(false);
+      console.log('AuthContext: Loading set to false after login attempt.');
     }
-    console.log('AuthContext: Supabase login successful, user data:', data.user);
-    setUser(data.user);
-    const userProfile = data.user ? await getProfile(data.user.id) : null;
-    setProfile(userProfile);
-    setLoading(false); // Set loading to false after profile is fetched
-    return { user: data.user, profile: userProfile };
   };
 
   const register = async (email: string, password: string, companyType: string): Promise<{ user: User | null; profile: Profile | null }> => {
     console.log('AuthContext: Attempting registration with email:', email, 'companyType:', companyType);
     setLoading(true);
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: {
-          company_type: companyType,
-          // You can add first_name, last_name here if you want them at signup
+    try { // Added try-catch for register
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            company_type: companyType,
+            // You can add first_name, last_name here if you want them at signup
+          },
         },
-      },
-    });
-    if (error) {
-      console.error('AuthContext: Supabase registration error:', error);
-      setLoading(false); // Ensure loading is false on error
-      throw error;
+      });
+      if (error) {
+        console.error('AuthContext: Supabase registration error:', error);
+        throw error;
+      }
+      console.log('AuthContext: Supabase registration successful, user data:', data.user);
+      setUser(data.user);
+       // Profile is created by trigger, fetch it
+      const userProfile = data.user ? await getProfile(data.user.id) : null;
+      setProfile(userProfile);
+      console.log('AuthContext: Profile after registration:', userProfile); // Added log
+      return { user: data.user, profile: userProfile };
+    } finally { // Ensure loading is set to false in finally block
+      setLoading(false);
+      console.log('AuthContext: Loading set to false after registration attempt.');
     }
-    console.log('AuthContext: Supabase registration successful, user data:', data.user);
-    setUser(data.user);
-     // Profile is created by trigger, fetch it
-    const userProfile = data.user ? await getProfile(data.user.id) : null;
-    setProfile(userProfile);
-    setLoading(false); // Set loading to false after profile is fetched
-    return { user: data.user, profile: userProfile };
   };
 
   const logout = async () => {
     console.log('AuthContext: Attempting logout');
     setLoading(true);
-    const { error } = await supabase.auth.signOut();
-    if (error) {
-      console.error('AuthContext: Supabase logout error:', error);
-      setLoading(false); // Ensure loading is false on error
-      throw error;
+    try { // Added try-catch for logout
+      const { error } = await supabase.auth.signOut();
+      if (error) {
+        console.error('AuthContext: Supabase logout error:', error);
+        throw error;
+      }
+      console.log('AuthContext: Supabase logout successful');
+      setUser(null);
+      setProfile(null);
+    } finally { // Ensure loading is set to false in finally block
+      setLoading(false);
+      console.log('AuthContext: Loading set to false after logout attempt.');
     }
-    console.log('AuthContext: Supabase logout successful');
-    setUser(null);
-    setProfile(null);
-    setLoading(false); // Set loading to false after logout
   };
 
   return (
