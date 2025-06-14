@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import Header from "@/components/Header";
-import { useMissions, Mission } from "@/context/MissionsContext";
+import { useMissions } from "@/context/MissionsContext";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -27,7 +27,7 @@ type Profile = {
 };
 
 const Concessionnaire = () => {
-  const { getConcessionnaireMissions, isLoadingMissions } = useMissions();
+  const { useConcessionnaireMissions } = useMissions();
   const [userId, setUserId] = useState<string | null>(null);
   const [loadingProfile, setLoadingProfile] = useState(true);
   const [firstName, setFirstName] = useState("");
@@ -112,7 +112,7 @@ const Concessionnaire = () => {
     setLoadingProfile(false);
   };
 
-  const concessionnaireMissions = userId ? getConcessionnaireMissions(userId) : [];
+  const { missions: concessionnaireMissions, isLoading: isLoadingMissions } = useConcessionnaireMissions(userId || undefined);
 
   if (loadingProfile || isLoadingMissions) {
     return (
@@ -202,10 +202,10 @@ const Concessionnaire = () => {
             </Link>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {concessionnaireMissions.length === 0 ? (
+            {concessionnaireMissions && concessionnaireMissions.length === 0 ? (
               <p className="col-span-full text-center text-gray-600 dark:text-gray-400">Aucune mission créée pour le moment.</p>
             ) : (
-              concessionnaireMissions.map((mission) => (
+              concessionnaireMissions?.map((mission) => (
                 <Card key={mission.id} className="w-full bg-white dark:bg-gray-800 shadow-lg">
                   <CardHeader>
                     <CardTitle className="text-xl font-semibold">{mission.modele} ({mission.immatriculation})</CardTitle>

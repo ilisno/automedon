@@ -35,7 +35,7 @@ type Profile = {
 };
 
 const Convoyeur = () => {
-  const { getAvailableMissions, getConvoyeurMissions, takeMission, completeMission, getMonthlyTurnover, isLoadingMissions } = useMissions();
+  const { useAvailableMissions, useConvoyeurMissions, takeMission, completeMission, useMonthlyTurnover } = useMissions();
   const [userId, setUserId] = useState<string | null>(null);
   const [loadingProfile, setLoadingProfile] = useState(true);
   const [firstName, setFirstName] = useState("");
@@ -176,11 +176,11 @@ const Convoyeur = () => {
     }
   };
 
-  const availableMissions = getAvailableMissions();
-  const convoyeurMissions = userId ? getConvoyeurMissions(userId) : [];
-  const monthlyTurnover = userId ? getMonthlyTurnover(userId) : 0;
+  const { missions: availableMissions, isLoading: isLoadingAvailableMissions } = useAvailableMissions();
+  const { missions: convoyeurMissions, isLoading: isLoadingConvoyeurMissions } = useConvoyeurMissions(userId || undefined);
+  const { turnover: monthlyTurnover, isLoading: isLoadingMonthlyTurnover } = useMonthlyTurnover(userId || undefined);
 
-  if (loadingProfile || isLoadingMissions) {
+  if (loadingProfile || isLoadingAvailableMissions || isLoadingConvoyeurMissions || isLoadingMonthlyTurnover) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-100 dark:bg-gray-900">
         <p className="text-gray-700 dark:text-gray-300">Chargement de votre espace...</p>

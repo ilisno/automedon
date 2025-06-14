@@ -23,16 +23,16 @@ export type Mission = {
 
 // 2. Définition du type du contexte
 type MissionsContextType = {
-  missions: Mission[] | undefined;
-  isLoadingMissions: boolean;
   addMission: (missionData: Omit<Mission, 'id' | 'created_at' | 'statut' | 'convoyeur_id' | 'commentaires' | 'photos' | 'price'> & { concessionnaire_id: string }) => Promise<void>;
   updateMissionStatus: (id: string, statut: Mission['statut'], commentaires?: string, photos?: string[], convoyeurId?: string) => Promise<void>;
   takeMission: (missionId: string, convoyeurId: string) => Promise<void>;
   completeMission: (missionId: string, commentaires: string, photos: string[], price: number) => Promise<void>;
-  getConcessionnaireMissions: (userId: string) => Mission[] | undefined;
-  getAvailableMissions: () => Mission[] | undefined;
-  getConvoyeurMissions: (userId: string) => Mission[] | undefined;
-  getMonthlyTurnover: (convoyeurId: string) => number;
+  
+  // Nouvelles fonctions pour récupérer les missions avec useQuery
+  useConcessionnaireMissions: (userId: string | undefined) => { missions: Mission[] | undefined; isLoading: boolean; };
+  useAvailableMissions: () => { missions: Mission[] | undefined; isLoading: boolean; };
+  useConvoyeurMissions: (userId: string | undefined) => { missions: Mission[] | undefined; isLoading: boolean; };
+  useMonthlyTurnover: (convoyeurId: string | undefined) => { turnover: number; isLoading: boolean; };
 };
 
 // 3. Création du contexte
@@ -41,31 +41,6 @@ const MissionsContext = createContext<MissionsContextType | undefined>(undefined
 // 4. Création du fournisseur de contexte (Provider)
 export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const queryClient = useQueryClient();
-
-  // Fetch all missions
-  const { data: missions, isLoading: isLoadingMissions } = useQuery<Mission[]>({
-    queryKey: ['missions'],
-    queryFn: async () => {
-      const { data, error } = await supabase.from('commandes').select('*');
-      if (error) throw error;
-      // Map DB column names to camelCase for consistency in frontend
-      return data.map(m => ({
-        id: m.id,
-        created_at: m.created_at,
-        immatriculation: m.immatriculation,
-        modele: m.modele,
-        lieu_depart: m.lieu_depart,
-        lieu_arrivee: m.lieu_arrivee,
-        statut: m.statut,
-        concessionnaire_id: m.concessionnaire_id,
-        convoyeur_id: m.convoyeur_id,
-        heureLimite: m.heureLimite, // Assuming heureLimite is already camelCase in DB or mapped
-        commentaires: m.commentaires,
-        photos: m.photos,
-        price: m.price,
-      }));
-    },
-  });
 
   // Mutation for adding a mission
   const addMissionMutation = useMutation({
@@ -83,7 +58,7 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['missions'] });
+      queryClient.invalidateQueries({ queryKey: ['concessionnaireMissions'] }); // Invalider les missions du concessionnaire
       showSuccess("Mission créée avec succès ✅");
     },
     onError: (error) => {
@@ -109,7 +84,9 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       return data;
     },
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ['missions'] });
+      queryClient.invalidateQueries({ queryKey: ['availableMissions'] }); // Invalider les missions disponibles
+      queryClient.invalidateQueries({ queryKey: ['convoyeurMissions'] }); // Invalider les missions du convoyeur
+      queryClient.invalidateQueries({ queryKey: ['concessionnaireMissions'] }); // Invalider les missions du concessionnaire
       if (variables.statut === 'en cours') {
         showSuccess("Mission prise en charge !");
       } else if (variables.statut === 'livrée') {
@@ -142,7 +119,9 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['missions'] });
+      queryClient.invalidateQueries({ queryKey: ['convoyeurMissions'] }); // Invalider les missions du convoyeur
+      queryClient.invalidateQueries({ queryKey: ['monthlyTurnover'] }); // Invalider le CA mensuel
+      queryClient.invalidateQueries({ queryKey: ['concessionnaireMissions'] }); // Invalider les missions du concessionnaire
       showSuccess("Mission marquée comme livrée !");
     },
     onError: (error) => {
@@ -155,44 +134,132 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     await completeMissionMutation.mutateAsync({ missionId, commentaires, photos, price });
   };
 
-  // Helper functions to filter missions
-  const getConcessionnaireMissions = (userId: string) => {
-    return missions?.filter(m => m.concessionnaire_id === userId);
+  // Nouvelles fonctions de récupération de missions utilisant useQuery
+  const useConcessionnaireMissions = (userId: string | undefined) => {
+    const { data, isLoading } = useQuery<Mission[]>({
+      queryKey: ['concessionnaireMissions', userId],
+      queryFn: async () => {
+        if (!userId) return [];
+        const { data, error } = await supabase.from('commandes').select('*').eq('concessionnaire_id', userId);
+        if (error) throw error;
+        return data.map(m => ({
+          id: m.id,
+          created_at: m.created_at,
+          immatriculation: m.immatriculation,
+          modele: m.modele,
+          lieu_depart: m.lieu_depart,
+          lieu_arrivee: m.lieu_arrivee,
+          statut: m.statut,
+          concessionnaire_id: m.concessionnaire_id,
+          convoyeur_id: m.convoyeur_id,
+          heureLimite: m.heureLimite,
+          commentaires: m.commentaires,
+          photos: m.photos,
+          price: m.price,
+        }));
+      },
+      enabled: !!userId, // N'exécuter la requête que si userId est défini
+    });
+    return { missions: data, isLoading };
   };
 
-  const getAvailableMissions = () => {
-    return missions?.filter(m => m.statut === 'Disponible');
+  const useAvailableMissions = () => {
+    const { data, isLoading } = useQuery<Mission[]>({
+      queryKey: ['availableMissions'],
+      queryFn: async () => {
+        const { data, error } = await supabase.from('commandes').select('*').eq('statut', 'Disponible');
+        if (error) throw error;
+        return data.map(m => ({
+          id: m.id,
+          created_at: m.created_at,
+          immatriculation: m.immatriculation,
+          modele: m.modele,
+          lieu_depart: m.lieu_depart,
+          lieu_arrivee: m.lieu_arrivee,
+          statut: m.statut,
+          concessionnaire_id: m.concessionnaire_id,
+          convoyeur_id: m.convoyeur_id,
+          heureLimite: m.heureLimite,
+          commentaires: m.commentaires,
+          photos: m.photos,
+          price: m.price,
+        }));
+      },
+    });
+    return { missions: data, isLoading };
   };
 
-  const getConvoyeurMissions = (userId: string) => {
-    return missions?.filter(m => m.convoyeur_id === userId || (m.statut === 'en cours' && m.convoyeur_id === userId) || (m.statut === 'livrée' && m.convoyeur_id === userId));
+  const useConvoyeurMissions = (userId: string | undefined) => {
+    const { data, isLoading } = useQuery<Mission[]>({
+      queryKey: ['convoyeurMissions', userId],
+      queryFn: async () => {
+        if (!userId) return [];
+        // Fetch missions assigned to the convoyeur or taken by them
+        const { data, error } = await supabase
+          .from('commandes')
+          .select('*')
+          .or(`convoyeur_id.eq.${userId},and(statut.eq.en cours,convoyeur_id.eq.${userId}),and(statut.eq.livrée,convoyeur_id.eq.${userId})`);
+        if (error) throw error;
+        return data.map(m => ({
+          id: m.id,
+          created_at: m.created_at,
+          immatriculation: m.immatriculation,
+          modele: m.modele,
+          lieu_depart: m.lieu_depart,
+          lieu_arrivee: m.lieu_arrivee,
+          statut: m.statut,
+          concessionnaire_id: m.concessionnaire_id,
+          convoyeur_id: m.convoyeur_id,
+          heureLimite: m.heureLimite,
+          commentaires: m.commentaires,
+          photos: m.photos,
+          price: m.price,
+        }));
+      },
+      enabled: !!userId,
+    });
+    return { missions: data, isLoading };
   };
 
-  const getMonthlyTurnover = (convoyeurId: string) => {
-    const currentMonth = new Date().getMonth();
-    const currentYear = new Date().getFullYear();
+  const useMonthlyTurnover = (convoyeurId: string | undefined) => {
+    const { data, isLoading } = useQuery<number>({
+      queryKey: ['monthlyTurnover', convoyeurId],
+      queryFn: async () => {
+        if (!convoyeurId) return 0;
+        const currentMonth = new Date().getMonth() + 1; // Months are 1-indexed in SQL
+        const currentYear = new Date().getFullYear();
+        
+        // Fetch only completed missions for the current convoyeur in the current month/year
+        const { data, error } = await supabase
+          .from('commandes')
+          .select('price, created_at')
+          .eq('convoyeur_id', convoyeurId)
+          .eq('statut', 'livrée')
+          .gte('created_at', `${currentYear}-${String(currentMonth).padStart(2, '0')}-01T00:00:00Z`)
+          .lt('created_at', `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-01T00:00:00Z`); // Next month's first day
 
-    return missions?.filter(m =>
-      m.convoyeur_id === convoyeurId &&
-      m.statut === 'livrée' &&
-      new Date(m.created_at).getMonth() === currentMonth &&
-      new Date(m.created_at).getFullYear() === currentYear &&
-      m.price !== null
-    ).reduce((sum, mission) => sum + (mission.price || 0), 0) || 0;
+        if (error) {
+          console.error("Error fetching monthly turnover:", error);
+          throw error;
+        }
+
+        return data.reduce((sum, mission) => sum + (mission.price || 0), 0);
+      },
+      enabled: !!convoyeurId,
+    });
+    return { turnover: data || 0, isLoading };
   };
 
   const contextValue = useMemo(() => ({
-    missions,
-    isLoadingMissions,
     addMission,
     updateMissionStatus,
     takeMission,
     completeMission,
-    getConcessionnaireMissions,
-    getAvailableMissions,
-    getConvoyeurMissions,
-    getMonthlyTurnover,
-  }), [missions, isLoadingMissions, addMission, updateMissionStatus, takeMission, completeMission, getConcessionnaireMissions, getAvailableMissions, getConvoyeurMissions, getMonthlyTurnover]);
+    useConcessionnaireMissions,
+    useAvailableMissions,
+    useConvoyeurMissions,
+    useMonthlyTurnover,
+  }), [addMission, updateMissionStatus, takeMission, completeMission, useConcessionnaireMissions, useAvailableMissions, useConvoyeurMissions, useMonthlyTurnover]);
 
   return (
     <MissionsContext.Provider value={contextValue}>
