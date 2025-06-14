@@ -71,9 +71,12 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       setLoading(true); // Set loading to true at the start of any auth state change
       if (session) {
         setUser(session.user);
-        const userProfile = await getProfile(session.user.id);
-        setProfile(userProfile);
-        console.log('AuthContext: Profile after auth state change:', userProfile);
+        // Only fetch profile if it's not already loaded
+        if (!profile || profile.id !== session.user.id) {
+          const userProfile = await getProfile(session.user.id);
+          setProfile(userProfile);
+        }
+        console.log('AuthContext: Profile after auth state change:', profile);
         console.log('AuthContext: Finished processing auth state change for event:', event);
       } else {
         setUser(null);
@@ -93,9 +96,12 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       console.log('AuthContext: Initial session data:', session);
       if (session) {
         setUser(session.user);
-        const userProfile = await getProfile(session.user.id);
-        setProfile(userProfile);
-        console.log('AuthContext: Profile after initial check:', userProfile);
+        // Only fetch profile if it's not already loaded
+        if (!profile || profile.id !== session.user.id) {
+          const userProfile = await getProfile(session.user.id);
+          setProfile(userProfile);
+        }
+        console.log('AuthContext: Profile after initial check:', profile);
         console.log('AuthContext: Finished initial auth check with session.');
       } else {
         setUser(null);
@@ -111,7 +117,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
 
     return () => subscription.unsubscribe();
-  }, []); // Empty dependency array means this effect runs once on mount
+  }, [profile]); // Add profile to dependency array to ensure it's updated
 
   const login = async (email: string, password: string): Promise<void> => {
     console.log('AuthContext: Attempting login with email:', email);
