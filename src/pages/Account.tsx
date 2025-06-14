@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Link } from 'react-router-dom';
@@ -8,6 +8,25 @@ import { Button } from '@/components/ui/button';
 
 const Account = () => {
   const { user, profile, loading } = useAuth();
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    console.log('Account component mounted');
+    setIsMounted(true);
+
+    return () => {
+      console.log('Account component unmounted');
+      setIsMounted(false);
+    };
+  }, []);
+
+  useEffect(() => {
+    console.log('Account useEffect - user:', user, 'profile:', profile, 'loading:', loading);
+  }, [user, profile, loading]);
+
+  if (!isMounted) {
+    return null; // Prevent flash of loading state on initial mount
+  }
 
   if (loading) {
     return <div className="min-h-screen flex items-center justify-center">Chargement du compte...</div>;
