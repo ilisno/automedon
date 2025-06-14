@@ -47,11 +47,18 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       .select('*')
       .eq('id', userId)
       .single();
+
     if (error) {
-      console.error('AuthContext: Error fetching profile:', error);
+      console.error('AuthContext: Error fetching profile for user ID', userId, ':', error);
       return null;
     }
-    console.log('AuthContext: Profile fetched successfully:', data); // Added log
+
+    if (!data) {
+      console.warn('AuthContext: No profile found for user ID:', userId);
+      return null;
+    }
+
+    console.log('AuthContext: Profile fetched successfully for user ID', userId, ':', data);
     return data as Profile;
   };
 
