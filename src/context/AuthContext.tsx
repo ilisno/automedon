@@ -107,6 +107,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const login = async (email: string, password: string): Promise<{ user: User | null; profile: Profile | null }> => {
     console.log('AuthContext: Attempting login with email:', email);
+    console.log('AuthContext: Password length:', password.length); // Log password length, not password itself for security
     setLoading(true);
     try { // Added try-catch for login
       const { data, error } = await supabase.auth.signInWithPassword({ email, password });
@@ -145,7 +146,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         throw error;
       }
       console.log('AuthContext: Supabase registration successful, user data:', data.user);
-      setUser(data.user);
        // Profile is created by trigger, fetch it
       const userProfile = data.user ? await getProfile(data.user.id) : null;
       setProfile(userProfile);
