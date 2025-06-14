@@ -29,17 +29,11 @@ const Register = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const { user: registeredUser, profile: userProfile } = await register(email, password, companyType); // Pass companyType
+      await register(email, password, companyType); // No longer destructuring return value
       console.log('Registration successful!');
-       if (registeredUser) {
-         toast({
-            title: 'Inscription réussie !',
-            description: 'Veuillez compléter votre profil.',
-          });
-         // Redirection is handled by the useEffect hook based on user/profile state
-         // navigate('/complete-profile');
-       }
-
+       // Redirection is handled by the useEffect hook based on user/profile state
+       // The toast message will be shown once the profile is loaded and redirection happens
+       // or if the user stays on the register page (e.g., if profile is incomplete)
     } catch (error: any) { // Catch error as any to access message
       console.error('Error registering:', error);
       toast({

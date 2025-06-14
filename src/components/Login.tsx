@@ -28,23 +28,11 @@ const Login = () => {
     e.preventDefault();
     console.log('Login button clicked, attempting to log in...');
     try {
-      const { user: loggedInUser, profile: userProfile } = await login(email, password);
+      await login(email, password); // No longer destructuring return value
       console.log('Login successful!');
       // Redirection is now handled by the useEffect hook based on user/profile state
-      if (loggedInUser && userProfile?.is_profile_complete) {
-         toast({
-            title: 'Connexion réussie !',
-            description: 'Bienvenue !',
-          });
-         // navigate('/'); // useEffect handles this
-      } else if (loggedInUser && !userProfile?.is_profile_complete) {
-         toast({
-            title: 'Connexion réussie !',
-            description: 'Veuillez compléter votre profil.',
-          });
-         // navigate('/complete-profile'); // useEffect handles this
-      }
-
+      // The toast message will be shown once the profile is loaded and redirection happens
+      // or if the user stays on the login page (e.g., if profile is incomplete)
     } catch (error: any) { // Catch error as any to access message
       console.error('Error logging in:', error);
        toast({
