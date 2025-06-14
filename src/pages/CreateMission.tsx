@@ -15,8 +15,8 @@ const CreateMission = () => {
 
   const [immatriculation, setImmatriculation] = useState("");
   const [modele, setModele] = useState("");
-  const [lieuDepart, setLieuDepart] = useState("");
-  const [lieuArrivee, setLieuArrivee] = useState("");
+  const [lieu_depart, setLieu_depart] = useState(""); // Changed to snake_case
+  const [lieu_arrivee, setLieu_arrivee] = useState(""); // Changed to snake_case
   const [heureLimite, setHeureLimite] = useState("");
 
   useEffect(() => {
@@ -44,8 +44,8 @@ const CreateMission = () => {
       await addMission({
         immatriculation,
         modele,
-        lieuDepart,
-        lieuArrivee,
+        lieu_depart, // Changed to snake_case
+        lieu_arrivee, // Changed to snake_case
         heureLimite,
         concessionnaire_id: concessionnaireId,
       });
@@ -53,8 +53,8 @@ const CreateMission = () => {
       // Vider le formulaire
       setImmatriculation("");
       setModele("");
-      setLieuDepart("");
-      setLieuArrivee("");
+      setLieu_depart("");
+      setLieu_arrivee("");
       setHeureLimite("");
     } catch (error) {
       // Error handled by useMutation in MissionsContext
@@ -99,23 +99,23 @@ const CreateMission = () => {
               />
             </div>
             <div>
-              <Label htmlFor="lieuDepart">Lieu de départ</Label>
+              <Label htmlFor="lieu_depart">Lieu de départ</Label>
               <Input
-                id="lieuDepart"
+                id="lieu_depart"
                 type="text"
-                value={lieuDepart}
-                onChange={(e) => setLieuDepart(e.target.value)}
+                value={lieu_depart}
+                onChange={(e) => setLieu_depart(e.target.value)}
                 required
                 className="mt-1"
               />
             </div>
             <div>
-              <Label htmlFor="lieuArrivee">Lieu d'arrivée</Label>
+              <Label htmlFor="lieu_arrivee">Lieu d'arrivée</Label>
               <Input
-                id="lieuArrivee"
+                id="lieu_arrivee"
                 type="text"
-                value={lieuArrivee}
-                onChange={(e) => setLieuArrivee(e.target.value)}
+                value={lieu_arrivee}
+                onChange={(e) => setLieu_arrivee(e.target.value)}
                 required
                 className="mt-1"
               />
