@@ -17,30 +17,8 @@ const AccountRedirect = () => {
         return;
       }
 
-      const { data: profile, error: profileError } = await supabase
-        .from('profiles')
-        .select('role')
-        .eq('id', user.id)
-        .single();
-
-      if (profileError || !profile) {
-        console.error("Error fetching profile for redirection:", profileError);
-        showError("Erreur lors du chargement de votre profil. Veuillez compléter vos informations.");
-        // If profile doesn't exist or role is not set, default to concessionnaire page for now
-        // In a real app, you might redirect to a "complete profile" page
-        navigate("/concessionnaire");
-        return;
-      }
-
-      if (profile.role === 'concessionnaire') {
-        navigate("/concessionnaire");
-      } else if (profile.role === 'convoyeur') {
-        navigate("/convoyeur");
-      } else {
-        // If role is null or unknown, default to concessionnaire page or a profile completion page
-        showError("Votre rôle n'est pas défini. Veuillez compléter votre profil.");
-        navigate("/concessionnaire"); // Default redirect
-      }
+      // Redirect directly to the unified account page
+      navigate("/account");
       setLoading(false);
     };
 

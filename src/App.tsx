@@ -10,11 +10,10 @@ import { MissionsProvider } from "@/context/MissionsContext";
 
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
-import Concessionnaire from "./pages/Concessionnaire";
-import Convoyeur from "./pages/Convoyeur";
 import Login from "./pages/Login";
 import CreateMission from "./pages/CreateMission";
-import AccountRedirect from "./pages/AccountRedirect"; // Import the new AccountRedirect page
+import AccountRedirect from "./pages/AccountRedirect";
+import Account from "./pages/Account"; // Import the new unified Account page
 import Contact from "./pages/Contact";
 import CGV from "./pages/CGV";
 
@@ -31,8 +30,8 @@ const AppContent = () => {
           navigate("/login");
         }
       } else if (session && window.location.pathname === "/login") {
-        // Redirect to home if authenticated and on login page
-        navigate("/");
+        // Redirect to account if authenticated and on login page
+        navigate("/account");
       }
     });
 
@@ -42,11 +41,10 @@ const AppContent = () => {
   return (
     <Routes>
       <Route path="/" element={<Index />} />
-      <Route path="/concessionnaire" element={<Concessionnaire />} />
-      <Route path="/convoyeur" element={<Convoyeur />} />
       <Route path="/login" element={<Login />} />
       <Route path="/create-mission" element={<CreateMission />} />
-      <Route path="/account-redirect" element={<AccountRedirect />} /> {/* New route for AccountRedirect page */}
+      <Route path="/account-redirect" element={<AccountRedirect />} />
+      <Route path="/account" element={<Account />} /> {/* New route for unified Account page */}
       <Route path="/contact" element={<Contact />} />
       <Route path="/cgv" element={<CGV />} />
       {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

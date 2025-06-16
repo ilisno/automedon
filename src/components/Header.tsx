@@ -34,15 +34,10 @@ const Header = () => {
       <Link to="/" className="text-lg font-medium hover:text-primary-foreground transition-colors">
         Accueil
       </Link>
-      <Link to="/concessionnaire" className="text-lg font-medium hover:text-primary-foreground transition-colors">
-        Concessionnaire
-      </Link>
-      <Link to="/convoyeur" className="text-lg font-medium hover:text-primary-foreground transition-colors">
-        Convoyeur
-      </Link>
+      {/* Removed direct links to concessionnaire and convoyeur */}
       {session ? (
         <>
-          <Link to="/account-redirect" className="text-lg font-medium hover:text-primary-foreground transition-colors flex items-center">
+          <Link to="/account" className="text-lg font-medium hover:text-primary-foreground transition-colors flex items-center">
             <User className="mr-2 h-5 w-5" /> Mon Compte
           </Link>
           <Button variant="ghost" onClick={handleLogout} className="text-lg font-medium hover:text-primary-foreground transition-colors">
