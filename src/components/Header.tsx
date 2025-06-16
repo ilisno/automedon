@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { Menu, LogIn, LogOut, User } from "lucide-react";
+import { Menu, LogIn, LogOut, User, Shield } from "lucide-react"; // Import Shield icon
 import { useIsMobile } from "@/hooks/use-mobile";
 import { supabase } from "@/integrations/supabase/client";
 import { Session } from "@supabase/supabase-js";
@@ -34,7 +34,6 @@ const Header = () => {
       <Link to="/" className="text-lg font-medium hover:text-primary-foreground transition-colors">
         Accueil
       </Link>
-      {/* Removed direct links to concessionnaire and convoyeur */}
       {session ? (
         <>
           <Link to="/account" className="text-lg font-medium hover:text-primary-foreground transition-colors flex items-center">
@@ -51,6 +50,10 @@ const Header = () => {
           </Button>
         </Link>
       )}
+      {/* New Admin Link */}
+      <Link to="/admin" className="text-lg font-medium hover:text-primary-foreground transition-colors flex items-center">
+        <Shield className="mr-2 h-5 w-5" /> Admin
+      </Link>
     </>
   );
 
