@@ -194,11 +194,12 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       queryKey: ['convoyeurMissions', userId],
       queryFn: async () => {
         if (!userId) return [];
-        // Fetch missions assigned to the convoyeur or taken by them
+        // Fetch missions assigned to the convoyeur that are 'en cours' or 'livrée'
         const { data, error } = await supabase
           .from('commandes')
           .select('*')
-          .or(`convoyeur_id.eq.${userId},and(statut.eq.en cours,convoyeur_id.eq.${userId}),and(statut.eq.livrée,convoyeur_id.eq.${userId})`);
+          .eq('convoyeur_id', userId)
+          .in('statut', ['en cours', 'livrée']); // Filter for 'en cours' or 'livrée' statuses
         if (error) throw error;
         return data.map(m => ({
           id: m.id,

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -10,33 +10,50 @@ import { supabase } from "@/integrations/supabase/client";
 
 const CreateMission = () => {
   const { addMission } = useMissions();
+  const navigate = useNavigate();
   const [concessionnaireId, setConcessionnaireId] = useState<string | null>(null);
   const [loadingUser, setLoadingUser] = useState(true);
 
   const [immatriculation, setImmatriculation] = useState("");
   const [modele, setModele] = useState("");
-  const [lieu_depart, setLieu_depart] = useState(""); // Changed to snake_case
-  const [lieu_arrivee, setLieu_arrivee] = useState(""); // Changed to snake_case
+  const [lieu_depart, setLieu_depart] = useState("");
+  const [lieu_arrivee, setLieu_arrivee] = useState("");
   const [heureLimite, setHeureLimite] = useState("");
 
   useEffect(() => {
-    const fetchUser = async () => {
+    const fetchUserAndRole = async () => {
+      setLoadingUser(true);
       const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        setConcessionnaireId(user.id);
-      } else {
+
+      if (!user) {
         showError("Vous devez être connecté pour créer une mission.");
+        navigate("/login");
+        return;
       }
+
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', user.id)
+        .single();
+
+      if (profileError || !profile || profile.role !== 'concessionnaire') {
+        showError("Seuls les concessionnaires peuvent créer des missions.");
+        navigate("/account"); // Redirect to account page if not a concessionnaire
+        return;
+      }
+
+      setConcessionnaireId(user.id);
       setLoadingUser(false);
     };
-    fetchUser();
-  }, []);
+    fetchUserAndRole();
+  }, [navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!concessionnaireId) {
-      showError("Impossible de créer la mission : utilisateur non identifié.");
+      showError("Impossible de créer la mission : utilisateur non identifié ou rôle incorrect.");
       return;
     }
 
@@ -44,8 +61,8 @@ const CreateMission = () => {
       await addMission({
         immatriculation,
         modele,
-        lieu_depart, // Changed to snake_case
-        lieu_arrivee, // Changed to snake_case
+        lieu_depart,
+        lieu_arrivee,
         heureLimite,
         concessionnaire_id: concessionnaireId,
       });
