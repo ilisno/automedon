@@ -53,7 +53,7 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         heureLimite: missionData.heureLimite,
         concessionnaire_id: missionData.concessionnaire_id,
         statut: 'Disponible', // Default status for new missions
-      }).select().single();
+      }); // Removed .select().single()
       if (error) throw error;
       return data;
     },
@@ -79,7 +79,7 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       if (photos !== undefined) updateData.photos = photos;
       if (convoyeurId !== undefined) updateData.convoyeur_id = convoyeurId;
 
-      const { data, error } = await supabase.from('commandes').update(updateData).eq('id', id).select().single();
+      const { data, error } = await supabase.from('commandes').update(updateData).eq('id', id); // Removed .select().single()
       if (error) throw error;
       return data;
     },
@@ -114,7 +114,7 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         commentaires: commentaires,
         photos: photos,
         price: price,
-      }).eq('id', missionId).select().single();
+      }).eq('id', missionId); // Removed .select().single()
       if (error) throw error;
       return data;
     },
