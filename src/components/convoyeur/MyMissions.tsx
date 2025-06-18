@@ -11,20 +11,20 @@ interface MyMissionsProps {
   userId: string;
   missionComments: { [key: string]: string };
   missionPhotos: { [key: string]: string[] };
-  missionPrices: { [key: string]: number };
+  // missionPrices: { [key: string]: number }; // Removed
   setMissionComments: React.Dispatch<React.SetStateAction<{ [key: string]: string }>>;
   setMissionPhotos: React.Dispatch<React.SetStateAction<{ [key: string]: string[] }>>;
-  setMissionPrices: React.Dispatch<React.SetStateAction<{ [key: string]: number }>>;
+  // setMissionPrices: React.Dispatch<React.SetStateAction<{ [key: string]: number }>>; // Removed
 }
 
 const MyMissions: React.FC<MyMissionsProps> = ({
   userId,
   missionComments,
   missionPhotos,
-  missionPrices,
+  // missionPrices, // Removed
   setMissionComments,
   setMissionPhotos,
-  setMissionPrices,
+  // setMissionPrices, // Removed
 }) => {
   const { useConvoyeurMissions, completeMission } = useMissions();
   const { missions: convoyeurMissions, isLoading: isLoadingConvoyeurMissions } = useConvoyeurMissions(userId);
@@ -32,27 +32,19 @@ const MyMissions: React.FC<MyMissionsProps> = ({
   const handleMarquerCommeLivree = async (id: string) => {
     const comments = missionComments[id] || "";
     const photos = missionPhotos[id] || []; // Currently empty, would be URLs
-    const price = missionPrices[id] || 0;
 
-    if (price <= 0) {
-      showError("Veuillez entrer un prix valide pour la mission.");
-      return;
-    }
-
-    await completeMission(id, comments, photos, price);
+    await completeMission(id, comments, photos); // Price removed from call
     // Clear local state for this mission
     setMissionComments(prev => { const newState = { ...prev }; delete newState[id]; return newState; });
     setMissionPhotos(prev => { const newState = { ...prev }; delete newState[id]; return newState; });
-    setMissionPrices(prev => { const newState = { ...prev }; delete newState[id]; return newState; });
+    // setMissionPrices(prev => { const newState = { ...prev }; delete newState[id]; return newState; }); // Removed
   };
 
   const handleCommentChange = (id: string, value: string) => {
     setMissionComments(prev => ({ ...prev, [id]: value }));
   };
 
-  const handlePriceChange = (id: string, value: string) => {
-    setMissionPrices(prev => ({ ...prev, [id]: parseFloat(value) || 0 }));
-  };
+  // handlePriceChange removed
 
   // For now, photos are not uploaded, just showing placeholder
   const handlePhotoChange = (id: string, files: FileList | null) => {
@@ -89,6 +81,10 @@ const MyMissions: React.FC<MyMissionsProps> = ({
                   'text-green-600 dark:text-green-400'
                 }`}>{mission.statut}</span></p>
                 <p><strong>Heure limite:</strong> {new Date(mission.heureLimite).toLocaleString()}</p>
+                <p>
+                  <strong>Prix:</strong>{" "}
+                  {mission.price ? `${mission.price.toFixed(2)} €` : "Prix non fixé"}
+                </p>
 
                 {mission.statut === 'en cours' && (
                   <div className="space-y-4">
@@ -102,19 +98,7 @@ const MyMissions: React.FC<MyMissionsProps> = ({
                         className="mt-1"
                       />
                     </div>
-                    <div>
-                      <Label htmlFor={`price-${mission.id}`}>Prix de la mission (€)</Label>
-                      <Input
-                        id={`price-${mission.id}`}
-                        type="number"
-                        step="0.01"
-                        value={missionPrices[mission.id] || ""}
-                        onChange={(e) => handlePriceChange(mission.id, e.target.value)}
-                        placeholder="Ex: 150.00"
-                        className="mt-1"
-                        required
-                      />
-                    </div>
+                    {/* Price input removed */}
                     <div>
                       <Label htmlFor={`photos-${mission.id}`}>Photos</Label>
                       <Input
@@ -148,11 +132,7 @@ const MyMissions: React.FC<MyMissionsProps> = ({
                         <strong>Photos:</strong> {mission.photos.join(', ')} (Fichiers non affichés)
                       </p>
                     )}
-                    {mission.price && (
-                      <p className="text-sm text-gray-700 dark:text-gray-300">
-                        <strong>Prix:</strong> {mission.price} €
-                      </p>
-                    )}
+                    {/* Price display already handled above */}
                   </>
                 )}
               </CardContent>

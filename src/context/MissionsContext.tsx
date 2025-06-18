@@ -47,7 +47,7 @@ type MissionsContextType = {
   addMission: (missionData: Omit<Mission, 'id' | 'created_at' | 'statut' | 'convoyeur_id' | 'commentaires' | 'photos' | 'price'> & { concessionnaire_id: string }) => Promise<void>;
   updateMission: (id: string, payload: UpdateMissionPayload) => Promise<void>; // Generic update function
   takeMission: (missionId: string, convoyeurId: string) => Promise<void>;
-  completeMission: (missionId: string, commentaires: string, photos: string[], price: number) => Promise<void>;
+  completeMission: (missionId: string, commentaires: string, photos: string[]) => Promise<void>; // Price removed
   
   // Hooks pour récupérer les missions et profils
   useConcessionnaireMissions: (userId: string | undefined) => { missions: Mission[] | undefined; isLoading: boolean; };
@@ -125,8 +125,8 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     await updateMission(missionId, { statut: 'en cours', convoyeur_id: convoyeurId });
   };
 
-  const completeMission = async (missionId: string, commentaires: string, photos: string[], price: number) => {
-    await updateMission(missionId, { statut: 'livrée', commentaires, photos, price });
+  const completeMission = async (missionId: string, commentaires: string, photos: string[]) => { // Price removed
+    await updateMission(missionId, { statut: 'livrée', commentaires, photos }); // Price removed from payload
   };
 
   // Hooks pour récupérer les missions
