@@ -3,8 +3,15 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { showSuccess, showError } from '@/utils/toast';
 import { format } from 'date-fns';
+import { v4 as uuidv4 } from 'uuid';
 
 // 1. Définition du type Mission (adapté à la table Supabase)
+export type MissionUpdate = {
+  timestamp: string;
+  comment: string | null;
+  photos: string[] | null; // URLs des photos
+};
+
 export type Mission = {
   id: string;
   created_at: string;
@@ -16,9 +23,10 @@ export type Mission = {
   concessionnaire_id: string | null;
   convoyeur_id: string | null;
   heureLimite: string; // ISO string, from DB heure_limite
-  commentaires?: string | null;
-  photos?: string[] | null; // Assuming photo URLs if uploaded to storage
+  commentaires?: string | null; // This will become deprecated, replaced by updates
+  photos?: string[] | null; // This will become deprecated, replaced by updates
   price?: number | null;
+  updates?: MissionUpdate[] | null; // New field for step-by-step updates
 };
 
 export type Profile = {
@@ -44,10 +52,12 @@ type UpdateMissionPayload = Partial<Omit<Mission, 'id' | 'created_at'>>;
 
 // 2. Définition du type du contexte
 type MissionsContextType = {
-  addMission: (missionData: Omit<Mission, 'id' | 'created_at' | 'statut' | 'convoyeur_id' | 'commentaires' | 'photos' | 'price'> & { concessionnaire_id: string }) => Promise<void>;
+  addMission: (missionData: Omit<Mission, 'id' | 'created_at' | 'statut' | 'convoyeur_id' | 'commentaires' | 'photos' | 'price' | 'updates'> & { concessionnaire_id: string }) => Promise<void>;
   updateMission: (id: string, payload: UpdateMissionPayload) => Promise<void>; // Generic update function
   takeMission: (missionId: string, convoyeurId: string) => Promise<void>;
-  completeMission: (missionId: string, commentaires: string, photos: string[]) => Promise<void>; // Price removed
+  completeMission: (missionId: string, finalComment: string | null, finalPhotos: FileList | null) => Promise<void>;
+  addMissionUpdate: (missionId: string, comment: string | null, photos: FileList | null) => Promise<void>;
+  uploadMissionPhotos: (missionId: string, files: FileList) => Promise<string[]>;
   
   // Hooks pour récupérer les missions et profils
   useConcessionnaireMissions: (userId: string | undefined) => { missions: Mission[] | undefined; isLoading: boolean; };
@@ -68,7 +78,7 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
   // Mutation for adding a mission
   const addMissionMutation = useMutation({
-    mutationFn: async (missionData: Omit<Mission, 'id' | 'created_at' | 'statut' | 'convoyeur_id' | 'commentaires' | 'photos' | 'price'> & { concessionnaire_id: string }) => {
+    mutationFn: async (missionData: Omit<Mission, 'id' | 'created_at' | 'statut' | 'convoyeur_id' | 'commentaires' | 'photos' | 'price' | 'updates'> & { concessionnaire_id: string }) => {
       const { data, error } = await supabase.from('commandes').insert({
         immatriculation: missionData.immatriculation,
         modele: missionData.modele,
@@ -77,6 +87,7 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         heureLimite: missionData.heureLimite,
         concessionnaire_id: missionData.concessionnaire_id,
         statut: 'Disponible', // Default status for new missions
+        updates: [], // Initialize updates as an empty array
       });
       if (error) throw error;
       return data;
@@ -92,7 +103,7 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     },
   });
 
-  const addMission = async (missionData: Omit<Mission, 'id' | 'created_at' | 'statut' | 'convoyeur_id' | 'commentaires' | 'photos' | 'price'> & { concessionnaire_id: string }) => {
+  const addMission = async (missionData: Omit<Mission, 'id' | 'created_at' | 'statut' | 'convoyeur_id' | 'commentaires' | 'photos' | 'price' | 'updates'> & { concessionnaire_id: string }) => {
     await addMissionMutation.mutateAsync(missionData);
   };
 
@@ -125,8 +136,72 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     await updateMission(missionId, { statut: 'en cours', convoyeur_id: convoyeurId });
   };
 
-  const completeMission = async (missionId: string, commentaires: string, photos: string[]) => { // Price removed
-    await updateMission(missionId, { statut: 'livrée', commentaires, photos }); // Price removed from payload
+  const uploadMissionPhotos = async (missionId: string, files: FileList): Promise<string[]> => {
+    const uploadedUrls: string[] = [];
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      const filePath = `${missionId}/${uuidv4()}-${file.name}`;
+      const { data, error } = await supabase.storage
+        .from('mission-photos')
+        .upload(filePath, file, {
+          cacheControl: '3600',
+          upsert: false,
+        });
+
+      if (error) {
+        console.error("Error uploading photo:", error);
+        showError(`Erreur lors de l'upload de la photo ${file.name}.`);
+        throw error;
+      } else {
+        const { data: publicUrlData } = supabase.storage.from('mission-photos').getPublicUrl(filePath);
+        uploadedUrls.push(publicUrlData.publicUrl);
+      }
+    }
+    return uploadedUrls;
+  };
+
+  const addMissionUpdate = async (missionId: string, comment: string | null, photos: FileList | null) => {
+    let photoUrls: string[] | null = null;
+    if (photos && photos.length > 0) {
+      try {
+        photoUrls = await uploadMissionPhotos(missionId, photos);
+      } catch (uploadError) {
+        console.error("Failed to upload photos for mission update:", uploadError);
+        showError("Échec de l'upload des photos pour la mise à jour.");
+        return; // Stop if photo upload fails
+      }
+    }
+
+    const newUpdate: MissionUpdate = {
+      timestamp: new Date().toISOString(),
+      comment: comment,
+      photos: photoUrls,
+    };
+
+    // Fetch current updates, append new one, then update
+    const { data: currentMission, error: fetchError } = await supabase
+      .from('commandes')
+      .select('updates')
+      .eq('id', missionId)
+      .single();
+
+    if (fetchError) {
+      console.error("Error fetching current mission updates:", fetchError);
+      showError("Erreur lors de la récupération des mises à jour de la mission.");
+      throw fetchError;
+    }
+
+    const existingUpdates = currentMission?.updates || [];
+    const updatedUpdates = [...existingUpdates, newUpdate];
+
+    await updateMission(missionId, { updates: updatedUpdates });
+  };
+
+  const completeMission = async (missionId: string, finalComment: string | null, finalPhotos: FileList | null) => {
+    // Add a final update entry
+    await addMissionUpdate(missionId, finalComment, finalPhotos);
+    // Then change the status to 'livrée'
+    await updateMission(missionId, { statut: 'livrée' });
   };
 
   // Hooks pour récupérer les missions
@@ -151,6 +226,7 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
           commentaires: m.commentaires,
           photos: m.photos,
           price: m.price,
+          updates: m.updates,
         }));
       },
       enabled: !!userId,
@@ -178,6 +254,7 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
           commentaires: m.commentaires,
           photos: m.photos,
           price: m.price,
+          updates: m.updates,
         }));
       },
     });
@@ -209,6 +286,7 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
           commentaires: m.commentaires,
           photos: m.photos,
           price: m.price,
+          updates: m.updates,
         }));
       },
       enabled: !!userId,
@@ -265,6 +343,7 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
           commentaires: m.commentaires,
           photos: m.photos,
           price: m.price,
+          updates: m.updates,
         }));
       },
     });
@@ -303,6 +382,8 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     updateMission, // Use the new generic update
     takeMission,
     completeMission,
+    addMissionUpdate,
+    uploadMissionPhotos,
     useConcessionnaireMissions,
     useAvailableMissions,
     useConvoyeurMissions,
@@ -315,6 +396,8 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     updateMission,
     takeMission,
     completeMission,
+    addMissionUpdate,
+    uploadMissionPhotos,
     useConcessionnaireMissions,
     useAvailableMissions,
     useConvoyeurMissions,

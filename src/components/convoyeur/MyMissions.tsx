@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -6,54 +6,44 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useMissions, Mission } from "@/context/MissionsContext";
 import { showSuccess, showError } from "@/utils/toast";
+import MissionDetailDialog from "./MissionDetailDialog"; // Import the new dialog component
 
 interface MyMissionsProps {
   userId: string;
+  // missionComments, missionPhotos, missionPrices are now managed within MissionDetailDialog or MissionsContext
+  // No longer needed as props here, but keeping for now to avoid breaking other parts if they still rely on them
   missionComments: { [key: string]: string };
   missionPhotos: { [key: string]: string[] };
-  // missionPrices: { [key: string]: number }; // Removed
+  missionPrices: { [key: string]: number };
   setMissionComments: React.Dispatch<React.SetStateAction<{ [key: string]: string }>>;
   setMissionPhotos: React.Dispatch<React.SetStateAction<{ [key: string]: string[] }>>;
-  // setMissionPrices: React.Dispatch<React.SetStateAction<{ [key: string]: number }>>; // Removed
+  setMissionPrices: React.Dispatch<React.SetStateAction<{ [key: string]: number }>>;
 }
 
 const MyMissions: React.FC<MyMissionsProps> = ({
   userId,
+  // These props are now largely redundant for the new flow, but kept for compatibility
   missionComments,
   missionPhotos,
-  // missionPrices, // Removed
+  missionPrices,
   setMissionComments,
   setMissionPhotos,
-  // setMissionPrices, // Removed
+  setMissionPrices,
 }) => {
-  const { useConvoyeurMissions, completeMission } = useMissions();
+  const { useConvoyeurMissions } = useMissions();
   const { missions: convoyeurMissions, isLoading: isLoadingConvoyeurMissions } = useConvoyeurMissions(userId);
 
-  const handleMarquerCommeLivree = async (id: string) => {
-    const comments = missionComments[id] || "";
-    const photos = missionPhotos[id] || []; // Currently empty, would be URLs
+  const [isDetailDialogOpen, setIsDetailDialogOpen] = useState(false);
+  const [selectedMission, setSelectedMission] = useState<Mission | null>(null);
 
-    await completeMission(id, comments, photos); // Price removed from call
-    // Clear local state for this mission
-    setMissionComments(prev => { const newState = { ...prev }; delete newState[id]; return newState; });
-    setMissionPhotos(prev => { const newState = { ...prev }; delete newState[id]; return newState; });
-    // setMissionPrices(prev => { const newState = { ...prev }; delete newState[id]; return newState; }); // Removed
+  const handleOpenDetailDialog = (mission: Mission) => {
+    setSelectedMission(mission);
+    setIsDetailDialogOpen(true);
   };
 
-  const handleCommentChange = (id: string, value: string) => {
-    setMissionComments(prev => ({ ...prev, [id]: value }));
-  };
-
-  // handlePriceChange removed
-
-  // For now, photos are not uploaded, just showing placeholder
-  const handlePhotoChange = (id: string, files: FileList | null) => {
-    if (files) {
-      const fileNames = Array.from(files).map(f => f.name);
-      setMissionPhotos(prev => ({ ...prev, [id]: fileNames }));
-      console.log(`Photos sélectionnées pour mission ${id}:`, fileNames);
-      showSuccess("Photos sélectionnées (non uploadées pour l'instant).");
-    }
+  const handleCloseDetailDialog = () => {
+    setSelectedMission(null);
+    setIsDetailDialogOpen(false);
   };
 
   if (isLoadingConvoyeurMissions) {
@@ -68,7 +58,7 @@ const MyMissions: React.FC<MyMissionsProps> = ({
           <p className="col-span-full text-center text-gray-600 dark:text-gray-400">Vous n'avez pas de missions en cours ou livrées.</p>
         ) : (
           convoyeurMissions?.map((mission) => (
-            <Card key={mission.id} className="w-full bg-white dark:bg-gray-800 shadow-lg">
+            <Card key={mission.id} className="w-full bg-white dark:bg-gray-800 shadow-lg cursor-pointer" onClick={() => handleOpenDetailDialog(mission)}>
               <CardHeader>
                 <CardTitle className="text-xl font-semibold">{mission.modele} ({mission.immatriculation})</CardTitle>
                 <CardDescription className="text-gray-600 dark:text-gray-400">
@@ -85,61 +75,27 @@ const MyMissions: React.FC<MyMissionsProps> = ({
                   <strong>Prix:</strong>{" "}
                   {mission.price ? `${mission.price.toFixed(2)} €` : "Prix non fixé"}
                 </p>
-
                 {mission.statut === 'en cours' && (
-                  <div className="space-y-4">
-                    <div>
-                      <Label htmlFor={`comments-${mission.id}`}>Commentaires</Label>
-                      <Textarea
-                        id={`comments-${mission.id}`}
-                        value={missionComments[mission.id] || ""}
-                        onChange={(e) => handleCommentChange(mission.id, e.target.value)}
-                        placeholder="Ajouter des commentaires sur la livraison..."
-                        className="mt-1"
-                      />
-                    </div>
-                    {/* Price input removed */}
-                    <div>
-                      <Label htmlFor={`photos-${mission.id}`}>Photos</Label>
-                      <Input
-                        id={`photos-${mission.id}`}
-                        type="file"
-                        multiple
-                        onChange={(e) => handlePhotoChange(mission.id, e.target.files)}
-                        className="mt-1"
-                      />
-                      {missionPhotos[mission.id] && missionPhotos[mission.id].length > 0 && (
-                        <p className="text-sm text-gray-500 mt-1">
-                          Fichiers sélectionnés: {missionPhotos[mission.id].join(', ')} (Non uploadés)
-                        </p>
-                      )}
-                    </div>
-                    <Button onClick={() => handleMarquerCommeLivree(mission.id)} className="w-full bg-green-600 hover:bg-green-700">
-                      Marquer comme livrée
-                    </Button>
-                  </div>
+                  <Button onClick={(e) => { e.stopPropagation(); handleOpenDetailDialog(mission); }} className="w-full">
+                    Voir les détails / Mettre à jour
+                  </Button>
                 )}
-
-                {mission.statut === 'livrée' && (
-                  <>
-                    {mission.commentaires && (
-                      <p className="text-sm text-gray-700 dark:text-gray-300">
-                        <strong>Commentaires:</strong> {mission.commentaires}
-                      </p>
-                    )}
-                    {mission.photos && mission.photos.length > 0 && (
-                      <p className="text-sm text-gray-700 dark:text-gray-300">
-                        <strong>Photos:</strong> {mission.photos.join(', ')} (Fichiers non affichés)
-                      </p>
-                    )}
-                    {/* Price display already handled above */}
-                  </>
+                {mission.statut === 'livrée' && mission.updates && mission.updates.length > 0 && (
+                  <Button onClick={(e) => { e.stopPropagation(); handleOpenDetailDialog(mission); }} variant="outline" className="w-full">
+                    Voir l'historique
+                  </Button>
                 )}
               </CardContent>
             </Card>
           ))
         )}
       </div>
+      <MissionDetailDialog
+        mission={selectedMission}
+        isOpen={isDetailDialogOpen}
+        onClose={handleCloseDetailDialog}
+        userId={userId}
+      />
     </div>
   );
 };
