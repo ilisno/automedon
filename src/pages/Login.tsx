@@ -38,6 +38,40 @@ const Login = () => {
             },
           }}
           theme="light"
+          localization={{
+            variables: {
+              sign_in: {
+                email_label: "Adresse e-mail",
+                password_label: "Mot de passe",
+                email_input_placeholder: "Votre adresse e-mail",
+                password_input_placeholder: "Votre mot de passe",
+                button_label: "Se connecter",
+                social_provider_text: "Se connecter avec {{provider}}",
+                link_text: "Vous avez déjà un compte ? Connectez-vous",
+              },
+              sign_up: {
+                email_label: "Adresse e-mail",
+                password_label: "Créer un mot de passe",
+                email_input_placeholder: "Votre adresse e-mail",
+                password_input_placeholder: "Votre mot de passe",
+                button_label: "S'inscrire",
+                social_provider_text: "S'inscrire avec {{provider}}",
+                link_text: "Vous n'avez pas de compte ? Inscrivez-vous",
+              },
+              forgotten_password: {
+                email_label: "Adresse e-mail",
+                password_label: "Votre mot de passe",
+                email_input_placeholder: "Votre adresse e-mail",
+                button_label: "Envoyer les instructions de réinitialisation",
+                link_text: "Mot de passe oublié ?",
+              },
+              update_password: {
+                password_label: "Nouveau mot de passe",
+                password_input_placeholder: "Votre nouveau mot de passe",
+                button_label: "Mettre à jour le mot de passe",
+              },
+            },
+          }}
         />
       </div>
     </div>
