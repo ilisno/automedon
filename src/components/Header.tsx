@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { Menu, LogIn, LogOut, User } from "lucide-react"; // Removed Shield icon
+import { Menu, LogIn, LogOut, User } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { supabase } from "@/integrations/supabase/client";
 import { Session } from "@supabase/supabase-js";
@@ -31,9 +31,7 @@ const Header = () => {
 
   const navLinks = (
     <>
-      <Link to="/" className="text-lg font-medium hover:text-primary-foreground transition-colors">
-        Accueil
-      </Link>
+      {/* Removed: <Link to="/" className="text-lg font-medium hover:text-primary-foreground transition-colors">Accueil</Link> */}
       {session ? (
         <>
           <Link to="/account" className="text-lg font-medium hover:text-primary-foreground transition-colors flex items-center">
@@ -50,7 +48,6 @@ const Header = () => {
           </Button>
         </Link>
       )}
-      {/* Admin Link removed as per request */}
     </>
   );
 
