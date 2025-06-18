@@ -27,12 +27,12 @@ const Index = () => {
     return () => subscription.unsubscribe();
   }, []);
 
-  const handleMainButtonClick = () => {
-    if (session) {
-      navigate("/account");
-    } else {
-      navigate("/login");
-    }
+  const handleNavigateToLogin = () => {
+    navigate("/login");
+  };
+
+  const handleNavigateToAccount = () => {
+    navigate("/account");
   };
 
   return (
@@ -42,19 +42,37 @@ const Index = () => {
         <h1 className="text-5xl md:text-6xl font-extrabold mb-8 leading-tight">
           Bienvenue sur Automédon
         </h1>
-        <p className="text-xl md:text-2xl text-gray-700 dark:text-gray-300 mb-12 max-w-2xl">
+        <p className="text-xl md:text-2xl font-semibold text-gray-800 dark:text-gray-200 mb-12 max-w-2xl">
           Votre plateforme pour la gestion et le convoyage de véhicules.
         </p>
         <div className="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-6">
           {loadingSession ? (
             <Button className="px-8 py-4 text-lg" disabled>Chargement...</Button>
           ) : (
-            <Button
-              onClick={handleMainButtonClick}
-              className="px-8 py-4 text-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors duration-300 shadow-lg"
-            >
-              {session ? "Accéder à mon espace" : "Se connecter ou s'inscrire"}
-            </Button>
+            session ? (
+              <Button
+                onClick={handleNavigateToAccount}
+                className="px-8 py-4 text-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors duration-300 shadow-lg"
+              >
+                Accéder à mon espace
+              </Button>
+            ) : (
+              <>
+                <Button
+                  onClick={handleNavigateToLogin}
+                  className="px-8 py-4 text-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors duration-300 shadow-lg"
+                >
+                  Je dois déplacer un véhicule
+                </Button>
+                <Button
+                  onClick={handleNavigateToLogin}
+                  variant="outline"
+                  className="px-8 py-4 text-lg border-primary text-primary hover:bg-primary/10 dark:border-primary-foreground dark:text-primary-foreground dark:hover:bg-primary-foreground/10 transition-colors duration-300 shadow-lg"
+                >
+                  Je suis convoyeur
+                </Button>
+              </>
+            )
           )}
         </div>
       </main>
