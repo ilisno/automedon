@@ -70,7 +70,11 @@ const AdminMissions: React.FC = () => {
                   <TableCell>{mission.lieu_arrivee}</TableCell>
                   <TableCell>{mission.statut}</TableCell>
                   <TableCell className="text-xs">{mission.concessionnaire_id ? mission.concessionnaire_id.substring(0, 8) + '...' : 'N/A'}</TableCell>
-                  <TableCell className="text-xs">{mission.convoyeur_id ? mission.convoyeur_id.substring(0, 8) + '...' : 'N/A'}</TableCell>
+                  <TableCell>
+                    {mission.convoyeur_first_name && mission.convoyeur_last_name
+                      ? `${mission.convoyeur_first_name} ${mission.convoyeur_last_name}`
+                      : 'N/A'}
+                  </TableCell>
                   <TableCell>{new Date(mission.heureLimite).toLocaleString()}</TableCell>
                   <TableCell>
                     {editingPriceId === mission.id ? (
