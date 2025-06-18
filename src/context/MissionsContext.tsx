@@ -67,6 +67,7 @@ type MissionsContextType = {
   useAllMissions: () => { missions: Mission[] | undefined; isLoading: boolean; }; // New hook for all missions
   useConvoyeurs: () => { profiles: Profile[] | undefined; isLoading: boolean; }; // New hook for all convoyeurs
   useConcessionnaires: () => { profiles: Profile[] | undefined; isLoading: boolean; }; // New hook for all concessionnaires
+  useProfile: (userId: string | undefined) => { profile: Profile | undefined; isLoading: boolean; }; // New hook to fetch a single profile
 };
 
 // 3. Création du contexte
@@ -376,6 +377,21 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     return { profiles: data, isLoading };
   };
 
+  // New hook to fetch a single user profile
+  const useProfile = (userId: string | undefined) => {
+    const { data, isLoading } = useQuery<Profile>({
+      queryKey: ['profile', userId],
+      queryFn: async () => {
+        if (!userId) throw new Error("User ID is required to fetch profile.");
+        const { data, error } = await supabase.from('profiles').select('*').eq('id', userId).single();
+        if (error) throw error;
+        return data;
+      },
+      enabled: !!userId, // Only run query if userId is available
+    });
+    return { profile: data, isLoading };
+  };
+
 
   const contextValue = useMemo(() => ({
     addMission,
@@ -391,6 +407,7 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     useAllMissions, // Add to context
     useConvoyeurs, // Add to context
     useConcessionnaires, // Add to context
+    useProfile, // Add to context
   }), [
     addMission,
     updateMission,
@@ -405,6 +422,7 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     useAllMissions,
     useConvoyeurs,
     useConcessionnaires,
+    useProfile,
   ]);
 
   return (

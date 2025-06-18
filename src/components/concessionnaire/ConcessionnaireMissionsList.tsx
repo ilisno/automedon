@@ -1,6 +1,7 @@
-import React from "react";
-import { useMissions } from "@/context/MissionsContext";
+import React, { useState } from "react";
+import { useMissions, Mission } from "@/context/MissionsContext";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import MissionDetailDialog from "@/components/convoyeur/MissionDetailDialog"; // Reusing the dialog
 
 interface ConcessionnaireMissionsListProps {
   userId: string;
@@ -9,6 +10,19 @@ interface ConcessionnaireMissionsListProps {
 const ConcessionnaireMissionsList: React.FC<ConcessionnaireMissionsListProps> = ({ userId }) => {
   const { useConcessionnaireMissions } = useMissions();
   const { missions: concessionnaireMissions, isLoading: isLoadingMissions } = useConcessionnaireMissions(userId);
+
+  const [isDetailDialogOpen, setIsDetailDialogOpen] = useState(false);
+  const [selectedMission, setSelectedMission] = useState<Mission | null>(null);
+
+  const handleOpenDetailDialog = (mission: Mission) => {
+    setSelectedMission(mission);
+    setIsDetailDialogOpen(true);
+  };
+
+  const handleCloseDetailDialog = () => {
+    setSelectedMission(null);
+    setIsDetailDialogOpen(false);
+  };
 
   if (isLoadingMissions) {
     return <p className="text-gray-700 dark:text-gray-300">Chargement des missions...</p>;
@@ -22,7 +36,11 @@ const ConcessionnaireMissionsList: React.FC<ConcessionnaireMissionsListProps> = 
           <p className="col-span-full text-center text-gray-600 dark:text-gray-400">Aucune mission créée pour le moment.</p>
         ) : (
           concessionnaireMissions?.map((mission) => (
-            <Card key={mission.id} className="w-full bg-white dark:bg-gray-800 shadow-lg">
+            <Card 
+              key={mission.id} 
+              className="w-full bg-white dark:bg-gray-800 shadow-lg cursor-pointer hover:shadow-xl transition-shadow duration-200"
+              onClick={() => handleOpenDetailDialog(mission)}
+            >
               <CardHeader>
                 <CardTitle className="text-xl font-semibold">{mission.modele} ({mission.immatriculation})</CardTitle>
                 <CardDescription className="text-gray-600 dark:text-gray-400">
@@ -37,14 +55,22 @@ const ConcessionnaireMissionsList: React.FC<ConcessionnaireMissionsListProps> = 
                   'text-green-600 dark:text-green-400'
                 }`}>{mission.statut}</span></p>
                 <p><strong>Heure limite:</strong> {new Date(mission.heureLimite).toLocaleString()}</p>
-                {mission.convoyeur_id && <p><strong>Convoyeur:</strong> {mission.convoyeur_id}</p>} {/* Placeholder for convoyeur name */}
-                {mission.commentaires && <p className="text-sm text-gray-700 dark:text-gray-300"><strong>Commentaires:</strong> {mission.commentaires}</p>}
                 {mission.price && <p className="text-sm text-gray-700 dark:text-gray-300"><strong>Prix:</strong> {mission.price} €</p>}
+                {/* Convoyeur name will be displayed in the dialog */}
+                <Button onClick={(e) => { e.stopPropagation(); handleOpenDetailDialog(mission); }} className="w-full mt-4">
+                  Voir les détails
+                </Button>
               </CardContent>
             </Card>
           ))
         )}
       </div>
+      <MissionDetailDialog
+        mission={selectedMission}
+        isOpen={isDetailDialogOpen}
+        onClose={handleCloseDetailDialog}
+        userId={userId}
+      />
     </div>
   );
 };

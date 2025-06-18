@@ -18,7 +18,7 @@ interface MissionDetailDialogProps {
   mission: Mission | null;
   isOpen: boolean;
   onClose: () => void;
-  userId: string;
+  userId: string; // The ID of the currently logged-in user (convoyeur or concessionnaire)
 }
 
 const MissionDetailDialog: React.FC<MissionDetailDialogProps> = ({
@@ -27,10 +27,13 @@ const MissionDetailDialog: React.FC<MissionDetailDialogProps> = ({
   onClose,
   userId,
 }) => {
-  const { addMissionUpdate, completeMission } = useMissions();
+  const { addMissionUpdate, completeMission, useProfile } = useMissions();
   const [comment, setComment] = useState("");
   const [photos, setPhotos] = useState<FileList | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Fetch convoyeur profile if convoyeur_id exists for the mission
+  const { profile: convoyeurProfile, isLoading: isLoadingConvoyeurProfile } = useProfile(mission?.convoyeur_id || undefined);
 
   React.useEffect(() => {
     if (!isOpen) {
@@ -77,6 +80,9 @@ const MissionDetailDialog: React.FC<MissionDetailDialogProps> = ({
     ? [...mission.updates].sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime())
     : [];
 
+  // Determine if the current user is the assigned convoyeur for this mission
+  const isAssignedConvoyeur = mission.convoyeur_id === userId;
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[800px] max-h-[90vh] overflow-y-auto">
@@ -98,9 +104,15 @@ const MissionDetailDialog: React.FC<MissionDetailDialogProps> = ({
             <strong>Prix:</strong>{" "}
             {mission.price ? `${mission.price.toFixed(2)} €` : "Prix non fixé"}
           </p>
+          {mission.convoyeur_id && (
+            <p>
+              <strong>Convoyeur:</strong>{" "}
+              {isLoadingConvoyeurProfile ? "Chargement..." : (convoyeurProfile ? `${convoyeurProfile.first_name} ${convoyeurProfile.last_name}` : "N/A")}
+            </p>
+          )}
 
-          {/* Section pour ajouter une nouvelle mise à jour */}
-          {mission.statut === 'en cours' && (
+          {/* Section pour ajouter une nouvelle mise à jour (visible uniquement par le convoyeur assigné et si la mission est 'en cours') */}
+          {isAssignedConvoyeur && mission.statut === 'en cours' && (
             <div className="space-y-4 border-t pt-4 mt-4">
               <h3 className="text-xl font-semibold">Ajouter une étape</h3>
               <div>
