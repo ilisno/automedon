@@ -217,6 +217,7 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
           .select('*, profiles!commandes_convoyeur_id_fkey(first_name, last_name)') // Jointure pour récupérer le nom du convoyeur
           .eq('concessionnaire_id', userId);
         if (error) throw error;
+        console.log("Données des missions récupérées (pour débogage):", data); // Ligne de débogage ajoutée
         return data.map(m => ({
           id: m.id,
           created_at: m.created_at,
