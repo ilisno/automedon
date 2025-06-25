@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { showSuccess, showError } from '@/utils/toast'; // Correction ici
+import { showSuccess, showError } from '@/utils/toast';
 import { format } from 'date-fns';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -22,8 +22,6 @@ export type Mission = {
   statut: 'Disponible' | 'en attente' | 'en cours' | 'livrée'; // Statuts de la DB
   concessionnaire_id: string | null;
   convoyeur_id: string | null;
-  convoyeur_first_name?: string | null; // Ajouté pour le nom du convoyeur
-  convoyeur_last_name?: string | null;  // Ajouté pour le nom du convoyeur
   heureLimite: string; // ISO string, from DB heure_limite
   commentaires?: string | null; // This will become deprecated, replaced by updates
   photos?: string[] | null; // This will become deprecated, replaced by updates
@@ -212,18 +210,8 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       queryKey: ['concessionnaireMissions', userId],
       queryFn: async () => {
         if (!userId) return [];
-        const { data, error } = await supabase
-          .from('commandes')
-          .select('*, profiles(first_name, last_name)') // Utilisation de la syntaxe de jointure plus générique
-          .eq('concessionnaire_id', userId);
-
-        console.log("Supabase query result - data:", data, "error:", error); // Log détaillé
-
-        if (error) {
-          console.error("Error fetching concessionnaire missions:", error);
-          throw error;
-        }
-        
+        const { data, error } = await supabase.from('commandes').select('*').eq('concessionnaire_id', userId);
+        if (error) throw error;
         return data.map(m => ({
           id: m.id,
           created_at: m.created_at,
@@ -234,8 +222,6 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
           statut: m.statut,
           concessionnaire_id: m.concessionnaire_id,
           convoyeur_id: m.convoyeur_id,
-          convoyeur_first_name: m.profiles?.first_name || null, // Extraction du prénom
-          convoyeur_last_name: m.profiles?.last_name || null,   // Extraction du nom
           heureLimite: m.heureLimite,
           commentaires: m.commentaires,
           photos: m.photos,

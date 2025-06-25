@@ -37,15 +37,7 @@ const ConcessionnaireMissionsList: React.FC<ConcessionnaireMissionsListProps> = 
                   'text-green-600 dark:text-green-400'
                 }`}>{mission.statut}</span></p>
                 <p><strong>Heure limite:</strong> {new Date(mission.heureLimite).toLocaleString()}</p>
-                {mission.convoyeur_id ? (
-                  mission.convoyeur_first_name && mission.convoyeur_last_name ? (
-                    <p><strong>Convoyeur:</strong> {mission.convoyeur_first_name} {mission.convoyeur_last_name}</p>
-                  ) : (
-                    <p><strong>Convoyeur:</strong> Assigné (profil incomplet)</p>
-                  )
-                ) : (
-                  <p><strong>Convoyeur:</strong> Non assigné</p>
-                )}
+                {mission.convoyeur_id && <p><strong>Convoyeur:</strong> {mission.convoyeur_id}</p>} {/* Placeholder for convoyeur name */}
                 {mission.commentaires && <p className="text-sm text-gray-700 dark:text-gray-300"><strong>Commentaires:</strong> {mission.commentaires}</p>}
                 {mission.price && <p className="text-sm text-gray-700 dark:text-gray-300"><strong>Prix:</strong> {mission.price} €</p>}
               </CardContent>
