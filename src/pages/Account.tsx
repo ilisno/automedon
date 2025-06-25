@@ -4,13 +4,13 @@ import { supabase } from "@/integrations/supabase/client";
 import { showError } from "@/utils/toast";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import ConcessionnaireDashboard from "@/components/concessionnaire/ConcessionnaireDashboard";
+import ClientDashboard from "@/components/client/ClientDashboard";
 import ConvoyeurDashboard from "@/components/convoyeur/ConvoyeurDashboard";
 
 const Account = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
-  const [userRole, setUserRole] = useState<'concessionnaire' | 'convoyeur' | null>(null);
+  const [userRole, setUserRole] = useState<'client' | 'convoyeur' | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
 
   useEffect(() => {
@@ -35,17 +35,17 @@ const Account = () => {
       if (profileError || !profile) {
         console.error("Error fetching profile for account page:", profileError);
         showError("Erreur lors du chargement de votre profil. Veuillez compléter vos informations.");
-        // Default to concessionnaire if profile is missing or role is not set
-        setUserRole('concessionnaire'); 
+        // Default to client if profile is missing or role is not set
+        setUserRole('client'); 
         setLoading(false);
         return;
       }
 
-      if (profile.role === 'concessionnaire' || profile.role === 'convoyeur') {
+      if (profile.role === 'client' || profile.role === 'convoyeur') {
         setUserRole(profile.role);
       } else {
         showError("Votre rôle n'est pas défini. Veuillez compléter votre profil.");
-        setUserRole('concessionnaire'); // Default to concessionnaire if role is unknown
+        setUserRole('client'); // Default to client if role is unknown
       }
       setLoading(false);
     };
@@ -65,7 +65,7 @@ const Account = () => {
     <div className="min-h-screen flex flex-col bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100">
       <Header />
       <main className="flex-grow">
-        {userRole === 'concessionnaire' && <ConcessionnaireDashboard />}
+        {userRole === 'client' && <ClientDashboard />}
         {userRole === 'convoyeur' && <ConvoyeurDashboard />}
         {!userRole && (
           <div className="flex flex-col items-center justify-center p-4 text-center">

@@ -11,7 +11,7 @@ import { supabase } from "@/integrations/supabase/client";
 const CreateMission = () => {
   const { addMission } = useMissions();
   const navigate = useNavigate();
-  const [concessionnaireId, setConcessionnaireId] = useState<string | null>(null);
+  const [clientId, setClientId] = useState<string | null>(null);
   const [loadingUser, setLoadingUser] = useState(true);
 
   const [immatriculation, setImmatriculation] = useState("");
@@ -37,13 +37,13 @@ const CreateMission = () => {
         .eq('id', user.id)
         .single();
 
-      if (profileError || !profile || profile.role !== 'concessionnaire') {
-        showError("Seuls les concessionnaires peuvent créer des missions.");
-        navigate("/account"); // Redirect to account page if not a concessionnaire
+      if (profileError || !profile || profile.role !== 'client') {
+        showError("Seuls les clients peuvent créer des missions.");
+        navigate("/account"); // Redirect to account page if not a client
         return;
       }
 
-      setConcessionnaireId(user.id);
+      setClientId(user.id);
       setLoadingUser(false);
     };
     fetchUserAndRole();
@@ -52,7 +52,7 @@ const CreateMission = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!concessionnaireId) {
+    if (!clientId) {
       showError("Impossible de créer la mission : utilisateur non identifié ou rôle incorrect.");
       return;
     }
@@ -64,7 +64,7 @@ const CreateMission = () => {
         lieu_depart,
         lieu_arrivee,
         heureLimite,
-        concessionnaire_id: concessionnaireId,
+        concessionnaire_id: clientId, // Renamed to client_id in DB, but still concessionnaire_id in type for now
       });
 
       // Vider le formulaire
@@ -153,8 +153,8 @@ const CreateMission = () => {
             </Button>
           </form>
           <div className="mt-6 text-center">
-            <Link to="/concessionnaire">
-              <Button variant="link" className="text-primary dark:text-primary-foreground">Retour à l'espace Concessionnaire</Button>
+            <Link to="/account">
+              <Button variant="link" className="text-primary dark:text-primary-foreground">Retour à l'espace Client</Button>
             </Link>
           </div>
         </div>

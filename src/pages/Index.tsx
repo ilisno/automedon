@@ -62,7 +62,7 @@ const Index = () => {
                   onClick={handleNavigateToLogin}
                   className="px-8 py-4 text-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors duration-300 shadow-lg"
                 >
-                  Je dois déplacer un véhicule
+                  Je suis Client
                 </Button>
                 <Button
                   onClick={handleNavigateToLogin}
