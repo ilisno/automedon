@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { showSuccess, showError } => '@/utils/toast';
+import { showSuccess, showError } from '@/utils/toast'; // Correction ici
 import { format } from 'date-fns';
 import { v4 as uuidv4 } from 'uuid';
 
