@@ -22,6 +22,8 @@ export type Mission = {
   statut: 'Disponible' | 'en attente' | 'en cours' | 'livrée'; // Statuts de la DB
   concessionnaire_id: string | null;
   convoyeur_id: string | null;
+  convoyeur_first_name?: string | null; // Ajouté pour le nom du convoyeur
+  convoyeur_last_name?: string | null;  // Ajouté pour le nom du convoyeur
   heureLimite: string; // ISO string, from DB heure_limite
   commentaires?: string | null; // This will become deprecated, replaced by updates
   photos?: string[] | null; // This will become deprecated, replaced by updates
@@ -210,7 +212,10 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       queryKey: ['concessionnaireMissions', userId],
       queryFn: async () => {
         if (!userId) return [];
-        const { data, error } = await supabase.from('commandes').select('*').eq('concessionnaire_id', userId);
+        const { data, error } = await supabase
+          .from('commandes')
+          .select('*, profiles!commandes_convoyeur_id_fkey(first_name, last_name)') // Jointure pour récupérer le nom du convoyeur
+          .eq('concessionnaire_id', userId);
         if (error) throw error;
         return data.map(m => ({
           id: m.id,
@@ -222,6 +227,8 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
           statut: m.statut,
           concessionnaire_id: m.concessionnaire_id,
           convoyeur_id: m.convoyeur_id,
+          convoyeur_first_name: m.profiles?.first_name || null, // Extraction du prénom
+          convoyeur_last_name: m.profiles?.last_name || null,   // Extraction du nom
           heureLimite: m.heureLimite,
           commentaires: m.commentaires,
           photos: m.photos,
