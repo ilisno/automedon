@@ -20,7 +20,7 @@ export type Mission = {
   lieu_depart: string;
   lieu_arrivee: string;
   statut: 'Disponible' | 'en attente' | 'en cours' | 'livrée'; // Statuts de la DB
-  concessionnaire_id: string | null;
+  client_id: string | null; // Renommé de concessionnaire_id à client_id
   convoyeur_id: string | null;
   convoyeur_first_name?: string | null; // Nouveau champ pour le prénom du convoyeur
   convoyeur_last_name?: string | null;  // Nouveau champ pour le nom du convoyeur
@@ -54,7 +54,7 @@ type UpdateMissionPayload = Partial<Omit<Mission, 'id' | 'created_at'>>;
 
 // 2. Définition du type du contexte
 type MissionsContextType = {
-  addMission: (missionData: Omit<Mission, 'id' | 'created_at' | 'statut' | 'convoyeur_id' | 'commentaires' | 'photos' | 'price' | 'updates' | 'convoyeur_first_name' | 'convoyeur_last_name'> & { concessionnaire_id: string }) => Promise<void>;
+  addMission: (missionData: Omit<Mission, 'id' | 'created_at' | 'statut' | 'convoyeur_id' | 'commentaires' | 'photos' | 'price' | 'updates' | 'convoyeur_first_name' | 'convoyeur_last_name'> & { client_id: string }) => Promise<void>; // Mis à jour pour client_id
   updateMission: (id: string, payload: UpdateMissionPayload) => Promise<void>; // Generic update function
   takeMission: (missionId: string, convoyeurId: string) => Promise<void>;
   completeMission: (missionId: string, finalComment: string | null, finalPhotos: FileList | null) => Promise<void>;
@@ -80,14 +80,14 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
   // Mutation for adding a mission
   const addMissionMutation = useMutation({
-    mutationFn: async (missionData: Omit<Mission, 'id' | 'created_at' | 'statut' | 'convoyeur_id' | 'commentaires' | 'photos' | 'price' | 'updates' | 'convoyeur_first_name' | 'convoyeur_last_name'> & { concessionnaire_id: string }) => {
+    mutationFn: async (missionData: Omit<Mission, 'id' | 'created_at' | 'statut' | 'convoyeur_id' | 'commentaires' | 'photos' | 'price' | 'updates' | 'convoyeur_first_name' | 'convoyeur_last_name'> & { client_id: string }) => { // Mis à jour pour client_id
       const { data, error } = await supabase.from('commandes').insert({
         immatriculation: missionData.immatriculation,
         modele: missionData.modele,
         lieu_depart: missionData.lieu_depart,
         lieu_arrivee: missionData.lieu_arrivee,
         heureLimite: missionData.heureLimite,
-        concessionnaire_id: missionData.concessionnaire_id,
+        client_id: missionData.client_id, // Mis à jour pour client_id
         statut: 'Disponible', // Default status for new missions
         updates: [], // Initialize updates as an empty array
       });
@@ -105,7 +105,7 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     },
   });
 
-  const addMission = async (missionData: Omit<Mission, 'id' | 'created_at' | 'statut' | 'convoyeur_id' | 'commentaires' | 'photos' | 'price' | 'updates' | 'convoyeur_first_name' | 'convoyeur_last_name'> & { concessionnaire_id: string }) => {
+  const addMission = async (missionData: Omit<Mission, 'id' | 'created_at' | 'statut' | 'convoyeur_id' | 'commentaires' | 'photos' | 'price' | 'updates' | 'convoyeur_first_name' | 'convoyeur_last_name'> & { client_id: string }) => { // Mis à jour pour client_id
     await addMissionMutation.mutateAsync(missionData);
   };
 
@@ -216,7 +216,7 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         const { data, error } = await supabase
           .from('commandes')
           .select('*, profiles!commandes_convoyeur_id_fkey(first_name, last_name)') // Explicitly name the join for clarity
-          .eq('concessionnaire_id', userId);
+          .eq('client_id', userId); // Mis à jour pour client_id
         if (error) throw error;
         return data.map(m => ({
           id: m.id,
@@ -226,7 +226,7 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
           lieu_depart: m.lieu_depart,
           lieu_arrivee: m.lieu_arrivee,
           statut: m.statut,
-          concessionnaire_id: m.concessionnaire_id,
+          client_id: m.client_id, // Mis à jour pour client_id
           convoyeur_id: m.convoyeur_id,
           // Map joined profile data to new fields
           convoyeur_first_name: m.profiles?.first_name || null,
@@ -257,7 +257,7 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
           lieu_depart: m.lieu_depart,
           lieu_arrivee: m.lieu_arrivee,
           statut: m.statut,
-          concessionnaire_id: m.concessionnaire_id,
+          client_id: m.client_id, // Mis à jour pour client_id
           convoyeur_id: m.convoyeur_id,
           heureLimite: m.heureLimite,
           commentaires: m.commentaires,
@@ -289,7 +289,7 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
           lieu_depart: m.lieu_depart,
           lieu_arrivee: m.lieu_arrivee,
           statut: m.statut,
-          concessionnaire_id: m.concessionnaire_id,
+          client_id: m.client_id, // Mis à jour pour client_id
           convoyeur_id: m.convoyeur_id,
           heureLimite: m.heureLimite,
           commentaires: m.commentaires,
@@ -347,7 +347,7 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
           lieu_depart: m.lieu_depart,
           lieu_arrivee: m.lieu_arrivee,
           statut: m.statut,
-          concessionnaire_id: m.concessionnaire_id,
+          client_id: m.client_id, // Mis à jour pour client_id
           convoyeur_id: m.convoyeur_id,
           // Map joined profile data to new fields
           convoyeur_first_name: m.profiles?.first_name || null,
