@@ -12,7 +12,7 @@ type Profile = {
   id: string;
   first_name: string | null;
   last_name: string | null;
-  role: 'concessionnaire' | 'convoyeur' | null;
+  role: 'client' | 'convoyeur' | null;
   phone: string | null;
   company_type: string | null;
   siret: string | null;
@@ -22,15 +22,15 @@ type Profile = {
   is_profile_complete: boolean;
 };
 
-interface ConcessionnaireProfileProps {
+interface ClientProfileProps {
   userId: string;
 }
 
-const ConcessionnaireProfile: React.FC<ConcessionnaireProfileProps> = ({ userId }) => {
+const ClientProfile: React.FC<ClientProfileProps> = ({ userId }) => {
   const [loading, setLoading] = useState(true);
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
-  const [role, setRole] = useState<'concessionnaire' | 'convoyeur' | ''>("");
+  const [role, setRole] = useState<'client' | 'convoyeur' | ''>("");
   const [phone, setPhone] = useState("");
   const [companyType, setCompanyType] = useState("");
   const [siret, setSiret] = useState("");
@@ -118,12 +118,12 @@ const ConcessionnaireProfile: React.FC<ConcessionnaireProfileProps> = ({ userId 
         </div>
         <div>
           <Label htmlFor="role">Rôle</Label>
-          <Select value={role} onValueChange={(value: 'concessionnaire' | 'convoyeur') => setRole(value)}>
+          <Select value={role} onValueChange={(value: 'client' | 'convoyeur') => setRole(value)}>
             <SelectTrigger className="w-full mt-1">
               <SelectValue placeholder="Sélectionnez votre rôle" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="concessionnaire">Concessionnaire</SelectItem>
+              <SelectItem value="client">Client</SelectItem>
               <SelectItem value="convoyeur">Convoyeur</SelectItem>
             </SelectContent>
           </Select>
@@ -166,4 +166,4 @@ const ConcessionnaireProfile: React.FC<ConcessionnaireProfileProps> = ({ userId 
   );
 };
 
-export default ConcessionnaireProfile;
+export default ClientProfile;

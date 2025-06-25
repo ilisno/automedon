@@ -2,13 +2,13 @@ import React from "react";
 import { useMissions } from "@/context/MissionsContext";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 
-interface ConcessionnaireMissionsListProps {
+interface ClientMissionsListProps {
   userId: string;
 }
 
-const ConcessionnaireMissionsList: React.FC<ConcessionnaireMissionsListProps> = ({ userId }) => {
-  const { useConcessionnaireMissions } = useMissions();
-  const { missions: concessionnaireMissions, isLoading: isLoadingMissions } = useConcessionnaireMissions(userId);
+const ClientMissionsList: React.FC<ClientMissionsListProps> = ({ userId }) => {
+  const { useClientMissions } = useMissions();
+  const { missions: clientMissions, isLoading: isLoadingMissions } = useClientMissions(userId);
 
   if (isLoadingMissions) {
     return <p className="text-gray-700 dark:text-gray-300">Chargement des missions...</p>;
@@ -18,10 +18,10 @@ const ConcessionnaireMissionsList: React.FC<ConcessionnaireMissionsListProps> = 
     <div className="w-full max-w-4xl">
       <h2 className="text-2xl font-bold mb-6 text-center">Mes Missions</h2>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {concessionnaireMissions && concessionnaireMissions.length === 0 ? (
+        {clientMissions && clientMissions.length === 0 ? (
           <p className="col-span-full text-center text-gray-600 dark:text-gray-400">Aucune mission créée pour le moment.</p>
         ) : (
-          concessionnaireMissions?.map((mission) => (
+          clientMissions?.map((mission) => (
             <Card key={mission.id} className="w-full bg-white dark:bg-gray-800 shadow-lg">
               <CardHeader>
                 <CardTitle className="text-xl font-semibold">{mission.modele} ({mission.immatriculation})</CardTitle>
@@ -37,7 +37,7 @@ const ConcessionnaireMissionsList: React.FC<ConcessionnaireMissionsListProps> = 
                   'text-green-600 dark:text-green-400'
                 }`}>{mission.statut}</span></p>
                 <p><strong>Heure limite:</strong> {new Date(mission.heureLimite).toLocaleString()}</p>
-                {mission.convoyeur_id && <p><strong>Convoyeur:</strong> {mission.convoyeur_id}</p>} {/* Placeholder for convoyeur name */}
+                {mission.convoyeur_id && <p><strong>Convoyeur:</strong> {mission.convoyeur_first_name} {mission.convoyeur_last_name}</p>}
                 {mission.commentaires && <p className="text-sm text-gray-700 dark:text-gray-300"><strong>Commentaires:</strong> {mission.commentaires}</p>}
                 {mission.price && <p className="text-sm text-gray-700 dark:text-gray-300"><strong>Prix:</strong> {mission.price} €</p>}
               </CardContent>
@@ -49,4 +49,4 @@ const ConcessionnaireMissionsList: React.FC<ConcessionnaireMissionsListProps> = 
   );
 };
 
-export default ConcessionnaireMissionsList;
+export default ClientMissionsList;

@@ -7,7 +7,7 @@ import Footer from "@/components/Footer";
 import { showError, showSuccess } from "@/utils/toast";
 import AdminMissions from "@/components/admin/AdminMissions";
 import AdminConvoyeurs from "@/components/admin/AdminConvoyeurs";
-import AdminConcessionnaires from "@/components/admin/AdminConcessionnaires";
+import AdminClients from "@/components/admin/AdminClients"; // Updated import
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
@@ -32,14 +32,14 @@ const AdminDashboard = () => {
       <main className="flex-grow flex flex-col items-center justify-center p-4 text-center">
         <h1 className="text-4xl font-bold mb-6">Tableau de Bord Administrateur</h1>
         <p className="text-lg mb-8 max-w-prose">
-          Bienvenue dans l'espace d'administration. Gérez les missions, les convoyeurs et les concessionnaires.
+          Bienvenue dans l'espace d'administration. Gérez les missions, les convoyeurs et les clients.
         </p>
 
         <Tabs defaultValue="missions" className="w-full max-w-6xl">
           <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="missions">Missions</TabsTrigger>
             <TabsTrigger value="convoyeurs">Convoyeurs</TabsTrigger>
-            <TabsTrigger value="concessionnaires">Concessionnaires</TabsTrigger>
+            <TabsTrigger value="clients">Clients</TabsTrigger>
           </TabsList>
           <TabsContent value="missions" className="mt-6">
             <AdminMissions />
@@ -47,8 +47,8 @@ const AdminDashboard = () => {
           <TabsContent value="convoyeurs" className="mt-6">
             <AdminConvoyeurs />
           </TabsContent>
-          <TabsContent value="concessionnaires" className="mt-6">
-            <AdminConcessionnaires />
+          <TabsContent value="clients" className="mt-6">
+            <AdminClients />
           </TabsContent>
         </Tabs>
 

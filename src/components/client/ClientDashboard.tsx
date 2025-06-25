@@ -4,10 +4,10 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { showError } from "@/utils/toast";
-import ConcessionnaireProfile from "./ConcessionnaireProfile";
-import ConcessionnaireMissionsList from "./ConcessionnaireMissionsList";
+import ClientProfile from "./ClientProfile";
+import ClientMissionsList from "./ClientMissionsList";
 
-const ConcessionnaireDashboard = () => {
+const ClientDashboard = () => {
   const navigate = useNavigate();
   const [userId, setUserId] = useState<string | null>(null);
   const [loadingUser, setLoadingUser] = useState(true);
@@ -40,7 +40,7 @@ const ConcessionnaireDashboard = () => {
 
   return (
     <div className="flex flex-col items-center justify-center p-4 text-center">
-      <h1 className="text-4xl font-bold mb-6">Espace Concessionnaire</h1>
+      <h1 className="text-4xl font-bold mb-6">Espace Client</h1>
       <p className="text-lg mb-8 text-center">
         Bienvenue dans votre espace dédié. Gérez vos missions et mettez à jour votre profil.
       </p>
@@ -59,14 +59,14 @@ const ConcessionnaireDashboard = () => {
           </div>
         </TabsContent>
         <TabsContent value="missions" className="mt-6">
-          <ConcessionnaireMissionsList userId={userId} />
+          <ClientMissionsList userId={userId} />
         </TabsContent>
         <TabsContent value="profile" className="mt-6">
-          <ConcessionnaireProfile userId={userId} />
+          <ClientProfile userId={userId} />
         </TabsContent>
       </Tabs>
     </div>
   );
 };
 
-export default ConcessionnaireDashboard;
+export default ClientDashboard;
