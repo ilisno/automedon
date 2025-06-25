@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { showSuccess, showError } from '@/utils/toast';
+import { showSuccess, showError } => '@/utils/toast';
 import { format } from 'date-fns';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -214,10 +214,16 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         if (!userId) return [];
         const { data, error } = await supabase
           .from('commandes')
-          .select('*, profiles!commandes_convoyeur_id_fkey(first_name, last_name)') // Jointure pour récupérer le nom du convoyeur
+          .select('*, profiles(first_name, last_name)') // Utilisation de la syntaxe de jointure plus générique
           .eq('concessionnaire_id', userId);
-        if (error) throw error;
-        console.log("Données des missions récupérées (pour débogage):", data); // Ligne de débogage ajoutée
+
+        console.log("Supabase query result - data:", data, "error:", error); // Log détaillé
+
+        if (error) {
+          console.error("Error fetching concessionnaire missions:", error);
+          throw error;
+        }
+        
         return data.map(m => ({
           id: m.id,
           created_at: m.created_at,
