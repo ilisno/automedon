@@ -6,29 +6,48 @@ import { Label } from "@/components/ui/label";
 import { showError, showSuccess } from "@/utils/toast";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import { supabase } from "@/integrations/supabase/client"; // Import Supabase client
 
 const AdminLogin = () => {
   const navigate = useNavigate();
-  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState(""); // Change username to email for Supabase auth
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
-    // Hardcoded credentials for demonstration purposes
-    const ADMIN_USERNAME = "automedon";
-    const ADMIN_PASSWORD = "medonauto";
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: email,
+        password: password,
+      });
 
-    if (username === ADMIN_USERNAME && password === ADMIN_PASSWORD) {
-      localStorage.setItem("isAdminAuthenticated", "true");
-      showSuccess("Connexion administrateur réussie !");
-      navigate("/admin/dashboard");
-    } else {
-      showError("Nom d'utilisateur ou mot de passe incorrect.");
+      if (error) {
+        showError(`Erreur de connexion: ${error.message}`);
+      } else if (data.user) {
+        // Check if the authenticated user has the 'admin' role in the profiles table
+        const { data: profile, error: profileError } = await supabase
+          .from('profiles')
+          .select('role')
+          .eq('id', data.user.id)
+          .single();
+
+        if (profileError || !profile || profile.role !== 'admin') {
+          await supabase.auth.signOut(); // Sign out if not an admin
+          showError("Accès refusé. Seuls les administrateurs peuvent se connecter ici.");
+        } else {
+          showSuccess("Connexion administrateur réussie !");
+          navigate("/admin/dashboard");
+        }
+      }
+    } catch (err) {
+      console.error("Unexpected error during login:", err);
+      showError("Une erreur inattendue est survenue.");
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   return (
@@ -39,12 +58,12 @@ const AdminLogin = () => {
           <h1 className="text-3xl font-bold mb-6 text-center">Connexion Administrateur</h1>
           <form onSubmit={handleLogin} className="space-y-6">
             <div>
-              <Label htmlFor="username">Nom d'utilisateur</Label>
+              <Label htmlFor="email">Adresse e-mail</Label>
               <Input
-                id="username"
-                type="text"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
+                id="email"
+                type="email" // Change type to email
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 required
                 className="mt-1"
               />

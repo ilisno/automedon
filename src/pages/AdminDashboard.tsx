@@ -7,21 +7,38 @@ import Footer from "@/components/Footer";
 import { showError, showSuccess } from "@/utils/toast";
 import AdminMissions from "@/components/admin/AdminMissions";
 import AdminConvoyeurs from "@/components/admin/AdminConvoyeurs";
-import AdminClients from "@/components/admin/AdminClients"; // Updated import
+import AdminClients from "@/components/admin/AdminClients";
+import { supabase } from "@/integrations/supabase/client"; // Import Supabase client
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const isAdminAuthenticated = localStorage.getItem("isAdminAuthenticated");
-    if (isAdminAuthenticated !== "true") {
-      showError("Accès non autorisé. Veuillez vous connecter en tant qu'administrateur.");
-      navigate("/admin");
-    }
+    const checkAdminAuth = async () => {
+      const { data: { user }, error } = await supabase.auth.getUser();
+      if (error || !user) {
+        showError("Accès non autorisé. Veuillez vous connecter en tant qu'administrateur.");
+        navigate("/admin");
+        return;
+      }
+
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', user.id)
+        .single();
+
+      if (profileError || !profile || profile.role !== 'admin') {
+        await supabase.auth.signOut(); // Sign out if not an admin
+        showError("Accès non autorisé. Votre rôle n'est pas administrateur.");
+        navigate("/admin");
+      }
+    };
+    checkAdminAuth();
   }, [navigate]);
 
-  const handleLogout = () => {
-    localStorage.removeItem("isAdminAuthenticated");
+  const handleLogout = async () => {
+    await supabase.auth.signOut(); // Use Supabase signOut
     showSuccess("Déconnexion administrateur réussie.");
     navigate("/admin");
   };
