@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Checkbox } from "@/components/ui/checkbox";
 import { supabase } from "@/integrations/supabase/client";
 import { showSuccess, showError } from "@/utils/toast";
+import { useMissions } from "@/context/MissionsContext"; // Import useMissions
 
 type Profile = {
   id: string;
@@ -20,6 +21,7 @@ type Profile = {
   postal_code: string | null;
   city: string | null;
   is_profile_complete: boolean;
+  avatar_url: string | null; // NEW: Add avatar_url for consistency
 };
 
 interface ClientProfileProps {
@@ -27,6 +29,7 @@ interface ClientProfileProps {
 }
 
 const ClientProfile: React.FC<ClientProfileProps> = ({ userId }) => {
+  const { updateProfile } = useMissions(); // Use updateProfile from context
   const [loading, setLoading] = useState(true);
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
@@ -68,11 +71,25 @@ const ClientProfile: React.FC<ClientProfileProps> = ({ userId }) => {
     fetchUserProfile();
   }, [userId]);
 
+  // NEW: Function to determine if client profile is complete (without avatar)
+  const checkClientProfileCompletion = () => {
+    return (
+      firstName !== "" &&
+      lastName !== "" &&
+      phone !== "" &&
+      companyType !== "" &&
+      siret !== "" &&
+      address !== "" &&
+      postalCode !== "" &&
+      city !== ""
+    );
+  };
+
   const handleProfileSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
-    const updatedProfile: Omit<Profile, 'id'> = {
+    const updatedProfile: Omit<Profile, 'id' | 'avatar_url'> = { // Exclude avatar_url from client update payload
       first_name: firstName,
       last_name: lastName,
       role: role || null,
@@ -82,20 +99,18 @@ const ClientProfile: React.FC<ClientProfileProps> = ({ userId }) => {
       address: address || null,
       postal_code: postalCode || null,
       city: city || null,
-      is_profile_complete: isProfileComplete,
+      is_profile_complete: checkClientProfileCompletion(), // Dynamically set based on client fields
     };
 
-    const { error } = await supabase
-      .from('profiles')
-      .upsert({ ...updatedProfile, id: userId });
-
-    if (error) {
+    try {
+      await updateProfile(userId, updatedProfile); // Use updateProfile from context
+      showSuccess("Profil mis à jour avec succès !");
+    } catch (error) {
       console.error("Error updating profile:", error);
       showError("Erreur lors de la mise à jour du profil.");
-    } else {
-      showSuccess("Profil mis à jour avec succès !");
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   if (loading) {
@@ -154,10 +169,7 @@ const ClientProfile: React.FC<ClientProfileProps> = ({ userId }) => {
             <Input id="city" type="text" value={city} onChange={(e) => setCity(e.target.value)} className="mt-1" />
           </div>
         </div>
-        <div className="flex items-center space-x-2">
-          <Checkbox id="isProfileComplete" checked={isProfileComplete} onCheckedChange={(checked) => setIsProfileComplete(checked === true)} />
-          <Label htmlFor="isProfileComplete">Avez-vous complété votre profil ?</Label>
-        </div>
+        {/* Removed the isProfileComplete checkbox as it's now derived */}
         <Button type="submit" className="w-full px-8 py-2 text-lg" disabled={loading}>
           {loading ? "Sauvegarde..." : "Sauvegarder le profil"}
         </Button>

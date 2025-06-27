@@ -48,18 +48,22 @@ export type Profile = {
   license_issue_date: string | null;
   license_issue_city: string | null;
   is_profile_complete: boolean;
+  avatar_url: string | null; // NEW: Add avatar_url to Profile type
 };
 
 type UpdateMissionPayload = Partial<Omit<Mission, 'id' | 'created_at'>>;
+type UpdateProfilePayload = Partial<Omit<Profile, 'id'>>;
 
 // 2. Définition du type du contexte
 type MissionsContextType = {
   addMission: (missionData: Omit<Mission, 'id' | 'created_at' | 'statut' | 'convoyeur_id' | 'commentaires' | 'photos' | 'price' | 'updates' | 'convoyeur_first_name' | 'convoyeur_last_name'> & { client_id: string }) => Promise<void>; // Mis à jour pour client_id
   updateMission: (id: string, payload: UpdateMissionPayload) => Promise<void>; // Generic update function
+  updateProfile: (id: string, payload: UpdateProfilePayload) => Promise<void>; // NEW: Generic update function for profiles
   takeMission: (missionId: string, convoyeurId: string) => Promise<void>;
   completeMission: (missionId: string, finalComment: string | null, finalPhotos: FileList | null) => Promise<void>;
   addMissionUpdate: (missionId: string, comment: string | null, photos: FileList | null) => Promise<void>;
   uploadMissionPhotos: (missionId: string, files: FileList) => Promise<string[]>;
+  uploadProfilePhoto: (userId: string, file: File) => Promise<string>; // NEW: Function to upload profile photo
   
   // Hooks pour récupérer les missions et profils
   useClientMissions: (userId: string | undefined) => { missions: Mission[] | undefined; isLoading: boolean; };
@@ -134,6 +138,29 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     await updateMissionMutation.mutateAsync({ id, payload });
   };
 
+  // NEW: Generic mutation for updating profile fields
+  const updateProfileMutation = useMutation({
+    mutationFn: async ({ id, payload }: { id: string; payload: UpdateProfilePayload }) => {
+      const { data, error } = await supabase.from('profiles').update(payload).eq('id', id);
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['convoyeurs'] }); // Invalidate convoyeurs for admin view
+      queryClient.invalidateQueries({ queryKey: ['clients'] }); // Invalidate clients for admin view
+      queryClient.invalidateQueries({ queryKey: ['profiles'] }); // Invalidate specific profile query if needed
+      showSuccess("Profil mis à jour avec succès !");
+    },
+    onError: (error) => {
+      console.error("Error updating profile:", error);
+      showError("Erreur lors de la mise à jour du profil.");
+    },
+  });
+
+  const updateProfile = async (id: string, payload: UpdateProfilePayload) => {
+    await updateProfileMutation.mutateAsync({ id, payload });
+  };
+
   const takeMission = async (missionId: string, convoyeurId: string) => {
     await updateMission(missionId, { statut: 'en cours', convoyeur_id: convoyeurId });
   };
@@ -160,6 +187,26 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       }
     }
     return uploadedUrls;
+  };
+
+  // NEW: Function to upload a single profile photo
+  const uploadProfilePhoto = async (userId: string, file: File): Promise<string> => {
+    const filePath = `avatars/${userId}/${uuidv4()}-${file.name}`; // Unique path for each user's avatar
+    const { data, error } = await supabase.storage
+      .from('profile-photos')
+      .upload(filePath, file, {
+        cacheControl: '3600',
+        upsert: true, // Upsert to replace existing photo for the same user
+      });
+
+    if (error) {
+      console.error("Error uploading profile photo:", error);
+      showError(`Erreur lors de l'upload de la photo de profil.`);
+      throw error;
+    } else {
+      const { data: publicUrlData } = supabase.storage.from('profile-photos').getPublicUrl(filePath);
+      return publicUrlData.publicUrl;
+    }
   };
 
   const addMissionUpdate = async (missionId: string, comment: string | null, photos: FileList | null) => {
@@ -393,10 +440,12 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const contextValue = useMemo(() => ({
     addMission,
     updateMission, // Use the new generic update
+    updateProfile, // NEW: Add updateProfile to context
     takeMission,
     completeMission,
     addMissionUpdate,
     uploadMissionPhotos,
+    uploadProfilePhoto, // NEW: Add uploadProfilePhoto to context
     useClientMissions,
     useAvailableMissions,
     useConvoyeurMissions,
@@ -407,10 +456,12 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   }), [
     addMission,
     updateMission,
+    updateProfile, // NEW
     takeMission,
     completeMission,
     addMissionUpdate,
     uploadMissionPhotos,
+    uploadProfilePhoto, // NEW
     useClientMissions,
     useAvailableMissions,
     useConvoyeurMissions,

@@ -8,10 +8,11 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { format } from "date-fns";
-import { CalendarIcon } from "lucide-react";
+import { CalendarIcon, UserCircle2 } from "lucide-react"; // Import UserCircle2 icon
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { showSuccess, showError } from "@/utils/toast";
+import { useMissions } from "@/context/MissionsContext"; // Import useMissions
 
 type Profile = {
   id: string;
@@ -28,6 +29,7 @@ type Profile = {
   license_issue_date: string | null; // ISO string
   license_issue_city: string | null;
   is_profile_complete: boolean;
+  avatar_url: string | null; // NEW: Add avatar_url
 };
 
 interface ConvoyeurProfileProps {
@@ -35,6 +37,7 @@ interface ConvoyeurProfileProps {
 }
 
 const ConvoyeurProfile: React.FC<ConvoyeurProfileProps> = ({ userId }) => {
+  const { updateProfile, uploadProfilePhoto } = useMissions(); // Use updateProfile and uploadProfilePhoto from context
   const [loading, setLoading] = useState(true);
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
@@ -49,6 +52,8 @@ const ConvoyeurProfile: React.FC<ConvoyeurProfileProps> = ({ userId }) => {
   const [licenseIssueDate, setLicenseIssueDate] = useState<Date | undefined>(undefined);
   const [licenseIssueCity, setLicenseIssueCity] = useState("");
   const [isProfileComplete, setIsProfileComplete] = useState(false);
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null); // NEW: State for avatar URL
+  const [avatarFile, setAvatarFile] = useState<File | null>(null); // NEW: State for selected avatar file
 
   useEffect(() => {
     const fetchUserProfile = async () => {
@@ -75,6 +80,7 @@ const ConvoyeurProfile: React.FC<ConvoyeurProfileProps> = ({ userId }) => {
         setDriverLicenseNumber(data.driver_license_number || "");
         setLicenseIssueDate(data.license_issue_date ? new Date(data.license_issue_date) : undefined);
         setLicenseIssueCity(data.license_issue_city || "");
+        setAvatarUrl(data.avatar_url || null); // NEW: Set avatar URL
         setIsProfileComplete(data.is_profile_complete);
       }
       setLoading(false);
@@ -82,9 +88,41 @@ const ConvoyeurProfile: React.FC<ConvoyeurProfileProps> = ({ userId }) => {
     fetchUserProfile();
   }, [userId]);
 
+  // NEW: Function to determine if convoyeur profile is complete
+  const checkConvoyeurProfileCompletion = (currentAvatarUrl: string | null) => {
+    return (
+      firstName !== "" &&
+      lastName !== "" &&
+      phone !== "" &&
+      dateOfBirth !== undefined &&
+      languages !== "" &&
+      address !== "" &&
+      postalCode !== "" &&
+      city !== "" &&
+      driverLicenseNumber !== "" &&
+      licenseIssueDate !== undefined &&
+      licenseIssueCity !== "" &&
+      currentAvatarUrl !== null // Profile is complete only if avatar is present
+    );
+  };
+
   const handleProfileSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+
+    let newAvatarUrl = avatarUrl;
+    if (avatarFile) {
+      try {
+        newAvatarUrl = await uploadProfilePhoto(userId, avatarFile);
+        setAvatarUrl(newAvatarUrl); // Update state with new URL
+        showSuccess("Photo de profil téléchargée avec succès !");
+      } catch (error) {
+        console.error("Error uploading avatar:", error);
+        showError("Erreur lors du téléchargement de la photo de profil.");
+        setLoading(false);
+        return;
+      }
+    }
 
     const updatedProfile: Omit<Profile, 'id'> = {
       first_name: firstName,
@@ -99,20 +137,19 @@ const ConvoyeurProfile: React.FC<ConvoyeurProfileProps> = ({ userId }) => {
       driver_license_number: driverLicenseNumber || null,
       license_issue_date: licenseIssueDate ? format(licenseIssueDate, "yyyy-MM-dd") : null,
       license_issue_city: licenseIssueCity || null,
-      is_profile_complete: isProfileComplete,
+      avatar_url: newAvatarUrl, // NEW: Include avatar_url in update
+      is_profile_complete: checkConvoyeurProfileCompletion(newAvatarUrl), // NEW: Dynamically set based on all fields including avatar
     };
 
-    const { error } = await supabase
-      .from('profiles')
-      .upsert({ ...updatedProfile, id: userId });
-
-    if (error) {
+    try {
+      await updateProfile(userId, updatedProfile); // Use updateProfile from context
+      showSuccess("Profil mis à jour avec succès !");
+    } catch (error) {
       console.error("Error updating profile:", error);
       showError("Erreur lors de la mise à jour du profil.");
-    } else {
-      showSuccess("Profil mis à jour avec succès !");
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   if (loading) {
@@ -123,6 +160,30 @@ const ConvoyeurProfile: React.FC<ConvoyeurProfileProps> = ({ userId }) => {
     <div className="w-full max-w-2xl bg-white dark:bg-gray-800 p-8 rounded-lg shadow-lg">
       <h2 className="text-2xl font-bold mb-6 text-center">Mon Profil</h2>
       <form onSubmit={handleProfileSubmit} className="space-y-6">
+        {/* NEW: Avatar Upload and Display */}
+        <div className="flex flex-col items-center space-y-4 mb-6">
+          {avatarUrl ? (
+            <img src={avatarUrl} alt="Avatar" className="w-32 h-32 rounded-full object-cover border-4 border-primary shadow-md" />
+          ) : (
+            <div className="w-32 h-32 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-gray-500 dark:text-gray-400 border-4 border-primary shadow-md">
+              <UserCircle2 size={64} />
+            </div>
+          )}
+          <div>
+            <Label htmlFor="avatar">Photo de profil</Label>
+            <Input
+              id="avatar"
+              type="file"
+              accept="image/*"
+              onChange={(e) => setAvatarFile(e.target.files ? e.target.files[0] : null)}
+              className="mt-1"
+            />
+            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+              Une photo de profil est requise pour compléter votre profil de convoyeur.
+            </p>
+          </div>
+        </div>
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <Label htmlFor="firstName">Prénom</Label>
@@ -215,10 +276,7 @@ const ConvoyeurProfile: React.FC<ConvoyeurProfileProps> = ({ userId }) => {
           <Label htmlFor="licenseIssueCity">Ville de délivrance du permis</Label>
           <Input id="licenseIssueCity" type="text" value={licenseIssueCity} onChange={(e) => setLicenseIssueCity(e.target.value)} className="mt-1" />
         </div>
-        <div className="flex items-center space-x-2">
-          <Checkbox id="isProfileComplete" checked={isProfileComplete} onCheckedChange={(checked) => setIsProfileComplete(checked === true)} />
-          <Label htmlFor="isProfileComplete">Avez-vous complété votre profil ?</Label>
-        </div>
+        {/* Removed the isProfileComplete checkbox as it's now derived */}
         <Button type="submit" className="w-full px-8 py-2 text-lg" disabled={loading}>
           {loading ? "Sauvegarde..." : "Sauvegarder le profil"}
         </Button>
