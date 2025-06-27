@@ -64,7 +64,7 @@ const CreateMission = () => {
         lieu_depart,
         lieu_arrivee,
         heureLimite,
-        concessionnaire_id: clientId, // Renamed to client_id in DB, but still concessionnaire_id in type for now
+        client_id: clientId,
       });
 
       // Vider le formulaire
@@ -138,7 +138,7 @@ const CreateMission = () => {
               />
             </div>
             <div>
-              <Label htmlFor="heureLimite">Heure limite de livraison</Label>
+              <Label htmlFor="heureLimite">Date limite de livraison</Label>
               <Input
                 id="heureLimite"
                 type="datetime-local"

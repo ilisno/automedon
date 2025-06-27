@@ -36,7 +36,7 @@ const ClientMissionsList: React.FC<ClientMissionsListProps> = ({ userId }) => {
                   mission.statut === 'en cours' ? 'text-orange-600 dark:text-orange-400' :
                   'text-green-600 dark:text-green-400'
                 }`}>{mission.statut}</span></p>
-                <p><strong>Heure limite:</strong> {new Date(mission.heureLimite).toLocaleString()}</p>
+                <p><strong>Date limite:</strong> {new Date(mission.heureLimite).toLocaleString()}</p>
                 {mission.convoyeur_id && <p><strong>Convoyeur:</strong> {mission.convoyeur_first_name} {mission.convoyeur_last_name}</p>}
                 {mission.commentaires && <p className="text-sm text-gray-700 dark:text-gray-300"><strong>Commentaires:</strong> {mission.commentaires}</p>}
                 {mission.price && <p className="text-sm text-gray-700 dark:text-gray-300"><strong>Prix:</strong> {mission.price} €</p>}
