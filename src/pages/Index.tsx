@@ -40,7 +40,7 @@ const Index = () => {
       <Header />
       <main className="flex-grow flex flex-col items-center justify-center p-4 text-center">
         <h1 className="text-5xl md:text-6xl font-extrabold mb-8 leading-tight">
-          Bienvenue sur Automédon
+          Le convoyage facile
         </h1>
         <p className="text-xl md:text-2xl font-semibold text-gray-800 dark:text-gray-200 mb-12 max-w-2xl">
           Votre plateforme pour la gestion et le convoyage de véhicules.
