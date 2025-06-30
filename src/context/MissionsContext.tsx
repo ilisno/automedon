@@ -191,9 +191,11 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
   // NEW: Function to upload a single profile photo
   const uploadProfilePhoto = async (userId: string, file: File): Promise<string> => {
+    // Normalize to NFD and remove diacritics (accents)
+    const normalizedFileName = file.name.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
     // Replace problematic characters like spaces and apostrophes with hyphens
-    const cleanedFileName = file.name.replace(/[' ]/g, '-');
-    // Then encode the entire filename to handle any remaining special characters (like accents)
+    const cleanedFileName = normalizedFileName.replace(/[' ]/g, '-');
+    // Then encode the entire filename to handle any remaining special characters
     const sanitizedFileName = encodeURIComponent(cleanedFileName);
     const filePath = `avatars/${userId}/${uuidv4()}-${sanitizedFileName}`; // Unique path for each user's avatar
     const { data, error } = await supabase.storage
