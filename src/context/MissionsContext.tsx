@@ -191,9 +191,10 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
   // NEW: Function to upload a single profile photo
   const uploadProfilePhoto = async (userId: string, file: File): Promise<string> => {
-    // Sanitize the file name to remove problematic characters like spaces and apostrophes
-    // and ensure it's URL-safe.
-    const sanitizedFileName = encodeURIComponent(file.name);
+    // Replace problematic characters like spaces and apostrophes with hyphens
+    const cleanedFileName = file.name.replace(/[' ]/g, '-');
+    // Then encode the entire filename to handle any remaining special characters (like accents)
+    const sanitizedFileName = encodeURIComponent(cleanedFileName);
     const filePath = `avatars/${userId}/${uuidv4()}-${sanitizedFileName}`; // Unique path for each user's avatar
     const { data, error } = await supabase.storage
       .from('profile-photos')
