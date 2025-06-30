@@ -169,7 +169,7 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     const uploadedUrls: string[] = [];
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
-      const filePath = `${missionId}/${uuidv4()}-${file.name}`;
+      const filePath = `${missionId}/${uuidv4()}-${encodeURIComponent(file.name)}`; // Sanitize filename
       const { data, error } = await supabase.storage
         .from('mission-photos')
         .upload(filePath, file, {
@@ -191,7 +191,10 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
   // NEW: Function to upload a single profile photo
   const uploadProfilePhoto = async (userId: string, file: File): Promise<string> => {
-    const filePath = `avatars/${userId}/${uuidv4()}-${file.name}`; // Unique path for each user's avatar
+    // Sanitize the file name to remove problematic characters like spaces and apostrophes
+    // and ensure it's URL-safe.
+    const sanitizedFileName = encodeURIComponent(file.name);
+    const filePath = `avatars/${userId}/${uuidv4()}-${sanitizedFileName}`; // Unique path for each user's avatar
     const { data, error } = await supabase.storage
       .from('profile-photos')
       .upload(filePath, file, {
