@@ -4,10 +4,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Checkbox } from "@/components/ui/checkbox";
 import { supabase } from "@/integrations/supabase/client";
 import { showSuccess, showError } from "@/utils/toast";
-import { useMissions } from "@/context/MissionsContext"; // Import useMissions
+import { useMissions } from "@/context/MissionsContext";
 
 type Profile = {
   id: string;
@@ -21,7 +20,7 @@ type Profile = {
   postal_code: string | null;
   city: string | null;
   is_profile_complete: boolean;
-  avatar_url: string | null; // NEW: Add avatar_url for consistency
+  avatar_url: string | null;
 };
 
 interface ClientProfileProps {
@@ -29,8 +28,9 @@ interface ClientProfileProps {
 }
 
 const ClientProfile: React.FC<ClientProfileProps> = ({ userId }) => {
-  const { updateProfile } = useMissions(); // Use updateProfile from context
+  const { updateProfile } = useMissions();
   const [loading, setLoading] = useState(true);
+  const [email, setEmail] = useState(""); // NEW: State for user email
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [role, setRole] = useState<'client' | 'convoyeur' | ''>("");
@@ -45,6 +45,15 @@ const ClientProfile: React.FC<ClientProfileProps> = ({ userId }) => {
   useEffect(() => {
     const fetchUserProfile = async () => {
       setLoading(true);
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+
+      if (userError || !user) {
+        showError("Erreur lors du chargement de l'utilisateur.");
+        setLoading(false);
+        return;
+      }
+      setEmail(user.email || ""); // NEW: Set user email
+
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
@@ -71,7 +80,6 @@ const ClientProfile: React.FC<ClientProfileProps> = ({ userId }) => {
     fetchUserProfile();
   }, [userId]);
 
-  // NEW: Function to determine if client profile is complete (without avatar)
   const checkClientProfileCompletion = () => {
     return (
       firstName !== "" &&
@@ -89,7 +97,7 @@ const ClientProfile: React.FC<ClientProfileProps> = ({ userId }) => {
     e.preventDefault();
     setLoading(true);
 
-    const updatedProfile: Omit<Profile, 'id' | 'avatar_url'> = { // Exclude avatar_url from client update payload
+    const updatedProfile: Omit<Profile, 'id' | 'avatar_url'> = {
       first_name: firstName,
       last_name: lastName,
       role: role || null,
@@ -99,11 +107,11 @@ const ClientProfile: React.FC<ClientProfileProps> = ({ userId }) => {
       address: address || null,
       postal_code: postalCode || null,
       city: city || null,
-      is_profile_complete: checkClientProfileCompletion(), // Dynamically set based on client fields
+      is_profile_complete: checkClientProfileCompletion(),
     };
 
     try {
-      await updateProfile(userId, updatedProfile); // Use updateProfile from context
+      await updateProfile(userId, updatedProfile);
       showSuccess("Profil mis à jour avec succès !");
     } catch (error) {
       console.error("Error updating profile:", error);
@@ -121,6 +129,11 @@ const ClientProfile: React.FC<ClientProfileProps> = ({ userId }) => {
     <div className="w-full max-w-2xl bg-white dark:bg-gray-800 p-8 rounded-lg shadow-lg">
       <h2 className="text-2xl font-bold mb-6 text-center">Mon Profil</h2>
       <form onSubmit={handleProfileSubmit} className="space-y-6">
+        <div>
+          <Label htmlFor="email">Adresse e-mail</Label>
+          <Input id="email" type="email" value={email} disabled className="mt-1 bg-gray-100 dark:bg-gray-700 cursor-not-allowed" />
+        </div>
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <Label htmlFor="firstName">Prénom</Label>
@@ -169,7 +182,6 @@ const ClientProfile: React.FC<ClientProfileProps> = ({ userId }) => {
             <Input id="city" type="text" value={city} onChange={(e) => setCity(e.target.value)} className="mt-1" />
           </div>
         </div>
-        {/* Removed the isProfileComplete checkbox as it's now derived */}
         <Button type="submit" className="w-full px-8 py-2 text-lg" disabled={loading}>
           {loading ? "Sauvegarde..." : "Sauvegarder le profil"}
         </Button>
