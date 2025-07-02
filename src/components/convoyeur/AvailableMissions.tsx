@@ -42,6 +42,9 @@ const AvailableMissions: React.FC<AvailableMissionsProps> = ({ userId }) => {
               <CardContent className="space-y-4">
                 <p><strong>Statut:</strong> <span className="font-medium text-blue-600 dark:text-blue-400">{mission.statut}</span></p>
                 <p><strong>Heure limite:</strong> {new Date(mission.heureLimite).toLocaleString()}</p>
+                {mission.convoyeur_payout !== null && (
+                  <p><strong>Rémunération:</strong> {mission.convoyeur_payout.toFixed(2)} €</p>
+                )}
                 <Button onClick={() => handlePrendreEnCharge(mission.id)} className="w-full">
                   Prendre en charge
                 </Button>

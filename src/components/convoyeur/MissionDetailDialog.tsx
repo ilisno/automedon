@@ -106,8 +106,8 @@ const MissionDetailDialog: React.FC<MissionDetailDialogProps> = ({
           }`}>{mission.statut}</span></p>
           <p><strong>Heure limite:</strong> {new Date(mission.heureLimite).toLocaleString()}</p>
           <p>
-            <strong>Prix:</strong>{" "}
-            {mission.price ? `${mission.price.toFixed(2)} €` : "Prix non fixé"}
+            <strong>Rémunération Convoyeur:</strong>{" "}
+            {mission.convoyeur_payout ? `${mission.convoyeur_payout.toFixed(2)} €` : "Non définie"}
           </p>
 
           {/* Section pour ajouter une nouvelle mise à jour */}

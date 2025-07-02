@@ -85,8 +85,8 @@ const MyMissions: React.FC<MyMissionsProps> = ({
                 }`}>{mission.statut}</span></p>
                 <p><strong>Heure limite:</strong> {new Date(mission.heureLimite).toLocaleString()}</p>
                 <p>
-                  <strong>Prix:</strong>{" "}
-                  {mission.price ? `${mission.price.toFixed(2)} €` : "Prix non fixé"}
+                  <strong>Rémunération:</strong>{" "}
+                  {mission.convoyeur_payout ? `${mission.convoyeur_payout.toFixed(2)} €` : "Non définie"}
                 </p>
                 {mission.statut === 'en cours' && (
                   <div className="flex flex-col space-y-2">

@@ -38,8 +38,8 @@ const ClientMissionsList: React.FC<ClientMissionsListProps> = ({ userId }) => {
                 }`}>{mission.statut}</span></p>
                 <p><strong>Date limite:</strong> {new Date(mission.heureLimite).toLocaleString()}</p>
                 {mission.convoyeur_id && <p><strong>Convoyeur:</strong> {mission.convoyeur_first_name} {mission.convoyeur_last_name}</p>}
+                {mission.client_price && <p className="text-sm text-gray-700 dark:text-gray-300"><strong>Prix Client:</strong> {mission.client_price.toFixed(2)} €</p>} {/* NEW */}
                 {mission.commentaires && <p className="text-sm text-gray-700 dark:text-gray-300"><strong>Commentaires:</strong> {mission.commentaires}</p>}
-                {mission.price && <p className="text-sm text-gray-700 dark:text-gray-300"><strong>Prix:</strong> {mission.price} €</p>}
               </CardContent>
             </Card>
           ))

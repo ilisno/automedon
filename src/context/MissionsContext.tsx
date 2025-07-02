@@ -36,7 +36,8 @@ export type Mission = {
   heureLimite: string; // ISO string, from DB heure_limite
   commentaires?: string | null; // This will become deprecated, replaced by updates
   photos?: string[] | null; // This will become deprecated, replaced by updates
-  price?: number | null;
+  client_price?: number | null; // NEW: Price paid by the client
+  convoyeur_payout?: number | null; // RENAMED: Payout for the convoyeur
   updates?: MissionUpdate[] | null; // New field for step-by-step updates
   expenses?: Expense[] | null; // NEW: Add expenses array
 };
@@ -66,7 +67,7 @@ type UpdateProfilePayload = Partial<Omit<Profile, 'id'>>;
 
 // 2. Définition du type du contexte
 type MissionsContextType = {
-  addMission: (missionData: Omit<Mission, 'id' | 'created_at' | 'statut' | 'convoyeur_id' | 'commentaires' | 'photos' | 'price' | 'updates' | 'convoyeur_first_name' | 'convoyeur_last_name' | 'expenses'> & { client_id: string }) => Promise<void>; // Mis à jour pour client_id
+  addMission: (missionData: Omit<Mission, 'id' | 'created_at' | 'statut' | 'convoyeur_id' | 'commentaires' | 'photos' | 'client_price' | 'convoyeur_payout' | 'updates' | 'convoyeur_first_name' | 'convoyeur_last_name' | 'expenses'> & { client_id: string }) => Promise<void>; // Mis à jour pour client_id et les nouveaux prix
   updateMission: (id: string, payload: UpdateMissionPayload) => Promise<void>; // Generic update function
   updateProfile: (id: string, payload: UpdateProfilePayload) => Promise<void>; // NEW: Generic update function for profiles
   takeMission: (missionId: string, convoyeurId: string) => Promise<void>;
@@ -95,7 +96,7 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
   // Mutation for adding a mission
   const addMissionMutation = useMutation({
-    mutationFn: async (missionData: Omit<Mission, 'id' | 'created_at' | 'statut' | 'convoyeur_id' | 'commentaires' | 'photos' | 'price' | 'updates' | 'convoyeur_first_name' | 'convoyeur_last_name' | 'expenses'> & { client_id: string }) => { // Mis à jour pour client_id
+    mutationFn: async (missionData: Omit<Mission, 'id' | 'created_at' | 'statut' | 'convoyeur_id' | 'commentaires' | 'photos' | 'client_price' | 'convoyeur_payout' | 'updates' | 'convoyeur_first_name' | 'convoyeur_last_name' | 'expenses'> & { client_id: string }) => { // Mis à jour pour client_id
       const { data, error } = await supabase.from('commandes').insert({
         immatriculation: missionData.immatriculation,
         modele: missionData.modele,
@@ -104,6 +105,8 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         heureLimite: missionData.heureLimite,
         client_id: missionData.client_id, // Mis à jour pour client_id
         statut: 'Disponible', // Default status for new missions
+        client_price: null, // Initialize client_price as null
+        convoyeur_payout: null, // Initialize convoyeur_payout as null
         updates: [], // Initialize updates as an empty array
         expenses: [], // Initialize expenses as an empty array
       });
@@ -121,7 +124,7 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     },
   });
 
-  const addMission = async (missionData: Omit<Mission, 'id' | 'created_at' | 'statut' | 'convoyeur_id' | 'commentaires' | 'photos' | 'price' | 'updates' | 'convoyeur_first_name' | 'convoyeur_last_name' | 'expenses'> & { client_id: string }) => { // Mis à jour pour client_id
+  const addMission = async (missionData: Omit<Mission, 'id' | 'created_at' | 'statut' | 'convoyeur_id' | 'commentaires' | 'photos' | 'client_price' | 'convoyeur_payout' | 'updates' | 'convoyeur_first_name' | 'convoyeur_last_name' | 'expenses'> & { client_id: string }) => { // Mis à jour pour client_id
     await addMissionMutation.mutateAsync(missionData);
   };
 
@@ -361,7 +364,8 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
           heureLimite: m.heureLimite,
           commentaires: m.commentaires,
           photos: m.photos,
-          price: m.price,
+          client_price: m.client_price, // Include client_price
+          convoyeur_payout: m.convoyeur_payout, // Include convoyeur_payout
           updates: m.updates,
           expenses: m.expenses, // Include expenses
         }));
@@ -375,7 +379,8 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     const { data, isLoading } = useQuery<Mission[]>({
       queryKey: ['availableMissions'],
       queryFn: async () => {
-        const { data, error } = await supabase.from('commandes').select('*').eq('statut', 'Disponible');
+        // Only fetch missions where convoyeur_payout is not null
+        const { data, error } = await supabase.from('commandes').select('*').eq('statut', 'Disponible').not('convoyeur_payout', 'is', null);
         if (error) throw error;
         return data.map(m => ({
           id: m.id,
@@ -390,7 +395,8 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
           heureLimite: m.heureLimite,
           commentaires: m.commentaires,
           photos: m.photos,
-          price: m.price,
+          client_price: m.client_price, // Include client_price
+          convoyeur_payout: m.convoyeur_payout, // Include convoyeur_payout
           updates: m.updates,
           expenses: m.expenses, // Include expenses
         }));
@@ -425,7 +431,8 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
           heureLimite: m.heureLimite,
           commentaires: m.commentaires,
           photos: m.photos,
-          price: m.price,
+          client_price: m.client_price, // Include client_price
+          convoyeur_payout: m.convoyeur_payout, // Include convoyeur_payout
           updates: m.updates,
           expenses: m.expenses, // Include expenses
         }));
@@ -445,7 +452,7 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         
         const { data, error } = await supabase
           .from('commandes')
-          .select('price, created_at')
+          .select('convoyeur_payout, created_at') // Use convoyeur_payout
           .eq('convoyeur_id', convoyeurId)
           .eq('statut', 'livrée')
           .gte('created_at', `${currentYear}-${String(currentMonth).padStart(2, '0')}-01T00:00:00Z`)
@@ -456,7 +463,7 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
           throw error;
         }
 
-        return data.reduce((sum, mission) => sum + (mission.price || 0), 0);
+        return data.reduce((sum, mission) => sum + (mission.convoyeur_payout || 0), 0);
       },
       enabled: !!convoyeurId,
     });
@@ -487,7 +494,8 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
           heureLimite: m.heureLimite,
           commentaires: m.commentaires,
           photos: m.photos,
-          price: m.price,
+          client_price: m.client_price, // Include client_price
+          convoyeur_payout: m.convoyeur_payout, // Include convoyeur_payout
           updates: m.updates,
           expenses: m.expenses, // Include expenses
         }));
