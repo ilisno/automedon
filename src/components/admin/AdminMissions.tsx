@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox"; // Import Checkbox
 import { showError } from "@/utils/toast";
 
 const AdminMissions: React.FC = () => {
@@ -36,6 +37,10 @@ const AdminMissions: React.FC = () => {
     setCurrentConvoyeurPayout(0);
   };
 
+  const handleTogglePaidStatus = async (mission: Mission) => {
+    await updateMission(mission.id, { is_paid: !mission.is_paid });
+  };
+
   if (isLoading) {
     return <p className="text-gray-700 dark:text-gray-300">Chargement de toutes les missions...</p>;
   }
@@ -59,8 +64,9 @@ const AdminMissions: React.FC = () => {
                 <TableHead>Concessionnaire</TableHead>
                 <TableHead>Convoyeur</TableHead>
                 <TableHead>Heure Limite</TableHead>
-                <TableHead>Prix Client (€)</TableHead> {/* NEW */}
-                <TableHead>Rémunération Convoyeur (€)</TableHead> {/* RENAMED */}
+                <TableHead>Prix Client (€)</TableHead>
+                <TableHead>Rémunération Convoyeur (€)</TableHead>
+                <TableHead>Payée</TableHead> {/* NEW */}
                 <TableHead>Actions</TableHead>
               </TableRow>
             </TableHeader>
@@ -101,6 +107,13 @@ const AdminMissions: React.FC = () => {
                     ) : (
                       mission.convoyeur_payout?.toFixed(2) || "N/A"
                     )}
+                  </TableCell>
+                  <TableCell>
+                    <Checkbox
+                      checked={mission.is_paid}
+                      onCheckedChange={() => handleTogglePaidStatus(mission)}
+                      aria-label="Mission payée"
+                    />
                   </TableCell>
                   <TableCell>
                     {editingMissionId === mission.id ? (

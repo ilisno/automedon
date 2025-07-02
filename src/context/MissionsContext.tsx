@@ -40,6 +40,7 @@ export type Mission = {
   convoyeur_payout?: number | null; // RENAMED: Payout for the convoyeur
   updates?: MissionUpdate[] | null; // New field for step-by-step updates
   expenses?: Expense[] | null; // NEW: Add expenses array
+  is_paid: boolean; // NEW: Add is_paid status
 };
 
 export type Profile = {
@@ -67,7 +68,7 @@ type UpdateProfilePayload = Partial<Omit<Profile, 'id'>>;
 
 // 2. Définition du type du contexte
 type MissionsContextType = {
-  addMission: (missionData: Omit<Mission, 'id' | 'created_at' | 'statut' | 'convoyeur_id' | 'commentaires' | 'photos' | 'client_price' | 'convoyeur_payout' | 'updates' | 'convoyeur_first_name' | 'convoyeur_last_name' | 'expenses'> & { client_id: string }) => Promise<void>; // Mis à jour pour client_id et les nouveaux prix
+  addMission: (missionData: Omit<Mission, 'id' | 'created_at' | 'statut' | 'convoyeur_id' | 'commentaires' | 'photos' | 'client_price' | 'convoyeur_payout' | 'updates' | 'convoyeur_first_name' | 'convoyeur_last_name' | 'expenses' | 'is_paid'> & { client_id: string }) => Promise<void>; // Mis à jour pour client_id et les nouveaux prix
   updateMission: (id: string, payload: UpdateMissionPayload) => Promise<void>; // Generic update function
   updateProfile: (id: string, payload: UpdateProfilePayload) => Promise<void>; // NEW: Generic update function for profiles
   takeMission: (missionId: string, convoyeurId: string) => Promise<void>;
@@ -96,7 +97,7 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
   // Mutation for adding a mission
   const addMissionMutation = useMutation({
-    mutationFn: async (missionData: Omit<Mission, 'id' | 'created_at' | 'statut' | 'convoyeur_id' | 'commentaires' | 'photos' | 'client_price' | 'convoyeur_payout' | 'updates' | 'convoyeur_first_name' | 'convoyeur_last_name' | 'expenses'> & { client_id: string }) => { // Mis à jour pour client_id
+    mutationFn: async (missionData: Omit<Mission, 'id' | 'created_at' | 'statut' | 'convoyeur_id' | 'commentaires' | 'photos' | 'client_price' | 'convoyeur_payout' | 'updates' | 'convoyeur_first_name' | 'convoyeur_last_name' | 'expenses' | 'is_paid'> & { client_id: string }) => { // Mis à jour pour client_id
       const { data, error } = await supabase.from('commandes').insert({
         immatriculation: missionData.immatriculation,
         modele: missionData.modele,
@@ -109,6 +110,7 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         convoyeur_payout: null, // Initialize convoyeur_payout as null
         updates: [], // Initialize updates as an empty array
         expenses: [], // Initialize expenses as an empty array
+        is_paid: false, // NEW: Initialize is_paid to false
       });
       if (error) throw error;
       return data;
@@ -124,7 +126,7 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     },
   });
 
-  const addMission = async (missionData: Omit<Mission, 'id' | 'created_at' | 'statut' | 'convoyeur_id' | 'commentaires' | 'photos' | 'client_price' | 'convoyeur_payout' | 'updates' | 'convoyeur_first_name' | 'convoyeur_last_name' | 'expenses'> & { client_id: string }) => { // Mis à jour pour client_id
+  const addMission = async (missionData: Omit<Mission, 'id' | 'created_at' | 'statut' | 'convoyeur_id' | 'commentaires' | 'photos' | 'client_price' | 'convoyeur_payout' | 'updates' | 'convoyeur_first_name' | 'convoyeur_last_name' | 'expenses' | 'is_paid'> & { client_id: string }) => { // Mis à jour pour client_id
     await addMissionMutation.mutateAsync(missionData);
   };
 
@@ -368,6 +370,7 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
           convoyeur_payout: m.convoyeur_payout, // Include convoyeur_payout
           updates: m.updates,
           expenses: m.expenses, // Include expenses
+          is_paid: m.is_paid, // Include is_paid
         }));
       },
       enabled: !!userId,
@@ -379,8 +382,8 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     const { data, isLoading } = useQuery<Mission[]>({
       queryKey: ['availableMissions'],
       queryFn: async () => {
-        // Only fetch missions where convoyeur_payout is not null
-        const { data, error } = await supabase.from('commandes').select('*').eq('statut', 'Disponible').not('convoyeur_payout', 'is', null);
+        // Only fetch missions where convoyeur_payout is not null AND is_paid is true
+        const { data, error } = await supabase.from('commandes').select('*').eq('statut', 'Disponible').not('convoyeur_payout', 'is', null).eq('is_paid', true);
         if (error) throw error;
         return data.map(m => ({
           id: m.id,
@@ -399,6 +402,7 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
           convoyeur_payout: m.convoyeur_payout, // Include convoyeur_payout
           updates: m.updates,
           expenses: m.expenses, // Include expenses
+          is_paid: m.is_paid, // Include is_paid
         }));
       },
     });
@@ -414,7 +418,8 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
           .from('commandes')
           .select('*, profiles!commandes_convoyeur_id_fkey(first_name, last_name)') // Select profile data for convoyeur
           .eq('convoyeur_id', userId)
-          .in('statut', ['en cours', 'livrée']);
+          .in('statut', ['en cours', 'livrée'])
+          .eq('is_paid', true); // NEW: Only show if paid
         if (error) throw error;
         return data.map(m => ({
           id: m.id,
@@ -435,6 +440,7 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
           convoyeur_payout: m.convoyeur_payout, // Include convoyeur_payout
           updates: m.updates,
           expenses: m.expenses, // Include expenses
+          is_paid: m.is_paid, // Include is_paid
         }));
       },
       enabled: !!userId,
@@ -455,6 +461,7 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
           .select('convoyeur_payout, created_at') // Use convoyeur_payout
           .eq('convoyeur_id', convoyeurId)
           .eq('statut', 'livrée')
+          .eq('is_paid', true) // NEW: Only count paid missions for turnover
           .gte('created_at', `${currentYear}-${String(currentMonth).padStart(2, '0')}-01T00:00:00Z`)
           .lt('created_at', `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-01T00:00:00Z`);
 
@@ -498,6 +505,7 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
           convoyeur_payout: m.convoyeur_payout, // Include convoyeur_payout
           updates: m.updates,
           expenses: m.expenses, // Include expenses
+          is_paid: m.is_paid, // Include is_paid
         }));
       },
     });
