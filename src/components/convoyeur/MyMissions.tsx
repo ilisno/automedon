@@ -7,6 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useMissions, Mission } from "@/context/MissionsContext";
 import { showSuccess, showError } from "@/utils/toast";
 import MissionDetailDialog from "./MissionDetailDialog"; // Import the new dialog component
+import AddExpenseDialog from "./AddExpenseDialog"; // NEW: Import AddExpenseDialog
 
 interface MyMissionsProps {
   userId: string;
@@ -34,6 +35,7 @@ const MyMissions: React.FC<MyMissionsProps> = ({
   const { missions: convoyeurMissions, isLoading: isLoadingConvoyeurMissions } = useConvoyeurMissions(userId);
 
   const [isDetailDialogOpen, setIsDetailDialogOpen] = useState(false);
+  const [isExpenseDialogOpen, setIsExpenseDialogOpen] = useState(false); // NEW: State for expense dialog
   const [selectedMission, setSelectedMission] = useState<Mission | null>(null);
 
   const handleOpenDetailDialog = (mission: Mission) => {
@@ -44,6 +46,17 @@ const MyMissions: React.FC<MyMissionsProps> = ({
   const handleCloseDetailDialog = () => {
     setSelectedMission(null);
     setIsDetailDialogOpen(false);
+  };
+
+  // NEW: Handlers for expense dialog
+  const handleOpenExpenseDialog = (mission: Mission) => {
+    setSelectedMission(mission);
+    setIsExpenseDialogOpen(true);
+  };
+
+  const handleCloseExpenseDialog = () => {
+    setSelectedMission(null);
+    setIsExpenseDialogOpen(false);
   };
 
   if (isLoadingConvoyeurMissions) {
@@ -58,7 +71,7 @@ const MyMissions: React.FC<MyMissionsProps> = ({
           <p className="col-span-full text-center text-gray-600 dark:text-gray-400">Vous n'avez pas de missions en cours ou livrées.</p>
         ) : (
           convoyeurMissions?.map((mission) => (
-            <Card key={mission.id} className="w-full bg-white dark:bg-gray-800 shadow-lg cursor-pointer" onClick={() => handleOpenDetailDialog(mission)}>
+            <Card key={mission.id} className="w-full bg-white dark:bg-gray-800 shadow-lg">
               <CardHeader>
                 <CardTitle className="text-xl font-semibold">{mission.modele} ({mission.immatriculation})</CardTitle>
                 <CardDescription className="text-gray-600 dark:text-gray-400">
@@ -76,13 +89,18 @@ const MyMissions: React.FC<MyMissionsProps> = ({
                   {mission.price ? `${mission.price.toFixed(2)} €` : "Prix non fixé"}
                 </p>
                 {mission.statut === 'en cours' && (
-                  <Button onClick={(e) => { e.stopPropagation(); handleOpenDetailDialog(mission); }} className="w-full">
-                    Voir les détails / Mettre à jour
-                  </Button>
+                  <div className="flex flex-col space-y-2">
+                    <Button onClick={(e) => { e.stopPropagation(); handleOpenDetailDialog(mission); }} className="w-full">
+                      Voir les détails / Mettre à jour
+                    </Button>
+                    <Button onClick={(e) => { e.stopPropagation(); handleOpenExpenseDialog(mission); }} variant="outline" className="w-full">
+                      Ajouter des frais
+                    </Button>
+                  </div>
                 )}
-                {mission.statut === 'livrée' && mission.updates && mission.updates.length > 0 && (
+                {mission.statut === 'livrée' && (
                   <Button onClick={(e) => { e.stopPropagation(); handleOpenDetailDialog(mission); }} variant="outline" className="w-full">
-                    Voir l'historique
+                    Voir l'historique & Frais
                   </Button>
                 )}
               </CardContent>
@@ -95,6 +113,12 @@ const MyMissions: React.FC<MyMissionsProps> = ({
         isOpen={isDetailDialogOpen}
         onClose={handleCloseDetailDialog}
         userId={userId}
+      />
+      {/* NEW: Add AddExpenseDialog */}
+      <AddExpenseDialog
+        mission={selectedMission}
+        isOpen={isExpenseDialogOpen}
+        onClose={handleCloseExpenseDialog}
       />
     </div>
   );

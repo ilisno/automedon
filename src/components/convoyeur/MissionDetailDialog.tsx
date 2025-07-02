@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Mission, MissionUpdate, useMissions } from "@/context/MissionsContext";
+import { Mission, MissionUpdate, Expense, useMissions } from "@/context/MissionsContext"; // NEW: Import Expense type
 import { format } from "date-fns";
 import { showSuccess, showError } from "@/utils/toast";
 
@@ -75,6 +75,10 @@ const MissionDetailDialog: React.FC<MissionDetailDialogProps> = ({
 
   const sortedUpdates = mission.updates
     ? [...mission.updates].sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime())
+    : [];
+
+  const sortedExpenses = mission.expenses
+    ? [...mission.expenses].sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime())
     : [];
 
   return (
@@ -157,6 +161,33 @@ const MissionDetailDialog: React.FC<MissionDetailDialogProps> = ({
                           className="w-24 h-24 object-cover rounded-md shadow-sm"
                         />
                       ))}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* NEW: Section pour afficher les frais */}
+          {sortedExpenses.length > 0 && (
+            <div className="space-y-4 border-t pt-4 mt-4">
+              <h3 className="text-xl font-semibold">Frais de la mission</h3>
+              {sortedExpenses.map((expense, index) => (
+                <div key={expense.id || index} className="border p-3 rounded-md bg-gray-50 dark:bg-gray-700">
+                  <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">
+                    {format(new Date(expense.timestamp), "dd/MM/yyyy HH:mm")}
+                  </p>
+                  <p><strong>Type:</strong> {expense.type}</p>
+                  <p><strong>Montant:</strong> {expense.amount.toFixed(2)} €</p>
+                  {expense.description && <p><strong>Description:</strong> {expense.description}</p>}
+                  {expense.photo_url && (
+                    <div className="mt-2">
+                      <p className="text-sm text-gray-500 dark:text-gray-400">Preuve:</p>
+                      <img
+                        src={expense.photo_url}
+                        alt={`Expense photo for ${expense.type}`}
+                        className="w-32 h-32 object-cover rounded-md shadow-sm mt-1"
+                      />
                     </div>
                   )}
                 </div>

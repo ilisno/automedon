@@ -12,6 +12,15 @@ export type MissionUpdate = {
   photos: string[] | null; // URLs des photos
 };
 
+export type Expense = {
+  id: string; // UUID for each expense
+  type: string; // e.g., "Péage", "Carburant", "Repas"
+  amount: number;
+  description?: string;
+  photo_url: string | null; // URL of the uploaded photo
+  timestamp: string; // ISO string
+};
+
 export type Mission = {
   id: string;
   created_at: string;
@@ -29,6 +38,7 @@ export type Mission = {
   photos?: string[] | null; // This will become deprecated, replaced by updates
   price?: number | null;
   updates?: MissionUpdate[] | null; // New field for step-by-step updates
+  expenses?: Expense[] | null; // NEW: Add expenses array
 };
 
 export type Profile = {
@@ -56,7 +66,7 @@ type UpdateProfilePayload = Partial<Omit<Profile, 'id'>>;
 
 // 2. Définition du type du contexte
 type MissionsContextType = {
-  addMission: (missionData: Omit<Mission, 'id' | 'created_at' | 'statut' | 'convoyeur_id' | 'commentaires' | 'photos' | 'price' | 'updates' | 'convoyeur_first_name' | 'convoyeur_last_name'> & { client_id: string }) => Promise<void>; // Mis à jour pour client_id
+  addMission: (missionData: Omit<Mission, 'id' | 'created_at' | 'statut' | 'convoyeur_id' | 'commentaires' | 'photos' | 'price' | 'updates' | 'convoyeur_first_name' | 'convoyeur_last_name' | 'expenses'> & { client_id: string }) => Promise<void>; // Mis à jour pour client_id
   updateMission: (id: string, payload: UpdateMissionPayload) => Promise<void>; // Generic update function
   updateProfile: (id: string, payload: UpdateProfilePayload) => Promise<void>; // NEW: Generic update function for profiles
   takeMission: (missionId: string, convoyeurId: string) => Promise<void>;
@@ -64,6 +74,7 @@ type MissionsContextType = {
   addMissionUpdate: (missionId: string, comment: string | null, photos: FileList | null) => Promise<void>;
   uploadMissionPhotos: (missionId: string, files: FileList) => Promise<string[]>;
   uploadProfilePhoto: (userId: string, file: File) => Promise<string>; // NEW: Function to upload profile photo
+  addMissionExpense: (missionId: string, type: string, amount: number, description: string | null, photoFile: File | null) => Promise<void>; // NEW: Function to add mission expense
   
   // Hooks pour récupérer les missions et profils
   useClientMissions: (userId: string | undefined) => { missions: Mission[] | undefined; isLoading: boolean; };
@@ -84,7 +95,7 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
   // Mutation for adding a mission
   const addMissionMutation = useMutation({
-    mutationFn: async (missionData: Omit<Mission, 'id' | 'created_at' | 'statut' | 'convoyeur_id' | 'commentaires' | 'photos' | 'price' | 'updates' | 'convoyeur_first_name' | 'convoyeur_last_name'> & { client_id: string }) => { // Mis à jour pour client_id
+    mutationFn: async (missionData: Omit<Mission, 'id' | 'created_at' | 'statut' | 'convoyeur_id' | 'commentaires' | 'photos' | 'price' | 'updates' | 'convoyeur_first_name' | 'convoyeur_last_name' | 'expenses'> & { client_id: string }) => { // Mis à jour pour client_id
       const { data, error } = await supabase.from('commandes').insert({
         immatriculation: missionData.immatriculation,
         modele: missionData.modele,
@@ -94,6 +105,7 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         client_id: missionData.client_id, // Mis à jour pour client_id
         statut: 'Disponible', // Default status for new missions
         updates: [], // Initialize updates as an empty array
+        expenses: [], // Initialize expenses as an empty array
       });
       if (error) throw error;
       return data;
@@ -109,7 +121,7 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     },
   });
 
-  const addMission = async (missionData: Omit<Mission, 'id' | 'created_at' | 'statut' | 'convoyeur_id' | 'commentaires' | 'photos' | 'price' | 'updates' | 'convoyeur_first_name' | 'convoyeur_last_name'> & { client_id: string }) => { // Mis à jour pour client_id
+  const addMission = async (missionData: Omit<Mission, 'id' | 'created_at' | 'statut' | 'convoyeur_id' | 'commentaires' | 'photos' | 'price' | 'updates' | 'convoyeur_first_name' | 'convoyeur_last_name' | 'expenses'> & { client_id: string }) => { // Mis à jour pour client_id
     await addMissionMutation.mutateAsync(missionData);
   };
 
@@ -215,6 +227,29 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     }
   };
 
+  // NEW: Function to upload a single expense photo
+  const uploadExpensePhoto = async (missionId: string, file: File): Promise<string> => {
+    const normalizedFileName = file.name.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+    const cleanedFileName = normalizedFileName.replace(/[' ]/g, '-');
+    const sanitizedFileName = encodeURIComponent(cleanedFileName);
+    const filePath = `mission-expenses/${missionId}/${uuidv4()}-${sanitizedFileName}`;
+    const { data, error } = await supabase.storage
+      .from('mission-expenses')
+      .upload(filePath, file, {
+        cacheControl: '3600',
+        upsert: false,
+      });
+
+    if (error) {
+      console.error("Error uploading expense photo:", error);
+      showError(`Erreur lors de l'upload de la photo de frais.`);
+      throw error;
+    } else {
+      const { data: publicUrlData } = supabase.storage.from('mission-expenses').getPublicUrl(filePath);
+      return publicUrlData.publicUrl;
+    }
+  };
+
   const addMissionUpdate = async (missionId: string, comment: string | null, photos: FileList | null) => {
     let photoUrls: string[] | null = null;
     if (photos && photos.length > 0) {
@@ -250,6 +285,45 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     const updatedUpdates = [...existingUpdates, newUpdate];
 
     await updateMission(missionId, { updates: updatedUpdates });
+  };
+
+  const addMissionExpense = async (missionId: string, type: string, amount: number, description: string | null, photoFile: File | null) => {
+    let photoUrl: string | null = null;
+    if (photoFile) {
+      try {
+        photoUrl = await uploadExpensePhoto(missionId, photoFile);
+      } catch (uploadError) {
+        console.error("Failed to upload expense photo:", uploadError);
+        showError("Échec de l'upload de la photo de frais.");
+        return;
+      }
+    }
+
+    const newExpense: Expense = {
+      id: uuidv4(),
+      type: type,
+      amount: amount,
+      description: description,
+      photo_url: photoUrl,
+      timestamp: new Date().toISOString(),
+    };
+
+    const { data: currentMission, error: fetchError } = await supabase
+      .from('commandes')
+      .select('expenses')
+      .eq('id', missionId)
+      .single();
+
+    if (fetchError) {
+      console.error("Error fetching current mission expenses:", fetchError);
+      showError("Erreur lors de la récupération des frais de la mission.");
+      throw fetchError;
+    }
+
+    const existingExpenses = currentMission?.expenses || [];
+    const updatedExpenses = [...existingExpenses, newExpense];
+
+    await updateMission(missionId, { expenses: updatedExpenses });
   };
 
   const completeMission = async (missionId: string, finalComment: string | null, finalPhotos: FileList | null) => {
@@ -289,6 +363,7 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
           photos: m.photos,
           price: m.price,
           updates: m.updates,
+          expenses: m.expenses, // Include expenses
         }));
       },
       enabled: !!userId,
@@ -317,6 +392,7 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
           photos: m.photos,
           price: m.price,
           updates: m.updates,
+          expenses: m.expenses, // Include expenses
         }));
       },
     });
@@ -330,7 +406,7 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         if (!userId) return [];
         const { data, error } = await supabase
           .from('commandes')
-          .select('*')
+          .select('*, profiles!commandes_convoyeur_id_fkey(first_name, last_name)') // Select profile data for convoyeur
           .eq('convoyeur_id', userId)
           .in('statut', ['en cours', 'livrée']);
         if (error) throw error;
@@ -344,11 +420,14 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
           statut: m.statut,
           client_id: m.client_id, // Mis à jour pour client_id
           convoyeur_id: m.convoyeur_id,
+          convoyeur_first_name: m.profiles?.first_name || null, // Map joined profile data
+          convoyeur_last_name: m.profiles?.last_name || null, // Map joined profile data
           heureLimite: m.heureLimite,
           commentaires: m.commentaires,
           photos: m.photos,
           price: m.price,
           updates: m.updates,
+          expenses: m.expenses, // Include expenses
         }));
       },
       enabled: !!userId,
@@ -410,6 +489,7 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
           photos: m.photos,
           price: m.price,
           updates: m.updates,
+          expenses: m.expenses, // Include expenses
         }));
       },
     });
@@ -446,28 +526,30 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const contextValue = useMemo(() => ({
     addMission,
     updateMission, // Use the new generic update
-    updateProfile, // NEW: Add updateProfile to context
-    takeMission,
-    completeMission,
-    addMissionUpdate,
-    uploadMissionPhotos,
-    uploadProfilePhoto, // NEW: Add uploadProfilePhoto to context
-    useClientMissions,
-    useAvailableMissions,
-    useConvoyeurMissions,
-    useMonthlyTurnover,
-    useAllMissions, // Add to context
-    useConvoyeurs, // Add to context
-    useClients, // Add to context
-  }), [
-    addMission,
-    updateMission,
     updateProfile, // NEW
     takeMission,
     completeMission,
     addMissionUpdate,
     uploadMissionPhotos,
     uploadProfilePhoto, // NEW
+    addMissionExpense, // NEW
+    useClientMissions,
+    useAvailableMissions,
+    useConvoyeurMissions,
+    useMonthlyTurnover,
+    useAllMissions,
+    useConvoyeurs,
+    useClients,
+  }), [
+    addMission,
+    updateMission,
+    updateProfile,
+    takeMission,
+    completeMission,
+    addMissionUpdate,
+    uploadMissionPhotos,
+    uploadProfilePhoto,
+    addMissionExpense, // NEW
     useClientMissions,
     useAvailableMissions,
     useConvoyeurMissions,
