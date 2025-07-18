@@ -1,6 +1,8 @@
-import React from "react";
-import { useMissions } from "@/context/MissionsContext";
+import React, { useState } from "react";
+import { useMissions, Mission } from "@/context/MissionsContext";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Button } from "@/components/ui/button"; // Import Button
+import MissionDetailDialog from "@/components/convoyeur/MissionDetailDialog"; // Re-use the existing dialog
 
 interface ClientMissionsListProps {
   userId: string;
@@ -9,6 +11,19 @@ interface ClientMissionsListProps {
 const ClientMissionsList: React.FC<ClientMissionsListProps> = ({ userId }) => {
   const { useClientMissions } = useMissions();
   const { missions: clientMissions, isLoading: isLoadingMissions } = useClientMissions(userId);
+
+  const [isDetailDialogOpen, setIsDetailDialogOpen] = useState(false);
+  const [selectedMission, setSelectedMission] = useState<Mission | null>(null);
+
+  const handleOpenDetailDialog = (mission: Mission) => {
+    setSelectedMission(mission);
+    setIsDetailDialogOpen(true);
+  };
+
+  const handleCloseDetailDialog = () => {
+    setSelectedMission(null);
+    setIsDetailDialogOpen(false);
+  };
 
   if (isLoadingMissions) {
     return <p className="text-gray-700 dark:text-gray-300">Chargement des missions...</p>;
@@ -38,13 +53,22 @@ const ClientMissionsList: React.FC<ClientMissionsListProps> = ({ userId }) => {
                 }`}>{mission.statut}</span></p>
                 <p><strong>Date limite:</strong> {new Date(mission.heureLimite).toLocaleString()}</p>
                 {mission.convoyeur_id && <p><strong>Convoyeur:</strong> {mission.convoyeur_first_name} {mission.convoyeur_last_name}</p>}
-                {mission.client_price && <p className="text-sm text-gray-700 dark:text-gray-300"><strong>Prix Client:</strong> {mission.client_price.toFixed(2)} €</p>} {/* NEW */}
+                {mission.client_price && <p className="text-sm text-gray-700 dark:text-gray-300"><strong>Prix Client:</strong> {mission.client_price.toFixed(2)} €</p>}
                 {mission.commentaires && <p className="text-sm text-gray-700 dark:text-gray-300"><strong>Commentaires:</strong> {mission.commentaires}</p>}
+                <Button onClick={() => handleOpenDetailDialog(mission)} className="w-full mt-4">
+                  Voir les détails
+                </Button>
               </CardContent>
             </Card>
           ))
         )}
       </div>
+      <MissionDetailDialog
+        mission={selectedMission}
+        isOpen={isDetailDialogOpen}
+        onClose={handleCloseDetailDialog}
+        userId={userId} // Pass userId for consistency, though not strictly used for client view in dialog
+      />
     </div>
   );
 };
