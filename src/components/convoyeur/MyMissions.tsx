@@ -6,14 +6,12 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useMissions, Mission, Profile } from "@/context/MissionsContext";
 import { showSuccess, showError } from "@/utils/toast";
-import MissionDetailDialog from "./MissionDetailDialog"; // Import the new dialog component
-import AddExpenseDialog from "./AddExpenseDialog"; // NEW: Import AddExpenseDialog
-import MissionSheetForm from "./MissionSheetForm"; // NEW: Import MissionSheetForm
+import MissionDetailDialog from "./MissionDetailDialog";
+import AddExpenseDialog from "./AddExpenseDialog";
+import MissionSheetForm from "./MissionSheetForm";
 
 interface MyMissionsProps {
   userId: string;
-  // missionComments, missionPhotos, missionPrices are now managed within MissionDetailDialog or MissionsContext
-  // No longer needed as props here, but keeping for now to avoid breaking other parts if they still rely on them
   missionComments: { [key: string]: string };
   missionPhotos: { [key: string]: string[] };
   missionPrices: { [key: string]: number };
@@ -24,7 +22,6 @@ interface MyMissionsProps {
 
 const MyMissions: React.FC<MyMissionsProps> = ({
   userId,
-  // These props are now largely redundant for the new flow, but kept for compatibility
   missionComments,
   missionPhotos,
   missionPrices,
@@ -39,10 +36,10 @@ const MyMissions: React.FC<MyMissionsProps> = ({
 
   const [isDetailDialogOpen, setIsDetailDialogOpen] = useState(false);
   const [isExpenseDialogOpen, setIsExpenseDialogOpen] = useState(false);
-  const [isSheetFormOpen, setIsSheetFormOpen] = useState(false); // NEW: State for sheet form dialog
-  const [sheetFormType, setSheetFormType] = useState<'departure' | 'arrival'>('departure'); // NEW: Type of sheet to open
+  const [isSheetFormOpen, setIsSheetFormOpen] = useState(false);
+  const [sheetFormType, setSheetFormType] = useState<'departure' | 'arrival'>('departure');
   const [selectedMission, setSelectedMission] = useState<Mission | null>(null);
-  const [selectedClientProfile, setSelectedClientProfile] = useState<Profile | null>(null); // NEW: State for selected client profile
+  const [selectedClientProfile, setSelectedClientProfile] = useState<Profile | null>(null);
 
   const convoyeurProfile = convoyeurs?.find(p => p.id === userId) || null;
 
@@ -66,18 +63,17 @@ const MyMissions: React.FC<MyMissionsProps> = ({
     setIsExpenseDialogOpen(false);
   };
 
-  // NEW: Handlers for sheet form dialog
   const handleOpenSheetForm = (mission: Mission, type: 'departure' | 'arrival') => {
     setSelectedMission(mission);
     setSheetFormType(type);
     const clientProf = clients?.find(p => p.id === mission.client_id) || null;
-    setSelectedClientProfile(clientProf); // Set the client profile here
+    setSelectedClientProfile(clientProf);
     setIsSheetFormOpen(true);
   };
 
   const handleCloseSheetForm = () => {
     setSelectedMission(null);
-    setSelectedClientProfile(null); // Clear client profile on close
+    setSelectedClientProfile(null);
     setIsSheetFormOpen(false);
   };
 
@@ -93,7 +89,6 @@ const MyMissions: React.FC<MyMissionsProps> = ({
           <p className="col-span-full text-center text-gray-600 dark:text-gray-400">Vous n'avez pas de missions en cours ou livrées.</p>
         ) : (
           convoyeurMissions?.map((mission) => {
-            // clientProfile is now determined and passed via state when opening the dialog
             return (
               <Card key={mission.id} className="w-full bg-white dark:bg-gray-800 shadow-lg">
                 <CardHeader>
@@ -154,14 +149,13 @@ const MyMissions: React.FC<MyMissionsProps> = ({
         isOpen={isExpenseDialogOpen}
         onClose={handleCloseExpenseDialog}
       />
-      {/* NEW: Add MissionSheetForm */}
       <MissionSheetForm
         mission={selectedMission}
         isOpen={isSheetFormOpen}
         onClose={handleCloseSheetForm}
         type={sheetFormType}
         convoyeurProfile={convoyeurProfile}
-        clientProfile={selectedClientProfile} {/* Pass the new state variable here */}
+        clientProfile={selectedClientProfile}
       />
     </div>
   );
