@@ -6,13 +6,14 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useMissions, Mission } from "@/context/MissionsContext";
 import { showSuccess, showError } from "@/utils/toast";
-import MissionDetailDialog from "./MissionDetailDialog"; // Import the new dialog component
-import AddExpenseDialog from "./AddExpenseDialog"; // NEW: Import AddExpenseDialog
+import MissionDetailDialog from "./MissionDetailDialog";
+import AddExpenseDialog from "./AddExpenseDialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"; // Import Dialog components
+import DepartureSheetForm from "./DepartureSheetForm"; // Import DepartureSheetForm
+import ArrivalSheetForm from "./ArrivalSheetForm"; // Import ArrivalSheetForm
 
 interface MyMissionsProps {
   userId: string;
-  // missionComments, missionPhotos, missionPrices are now managed within MissionDetailDialog or MissionsContext
-  // No longer needed as props here, but keeping for now to avoid breaking other parts if they still rely on them
   missionComments: { [key: string]: string };
   missionPhotos: { [key: string]: string[] };
   missionPrices: { [key: string]: number };
@@ -23,7 +24,6 @@ interface MyMissionsProps {
 
 const MyMissions: React.FC<MyMissionsProps> = ({
   userId,
-  // These props are now largely redundant for the new flow, but kept for compatibility
   missionComments,
   missionPhotos,
   missionPrices,
@@ -35,7 +35,9 @@ const MyMissions: React.FC<MyMissionsProps> = ({
   const { missions: convoyeurMissions, isLoading: isLoadingConvoyeurMissions } = useConvoyeurMissions(userId);
 
   const [isDetailDialogOpen, setIsDetailDialogOpen] = useState(false);
-  const [isExpenseDialogOpen, setIsExpenseDialogOpen] = useState(false); // NEW: State for expense dialog
+  const [isExpenseDialogOpen, setIsExpenseDialogOpen] = useState(false);
+  const [isDepartureSheetDialogOpen, setIsDepartureSheetDialogOpen] = useState(false); // NEW
+  const [isArrivalSheetDialogOpen, setIsArrivalSheetDialogOpen] = useState(false); // NEW
   const [selectedMission, setSelectedMission] = useState<Mission | null>(null);
 
   const handleOpenDetailDialog = (mission: Mission) => {
@@ -48,7 +50,6 @@ const MyMissions: React.FC<MyMissionsProps> = ({
     setIsDetailDialogOpen(false);
   };
 
-  // NEW: Handlers for expense dialog
   const handleOpenExpenseDialog = (mission: Mission) => {
     setSelectedMission(mission);
     setIsExpenseDialogOpen(true);
@@ -57,6 +58,35 @@ const MyMissions: React.FC<MyMissionsProps> = ({
   const handleCloseExpenseDialog = () => {
     setSelectedMission(null);
     setIsExpenseDialogOpen(false);
+  };
+
+  // NEW: Handlers for Departure Sheet Dialog
+  const handleOpenDepartureSheetDialog = (mission: Mission) => {
+    setSelectedMission(mission);
+    setIsDepartureSheetDialogOpen(true);
+  };
+
+  const handleCloseDepartureSheetDialog = () => {
+    setSelectedMission(null);
+    setIsDepartureSheetDialogOpen(false);
+  };
+
+  // NEW: Handlers for Arrival Sheet Dialog
+  const handleOpenArrivalSheetDialog = (mission: Mission) => {
+    setSelectedMission(mission);
+    setIsArrivalSheetDialogOpen(true);
+  };
+
+  const handleCloseArrivalSheetDialog = () => {
+    setSelectedMission(null);
+    setIsArrivalSheetDialogOpen(false);
+  };
+
+  // Function to refresh missions after sheet creation
+  const handleSheetCreated = () => {
+    handleCloseDepartureSheetDialog();
+    handleCloseArrivalSheetDialog();
+    // The useConvoyeurMissions hook will automatically re-fetch due to queryClient.invalidateQueries in MissionsContext
   };
 
   if (isLoadingConvoyeurMissions) {
@@ -90,9 +120,19 @@ const MyMissions: React.FC<MyMissionsProps> = ({
                 </p>
                 {mission.statut === 'en cours' && (
                   <div className="flex flex-col space-y-2">
-                    <Button onClick={(e) => { e.stopPropagation(); handleOpenDetailDialog(mission); }} className="w-full">
-                      Voir les détails / Mettre à jour
-                    </Button>
+                    {!mission.departure_details ? (
+                      <Button onClick={(e) => { e.stopPropagation(); handleOpenDepartureSheetDialog(mission); }} className="w-full">
+                        Remplir Fiche de Départ
+                      </Button>
+                    ) : !mission.arrival_details ? (
+                      <Button onClick={(e) => { e.stopPropagation(); handleOpenArrivalSheetDialog(mission); }} className="w-full">
+                        Remplir Fiche d'Arrivée
+                      </Button>
+                    ) : (
+                      <Button onClick={(e) => { e.stopPropagation(); handleOpenDetailDialog(mission); }} className="w-full">
+                        Voir les détails / Mettre à jour
+                      </Button>
+                    )}
                     <Button onClick={(e) => { e.stopPropagation(); handleOpenExpenseDialog(mission); }} variant="outline" className="w-full">
                       Ajouter des frais
                     </Button>
@@ -114,12 +154,35 @@ const MyMissions: React.FC<MyMissionsProps> = ({
         onClose={handleCloseDetailDialog}
         userId={userId}
       />
-      {/* NEW: Add AddExpenseDialog */}
       <AddExpenseDialog
         mission={selectedMission}
         isOpen={isExpenseDialogOpen}
         onClose={handleCloseExpenseDialog}
       />
+
+      {/* NEW: Departure Sheet Dialog */}
+      <Dialog open={isDepartureSheetDialogOpen} onOpenChange={setIsDepartureSheetDialogOpen}>
+        <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Fiche de Départ pour {selectedMission?.modele}</DialogTitle>
+          </DialogHeader>
+          {selectedMission && (
+            <DepartureSheetForm missionId={selectedMission.id} onSheetCreated={handleSheetCreated} />
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* NEW: Arrival Sheet Dialog */}
+      <Dialog open={isArrivalSheetDialogOpen} onOpenChange={setIsArrivalSheetDialogOpen}>
+        <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Fiche d'Arrivée pour {selectedMission?.modele}</DialogTitle>
+          </DialogHeader>
+          {selectedMission && (
+            <ArrivalSheetForm missionId={selectedMission.id} onSheetCreated={handleSheetCreated} />
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
