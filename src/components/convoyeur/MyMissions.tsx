@@ -42,6 +42,7 @@ const MyMissions: React.FC<MyMissionsProps> = ({
   const [isSheetFormOpen, setIsSheetFormOpen] = useState(false); // NEW: State for sheet form dialog
   const [sheetFormType, setSheetFormType] = useState<'departure' | 'arrival'>('departure'); // NEW: Type of sheet to open
   const [selectedMission, setSelectedMission] = useState<Mission | null>(null);
+  const [selectedClientProfile, setSelectedClientProfile] = useState<Profile | null>(null); // NEW: State for selected client profile
 
   const convoyeurProfile = convoyeurs?.find(p => p.id === userId) || null;
 
@@ -69,11 +70,14 @@ const MyMissions: React.FC<MyMissionsProps> = ({
   const handleOpenSheetForm = (mission: Mission, type: 'departure' | 'arrival') => {
     setSelectedMission(mission);
     setSheetFormType(type);
+    const clientProf = clients?.find(p => p.id === mission.client_id) || null;
+    setSelectedClientProfile(clientProf); // Set the client profile here
     setIsSheetFormOpen(true);
   };
 
   const handleCloseSheetForm = () => {
     setSelectedMission(null);
+    setSelectedClientProfile(null); // Clear client profile on close
     setIsSheetFormOpen(false);
   };
 
@@ -89,7 +93,7 @@ const MyMissions: React.FC<MyMissionsProps> = ({
           <p className="col-span-full text-center text-gray-600 dark:text-gray-400">Vous n'avez pas de missions en cours ou livrées.</p>
         ) : (
           convoyeurMissions?.map((mission) => {
-            const clientProfile = clients?.find(p => p.id === mission.client_id) || null;
+            // clientProfile is now determined and passed via state when opening the dialog
             return (
               <Card key={mission.id} className="w-full bg-white dark:bg-gray-800 shadow-lg">
                 <CardHeader>
@@ -157,7 +161,7 @@ const MyMissions: React.FC<MyMissionsProps> = ({
         onClose={handleCloseSheetForm}
         type={sheetFormType}
         convoyeurProfile={convoyeurProfile}
-        clientProfile={clientProfile}
+        clientProfile={selectedClientProfile} {/* Pass the new state variable here */}
       />
     </div>
   );
