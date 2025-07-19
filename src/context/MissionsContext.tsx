@@ -515,7 +515,8 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
           .from('commandes')
           .select('*, convoyeur_profile:profiles!convoyeur_id(first_name, last_name), client_profile:profiles!client_id(first_name, last_name)')
           .eq('convoyeur_id', userId)
-          .in('statut', ['en cours', 'livrée']); // Removed .eq('is_paid', true)
+          .in('statut', ['en cours', 'livrée'])
+          .eq('is_paid', true); // Re-added the is_paid filter
         if (error) throw error;
         return data.map(m => ({
           id: m.id,
