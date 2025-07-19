@@ -44,6 +44,9 @@ const MyMissions: React.FC<MyMissionsProps> = ({
   const [selectedMission, setSelectedMission] = useState<Mission | null>(null);
 
   const convoyeurProfile = convoyeurs?.find(p => p.id === userId) || null;
+  // Determine the client profile for the currently selected mission
+  const currentClientProfile = selectedMission ? (clients?.find(p => p.id === selectedMission.client_id) || null) : null;
+
 
   const handleOpenDetailDialog = (mission: Mission) => {
     setSelectedMission(mission);
@@ -89,7 +92,8 @@ const MyMissions: React.FC<MyMissionsProps> = ({
           <p className="col-span-full text-center text-gray-600 dark:text-gray-400">Vous n'avez pas de missions en cours ou livrées.</p>
         ) : (
           convoyeurMissions?.map((mission) => {
-            const clientProfile = clients?.find(p => p.id === mission.client_id) || null;
+            // clientProfile is now derived for each mission within the map, but we need it for selectedMission outside
+            // const clientProfile = clients?.find(p => p.id === mission.client_id) || null; // This line is no longer needed here
             return (
               <Card key={mission.id} className="w-full bg-white dark:bg-gray-800 shadow-lg">
                 <CardHeader>
@@ -157,7 +161,7 @@ const MyMissions: React.FC<MyMissionsProps> = ({
         onClose={handleCloseSheetForm}
         type={sheetFormType}
         convoyeurProfile={convoyeurProfile}
-        clientProfile={clientProfile}
+        clientProfile={currentClientProfile} {/* Corrected: Pass currentClientProfile */}
       />
     </div>
   );
