@@ -12,7 +12,6 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox"; // Import Checkbox
 import { showError } from "@/utils/toast";
-import MissionDetailDialog from "@/components/convoyeur/MissionDetailDialog"; // Re-use the existing dialog
 
 const AdminMissions: React.FC = () => {
   const { useAllMissions, updateMission } = useMissions();
@@ -20,9 +19,6 @@ const AdminMissions: React.FC = () => {
   const [editingMissionId, setEditingMissionId] = useState<string | null>(null);
   const [currentClientPrice, setCurrentClientPrice] = useState<number>(0);
   const [currentConvoyeurPayout, setCurrentConvoyeurPayout] = useState<number>(0);
-
-  const [isDetailDialogOpen, setIsDetailDialogOpen] = useState(false);
-  const [selectedMission, setSelectedMission] = useState<Mission | null>(null);
 
   const handleEditPrices = (mission: Mission) => {
     setEditingMissionId(mission.id);
@@ -43,16 +39,6 @@ const AdminMissions: React.FC = () => {
 
   const handleTogglePaidStatus = async (mission: Mission) => {
     await updateMission(mission.id, { is_paid: !mission.is_paid });
-  };
-
-  const handleOpenDetailDialog = (mission: Mission) => {
-    setSelectedMission(mission);
-    setIsDetailDialogOpen(true);
-  };
-
-  const handleCloseDetailDialog = () => {
-    setSelectedMission(null);
-    setIsDetailDialogOpen(false);
   };
 
   if (isLoading) {
@@ -80,7 +66,7 @@ const AdminMissions: React.FC = () => {
                 <TableHead>Heure Limite</TableHead>
                 <TableHead>Prix Client (€)</TableHead>
                 <TableHead>Rémunération Convoyeur (€)</TableHead>
-                <TableHead>Payée</TableHead>
+                <TableHead>Payée</TableHead> {/* NEW */}
                 <TableHead>Actions</TableHead>
               </TableRow>
             </TableHeader>
@@ -129,7 +115,7 @@ const AdminMissions: React.FC = () => {
                       aria-label="Mission payée"
                     />
                   </TableCell>
-                  <TableCell className="flex flex-col space-y-2">
+                  <TableCell>
                     {editingMissionId === mission.id ? (
                       <Button size="sm" onClick={() => handleSavePrices(mission.id)}>
                         Sauver
@@ -139,9 +125,6 @@ const AdminMissions: React.FC = () => {
                         Modifier Prix
                       </Button>
                     )}
-                    <Button size="sm" variant="secondary" onClick={() => handleOpenDetailDialog(mission)}>
-                      Voir Détails
-                    </Button>
                   </TableCell>
                 </TableRow>
               ))}
@@ -149,12 +132,6 @@ const AdminMissions: React.FC = () => {
           </Table>
         </div>
       )}
-      <MissionDetailDialog
-        mission={selectedMission}
-        isOpen={isDetailDialogOpen}
-        onClose={handleCloseDetailDialog}
-        userId="admin" // A placeholder userId for admin view, as it's not role-specific here
-      />
     </div>
   );
 };

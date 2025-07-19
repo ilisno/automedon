@@ -13,7 +13,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { Mission, MissionUpdate, Expense, useMissions } from "@/context/MissionsContext";
 import { format } from "date-fns";
 import { showSuccess, showError } from "@/utils/toast";
-import MissionSheetDisplay from "./MissionSheetDisplay"; // NEW: Import MissionSheetDisplay
 
 interface MissionDetailDialogProps {
   mission: Mission | null;
@@ -110,16 +109,6 @@ const MissionDetailDialog: React.FC<MissionDetailDialogProps> = ({
             <strong>Rémunération Convoyeur:</strong>{" "}
             {mission.convoyeur_payout ? `${mission.convoyeur_payout.toFixed(2)} €` : "Non définie"}
           </p>
-
-          {/* NEW: Display Departure Sheet */}
-          {mission.departure_details && (
-            <MissionSheetDisplay mission={mission} type="departure" details={mission.departure_details} />
-          )}
-
-          {/* NEW: Display Arrival Sheet */}
-          {mission.arrival_details && (
-            <MissionSheetDisplay mission={mission} type="arrival" details={mission.arrival_details} />
-          )}
 
           {/* Section pour ajouter une nouvelle mise à jour */}
           {mission.statut === 'en cours' && (

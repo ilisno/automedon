@@ -21,19 +21,6 @@ export type Expense = {
   timestamp: string; // ISO string
 };
 
-// NEW: Types for Departure and Arrival Details
-export type SheetDetails = {
-  timestamp: string;
-  mileage: number;
-  fuel_level: 'Plein' | '3/4' | '1/2' | '1/4' | 'Vide' | string;
-  interior_cleanliness: 'Propre' | 'Moyen' | 'Sale' | string;
-  exterior_cleanliness: 'Propre' | 'Moyen' | 'Sale' | string;
-  general_condition: string;
-  convoyeur_signature_name: string;
-  client_signature_name: string;
-  photos: string[] | null; // URLs of photos specific to this sheet
-};
-
 export type Mission = {
   id: string;
   created_at: string;
@@ -46,8 +33,6 @@ export type Mission = {
   convoyeur_id: string | null;
   convoyeur_first_name?: string | null; // Nouveau champ pour le prénom du convoyeur
   convoyeur_last_name?: string | null;  // Nouveau champ pour le nom du convoyeur
-  client_first_name?: string | null; // NEW: Client first name
-  client_last_name?: string | null; // NEW: Client last name
   heureLimite: string; // ISO string, from DB heure_limite
   commentaires?: string | null; // This will become deprecated, replaced by updates
   photos?: string[] | null; // This will become deprecated, replaced by updates
@@ -56,8 +41,6 @@ export type Mission = {
   updates?: MissionUpdate[] | null; // New field for step-by-step updates
   expenses?: Expense[] | null; // NEW: Add expenses array
   is_paid: boolean; // NEW: Add is_paid status
-  departure_details?: SheetDetails | null; // NEW: Departure sheet details
-  arrival_details?: SheetDetails | null; // NEW: Arrival sheet details
 };
 
 export type Profile = {
@@ -85,7 +68,7 @@ type UpdateProfilePayload = Partial<Omit<Profile, 'id'>>;
 
 // 2. Définition du type du contexte
 type MissionsContextType = {
-  addMission: (missionData: Omit<Mission, 'id' | 'created_at' | 'statut' | 'convoyeur_id' | 'commentaires' | 'photos' | 'client_price' | 'convoyeur_payout' | 'updates' | 'convoyeur_first_name' | 'convoyeur_last_name' | 'expenses' | 'is_paid' | 'departure_details' | 'arrival_details' | 'client_first_name' | 'client_last_name'> & { client_id: string }) => Promise<void>; // Mis à jour pour client_id et les nouveaux prix
+  addMission: (missionData: Omit<Mission, 'id' | 'created_at' | 'statut' | 'convoyeur_id' | 'commentaires' | 'photos' | 'client_price' | 'convoyeur_payout' | 'updates' | 'convoyeur_first_name' | 'convoyeur_last_name' | 'expenses' | 'is_paid'> & { client_id: string }) => Promise<void>; // Mis à jour pour client_id et les nouveaux prix
   updateMission: (id: string, payload: UpdateMissionPayload) => Promise<void>; // Generic update function
   updateProfile: (id: string, payload: UpdateProfilePayload) => Promise<void>; // NEW: Generic update function for profiles
   takeMission: (missionId: string, convoyeurId: string) => Promise<void>;
@@ -93,10 +76,7 @@ type MissionsContextType = {
   addMissionUpdate: (missionId: string, comment: string | null, photos: FileList | null) => Promise<void>;
   uploadMissionPhotos: (missionId: string, files: FileList) => Promise<string[]>;
   uploadProfilePhoto: (userId: string, file: File) => Promise<string>; // NEW: Function to upload profile photo
-  uploadSheetPhotos: (missionId: string, type: 'departure' | 'arrival', files: FileList) => Promise<string[]>; // NEW: Function to upload photos for sheets
   addMissionExpense: (missionId: string, type: string, amount: number, description: string | null, photoFile: File | null) => Promise<void>; // NEW: Function to add mission expense
-  saveDepartureDetails: (missionId: string, details: Omit<SheetDetails, 'photos'>, photos: FileList | null) => Promise<void>; // NEW
-  saveArrivalDetails: (missionId: string, details: Omit<SheetDetails, 'photos'>, photos: FileList | null) => Promise<void>; // NEW
   
   // Hooks pour récupérer les missions et profils
   useClientMissions: (userId: string | undefined) => { missions: Mission[] | undefined; isLoading: boolean; };
@@ -106,7 +86,6 @@ type MissionsContextType = {
   useAllMissions: () => { missions: Mission[] | undefined; isLoading: boolean; }; // New hook for all missions
   useConvoyeurs: () => { profiles: Profile[] | undefined; isLoading: boolean; }; // New hook for all convoyeurs
   useClients: () => { profiles: Profile[] | undefined; isLoading: boolean; }; // New hook for all clients
-  useMissionById: (missionId: string | undefined) => { mission: Mission | undefined; isLoading: boolean; }; // NEW: Hook to fetch a single mission by ID
 };
 
 // 3. Création du contexte
@@ -118,7 +97,7 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
   // Mutation for adding a mission
   const addMissionMutation = useMutation({
-    mutationFn: async (missionData: Omit<Mission, 'id' | 'created_at' | 'statut' | 'convoyeur_id' | 'commentaires' | 'photos' | 'client_price' | 'convoyeur_payout' | 'updates' | 'convoyeur_first_name' | 'convoyeur_last_name' | 'expenses' | 'is_paid' | 'departure_details' | 'arrival_details' | 'client_first_name' | 'client_last_name'> & { client_id: string }) => { // Mis à jour pour client_id
+    mutationFn: async (missionData: Omit<Mission, 'id' | 'created_at' | 'statut' | 'convoyeur_id' | 'commentaires' | 'photos' | 'client_price' | 'convoyeur_payout' | 'updates' | 'convoyeur_first_name' | 'convoyeur_last_name' | 'expenses' | 'is_paid'> & { client_id: string }) => { // Mis à jour pour client_id
       const { data, error } = await supabase.from('commandes').insert({
         immatriculation: missionData.immatriculation,
         modele: missionData.modele,
@@ -132,8 +111,6 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         updates: [], // Initialize updates as an empty array
         expenses: [], // Initialize expenses as an empty array
         is_paid: false, // NEW: Initialize is_paid to false
-        departure_details: null, // NEW: Initialize departure_details
-        arrival_details: null, // NEW: Initialize arrival_details
       });
       if (error) throw error;
       return data;
@@ -149,24 +126,23 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     },
   });
 
-  const addMission = async (missionData: Omit<Mission, 'id' | 'created_at' | 'statut' | 'convoyeur_id' | 'commentaires' | 'photos' | 'client_price' | 'convoyeur_payout' | 'updates' | 'convoyeur_first_name' | 'convoyeur_last_name' | 'expenses' | 'is_paid' | 'departure_details' | 'arrival_details' | 'client_first_name' | 'client_last_name'> & { client_id: string }) => { // Mis à jour pour client_id
+  const addMission = async (missionData: Omit<Mission, 'id' | 'created_at' | 'statut' | 'convoyeur_id' | 'commentaires' | 'photos' | 'client_price' | 'convoyeur_payout' | 'updates' | 'convoyeur_first_name' | 'convoyeur_last_name' | 'expenses' | 'is_paid'> & { client_id: string }) => { // Mis à jour pour client_id
     await addMissionMutation.mutateAsync(missionData);
   };
 
   // Generic mutation for updating any mission fields
   const updateMissionMutation = useMutation({
     mutationFn: async ({ id, payload }: { id: string; payload: UpdateMissionPayload }) => {
-      const { data, error } = await supabase.from('commandes').update(payload).eq('id', id).select(); // Select to return updated data
+      const { data, error } = await supabase.from('commandes').update(payload).eq('id', id);
       if (error) throw error;
       return data;
     },
-    onSuccess: (data, variables) => {
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['allMissions'] });
       queryClient.invalidateQueries({ queryKey: ['availableMissions'] });
       queryClient.invalidateQueries({ queryKey: ['convoyeurMissions'] });
       queryClient.invalidateQueries({ queryKey: ['clientMissions'] });
       queryClient.invalidateQueries({ queryKey: ['monthlyTurnover'] });
-      queryClient.invalidateQueries({ queryKey: ['mission', variables.id] }); // Invalidate specific mission query
       showSuccess("Mission mise à jour avec succès !");
     },
     onError: (error) => {
@@ -210,7 +186,7 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     const uploadedUrls: string[] = [];
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
-      const filePath = `${missionId}/updates/${uuidv4()}-${encodeURIComponent(file.name)}`; // Sanitize filename
+      const filePath = `${missionId}/${uuidv4()}-${encodeURIComponent(file.name)}`; // Sanitize filename
       const { data, error } = await supabase.storage
         .from('mission-photos')
         .upload(filePath, file, {
@@ -221,31 +197,6 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       if (error) {
         console.error("Error uploading photo:", error);
         showError(`Erreur lors de l'upload de la photo ${file.name}.`);
-        throw error;
-      } else {
-        const { data: publicUrlData } = supabase.storage.from('mission-photos').getPublicUrl(filePath);
-        uploadedUrls.push(publicUrlData.publicUrl);
-      }
-    }
-    return uploadedUrls;
-  };
-
-  // NEW: Function to upload photos for departure/arrival sheets
-  const uploadSheetPhotos = async (missionId: string, type: 'departure' | 'arrival', files: FileList): Promise<string[]> => {
-    const uploadedUrls: string[] = [];
-    for (let i = 0; i < files.length; i++) {
-      const file = files[i];
-      const filePath = `${missionId}/${type}/${uuidv4()}-${encodeURIComponent(file.name)}`;
-      const { data, error } = await supabase.storage
-        .from('mission-photos') // Using the same bucket, but different folder
-        .upload(filePath, file, {
-          cacheControl: '3600',
-          upsert: false,
-        });
-
-      if (error) {
-        console.error(`Error uploading ${type} photo:`, error);
-        showError(`Erreur lors de l'upload de la photo ${file.name} pour la fiche de ${type}.`);
         throw error;
       } else {
         const { data: publicUrlData } = supabase.storage.from('mission-photos').getPublicUrl(filePath);
@@ -380,48 +331,6 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     await updateMission(missionId, { expenses: updatedExpenses });
   };
 
-  // NEW: Function to save departure details
-  const saveDepartureDetails = async (missionId: string, details: Omit<SheetDetails, 'photos'>, photos: FileList | null) => {
-    let photoUrls: string[] | null = null;
-    if (photos && photos.length > 0) {
-      try {
-        photoUrls = await uploadSheetPhotos(missionId, 'departure', photos);
-      } catch (uploadError) {
-        console.error("Failed to upload photos for departure sheet:", uploadError);
-        showError("Échec de l'upload des photos pour la fiche de départ.");
-        return;
-      }
-    }
-
-    const fullDetails: SheetDetails = {
-      ...details,
-      photos: photoUrls,
-      timestamp: new Date().toISOString(),
-    };
-    await updateMission(missionId, { departure_details: fullDetails });
-  };
-
-  // NEW: Function to save arrival details
-  const saveArrivalDetails = async (missionId: string, details: Omit<SheetDetails, 'photos'>, photos: FileList | null) => {
-    let photoUrls: string[] | null = null;
-    if (photos && photos.length > 0) {
-      try {
-        photoUrls = await uploadSheetPhotos(missionId, 'arrival', photos);
-      } catch (uploadError) {
-        console.error("Failed to upload photos for arrival sheet:", uploadError);
-        showError("Échec de l'upload des photos pour la fiche d'arrivée.");
-        return;
-      }
-    }
-
-    const fullDetails: SheetDetails = {
-      ...details,
-      photos: photoUrls,
-      timestamp: new Date().toISOString(),
-    };
-    await updateMission(missionId, { arrival_details: fullDetails });
-  };
-
   const completeMission = async (missionId: string, finalComment: string | null, finalPhotos: FileList | null) => {
     // Add a final update entry
     await addMissionUpdate(missionId, finalComment, finalPhotos);
@@ -435,11 +344,11 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       queryKey: ['clientMissions', userId],
       queryFn: async () => {
         if (!userId) return [];
-        // Corrected select statement for aliased joins
+        // Join with profiles to get convoyeur's first_name and last_name
         const { data, error } = await supabase
           .from('commandes')
-          .select('*, convoyeur_profile:profiles!convoyeur_id(first_name, last_name), client_profile:profiles!client_id(first_name, last_name)')
-          .eq('client_id', userId);
+          .select('*, profiles!commandes_convoyeur_id_fkey(first_name, last_name)') // Explicitly name the join for clarity
+          .eq('client_id', userId); // Mis à jour pour client_id
         if (error) throw error;
         return data.map(m => ({
           id: m.id,
@@ -449,22 +358,19 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
           lieu_depart: m.lieu_depart,
           lieu_arrivee: m.lieu_arrivee,
           statut: m.statut,
-          client_id: m.client_id,
+          client_id: m.client_id, // Mis à jour pour client_id
           convoyeur_id: m.convoyeur_id,
-          convoyeur_first_name: m.convoyeur_profile?.first_name || null,
-          convoyeur_last_name: m.convoyeur_profile?.last_name || null,
-          client_first_name: m.client_profile?.first_name || null,
-          client_last_name: m.client_profile?.last_name || null,
+          // Map joined profile data to new fields
+          convoyeur_first_name: m.profiles?.first_name || null,
+          convoyeur_last_name: m.profiles?.last_name || null,
           heureLimite: m.heureLimite,
           commentaires: m.commentaires,
           photos: m.photos,
-          client_price: m.client_price,
-          convoyeur_payout: m.convoyeur_payout,
+          client_price: m.client_price, // Include client_price
+          convoyeur_payout: m.convoyeur_payout, // Include convoyeur_payout
           updates: m.updates,
-          expenses: m.expenses,
-          is_paid: m.is_paid,
-          departure_details: m.departure_details,
-          arrival_details: m.arrival_details,
+          expenses: m.expenses, // Include expenses
+          is_paid: m.is_paid, // Include is_paid
         }));
       },
       enabled: !!userId,
@@ -487,18 +393,16 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
           lieu_depart: m.lieu_depart,
           lieu_arrivee: m.lieu_arrivee,
           statut: m.statut,
-          client_id: m.client_id,
+          client_id: m.client_id, // Mis à jour pour client_id
           convoyeur_id: m.convoyeur_id,
           heureLimite: m.heureLimite,
           commentaires: m.commentaires,
           photos: m.photos,
-          client_price: m.client_price,
-          convoyeur_payout: m.convoyeur_payout,
+          client_price: m.client_price, // Include client_price
+          convoyeur_payout: m.convoyeur_payout, // Include convoyeur_payout
           updates: m.updates,
-          expenses: m.expenses,
-          is_paid: m.is_paid,
-          departure_details: m.departure_details,
-          arrival_details: m.arrival_details,
+          expenses: m.expenses, // Include expenses
+          is_paid: m.is_paid, // Include is_paid
         }));
       },
     });
@@ -510,13 +414,12 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       queryKey: ['convoyeurMissions', userId],
       queryFn: async () => {
         if (!userId) return [];
-        // Corrected select statement for aliased joins
         const { data, error } = await supabase
           .from('commandes')
-          .select('*, convoyeur_profile:profiles!convoyeur_id(first_name, last_name), client_profile:profiles!client_id(first_name, last_name)')
+          .select('*, profiles!commandes_convoyeur_id_fkey(first_name, last_name)') // Select profile data for convoyeur
           .eq('convoyeur_id', userId)
           .in('statut', ['en cours', 'livrée'])
-          .eq('is_paid', true); // Re-added the is_paid filter
+          .eq('is_paid', true); // NEW: Only show if paid
         if (error) throw error;
         return data.map(m => ({
           id: m.id,
@@ -526,22 +429,18 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
           lieu_depart: m.lieu_depart,
           lieu_arrivee: m.lieu_arrivee,
           statut: m.statut,
-          client_id: m.client_id,
+          client_id: m.client_id, // Mis à jour pour client_id
           convoyeur_id: m.convoyeur_id,
-          convoyeur_first_name: m.convoyeur_profile?.first_name || null,
-          convoyeur_last_name: m.convoyeur_profile?.last_name || null,
-          client_first_name: m.client_profile?.first_name || null,
-          client_last_name: m.client_profile?.last_name || null,
+          convoyeur_first_name: m.profiles?.first_name || null, // Map joined profile data
+          convoyeur_last_name: m.profiles?.last_name || null, // Map joined profile data
           heureLimite: m.heureLimite,
           commentaires: m.commentaires,
           photos: m.photos,
-          client_price: m.client_price,
-          convoyeur_payout: m.convoyeur_payout,
+          client_price: m.client_price, // Include client_price
+          convoyeur_payout: m.convoyeur_payout, // Include convoyeur_payout
           updates: m.updates,
-          expenses: m.expenses,
-          is_paid: m.is_paid,
-          departure_details: m.departure_details,
-          arrival_details: m.arrival_details,
+          expenses: m.expenses, // Include expenses
+          is_paid: m.is_paid, // Include is_paid
         }));
       },
       enabled: !!userId,
@@ -583,8 +482,8 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     const { data, isLoading } = useQuery<Mission[]>({
       queryKey: ['allMissions'],
       queryFn: async () => {
-        // Corrected select statement for aliased joins
-        const { data, error } = await supabase.from('commandes').select('*, convoyeur_profile:profiles!convoyeur_id(first_name, last_name), client_profile:profiles!client_id(first_name, last_name)');
+        // Join with profiles to get convoyeur's first_name and last_name
+        const { data, error } = await supabase.from('commandes').select('*, profiles!commandes_convoyeur_id_fkey(first_name, last_name)');
         if (error) throw error;
         return data.map(m => ({
           id: m.id,
@@ -594,22 +493,19 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
           lieu_depart: m.lieu_depart,
           lieu_arrivee: m.lieu_arrivee,
           statut: m.statut,
-          client_id: m.client_id,
+          client_id: m.client_id, // Mis à jour pour client_id
           convoyeur_id: m.convoyeur_id,
-          convoyeur_first_name: m.convoyeur_profile?.first_name || null,
-          convoyeur_last_name: m.convoyeur_profile?.last_name || null,
-          client_first_name: m.client_profile?.first_name || null,
-          client_last_name: m.client_profile?.last_name || null,
+          // Map joined profile data to new fields
+          convoyeur_first_name: m.profiles?.first_name || null,
+          convoyeur_last_name: m.profiles?.last_name || null,
           heureLimite: m.heureLimite,
           commentaires: m.commentaires,
           photos: m.photos,
-          client_price: m.client_price,
-          convoyeur_payout: m.convoyeur_payout,
+          client_price: m.client_price, // Include client_price
+          convoyeur_payout: m.convoyeur_payout, // Include convoyeur_payout
           updates: m.updates,
-          expenses: m.expenses,
-          is_paid: m.is_paid,
-          departure_details: m.departure_details,
-          arrival_details: m.arrival_details,
+          expenses: m.expenses, // Include expenses
+          is_paid: m.is_paid, // Include is_paid
         }));
       },
     });
@@ -642,55 +538,6 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     return { profiles: data, isLoading };
   };
 
-  // NEW: Hook to fetch a single mission by ID
-  const useMissionById = (missionId: string | undefined) => {
-    const { data, isLoading } = useQuery<Mission | undefined>({
-      queryKey: ['mission', missionId],
-      queryFn: async () => {
-        if (!missionId) return undefined;
-        // Corrected select statement for aliased joins
-        const { data, error } = await supabase
-          .from('commandes')
-          .select('*, convoyeur_profile:profiles!convoyeur_id(first_name, last_name), client_profile:profiles!client_id(first_name, last_name)')
-          .eq('id', missionId)
-          .single();
-        if (error) {
-          console.error("Error fetching single mission:", error);
-          throw error;
-        }
-        if (!data) return undefined;
-
-        return {
-          id: data.id,
-          created_at: data.created_at,
-          immatriculation: data.immatriculation,
-          modele: data.modele,
-          lieu_depart: data.lieu_depart,
-          lieu_arrivee: data.lieu_arrivee,
-          statut: data.statut,
-          client_id: data.client_id,
-          convoyeur_id: data.convoyeur_id,
-          convoyeur_first_name: data.convoyeur_profile?.first_name || null,
-          convoyeur_last_name: data.convoyeur_profile?.last_name || null,
-          client_first_name: data.client_profile?.first_name || null,
-          client_last_name: data.client_profile?.last_name || null,
-          heureLimite: data.heureLimite,
-          commentaires: data.commentaires,
-          photos: data.photos,
-          client_price: data.client_price,
-          convoyeur_payout: data.convoyeur_payout,
-          updates: data.updates,
-          expenses: data.expenses,
-          is_paid: data.is_paid,
-          departure_details: data.departure_details,
-          arrival_details: data.arrival_details,
-        };
-      },
-      enabled: !!missionId,
-    });
-    return { mission: data, isLoading };
-  };
-
 
   const contextValue = useMemo(() => ({
     addMission,
@@ -701,10 +548,7 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     addMissionUpdate,
     uploadMissionPhotos,
     uploadProfilePhoto, // NEW
-    uploadSheetPhotos, // NEW
     addMissionExpense, // NEW
-    saveDepartureDetails, // NEW
-    saveArrivalDetails, // NEW
     useClientMissions,
     useAvailableMissions,
     useConvoyeurMissions,
@@ -712,7 +556,6 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     useAllMissions,
     useConvoyeurs,
     useClients,
-    useMissionById, // NEW
   }), [
     addMission,
     updateMission,
@@ -722,10 +565,7 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     addMissionUpdate,
     uploadMissionPhotos,
     uploadProfilePhoto,
-    uploadSheetPhotos,
     addMissionExpense, // NEW
-    saveDepartureDetails, // NEW
-    saveArrivalDetails, // NEW
     useClientMissions,
     useAvailableMissions,
     useConvoyeurMissions,
@@ -733,7 +573,6 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     useAllMissions,
     useConvoyeurs,
     useClients,
-    useMissionById, // NEW
   ]);
 
   return (
