@@ -21,6 +21,36 @@ export type Expense = {
   timestamp: string; // ISO string
 };
 
+// NEW: Define DepartureSheet type
+export type DepartureSheet = {
+  id: string;
+  mission_id: string;
+  created_at: string;
+  mileage: number;
+  fuel_level: string;
+  interior_cleanliness: string;
+  exterior_cleanliness: string;
+  general_condition: string;
+  convoyeur_signature_name: string;
+  client_signature_name: string;
+  photos: string[];
+};
+
+// NEW: Define ArrivalSheet type
+export type ArrivalSheet = {
+  id: string;
+  mission_id: string;
+  created_at: string;
+  mileage: number;
+  fuel_level: string;
+  interior_cleanliness: string;
+  exterior_cleanliness: string;
+  general_condition: string;
+  convoyeur_signature_name: string;
+  client_signature_name: string;
+  photos: string[];
+};
+
 export type Mission = {
   id: string;
   created_at: string;
@@ -41,6 +71,8 @@ export type Mission = {
   updates?: MissionUpdate[] | null; // New field for step-by-step updates
   expenses?: Expense[] | null; // NEW: Add expenses array
   is_paid: boolean; // NEW: Add is_paid status
+  departure_details?: DepartureSheet | null; // NEW: Link departure sheet
+  arrival_details?: ArrivalSheet | null; // NEW: Link arrival sheet
 };
 
 export type Profile = {
@@ -68,7 +100,7 @@ type UpdateProfilePayload = Partial<Omit<Profile, 'id'>>;
 
 // 2. Définition du type du contexte
 type MissionsContextType = {
-  addMission: (missionData: Omit<Mission, 'id' | 'created_at' | 'statut' | 'convoyeur_id' | 'commentaires' | 'photos' | 'client_price' | 'convoyeur_payout' | 'updates' | 'convoyeur_first_name' | 'convoyeur_last_name' | 'expenses' | 'is_paid'> & { client_id: string }) => Promise<void>; // Mis à jour pour client_id et les nouveaux prix
+  addMission: (missionData: Omit<Mission, 'id' | 'created_at' | 'statut' | 'convoyeur_id' | 'commentaires' | 'photos' | 'client_price' | 'convoyeur_payout' | 'updates' | 'convoyeur_first_name' | 'convoyeur_last_name' | 'expenses' | 'is_paid' | 'departure_details' | 'arrival_details'> & { client_id: string }) => Promise<void>; // Mis à jour pour client_id et les nouveaux prix
   updateMission: (id: string, payload: UpdateMissionPayload) => Promise<void>; // Generic update function
   updateProfile: (id: string, payload: UpdateProfilePayload) => Promise<void>; // NEW: Generic update function for profiles
   takeMission: (missionId: string, convoyeurId: string) => Promise<void>;
@@ -78,6 +110,13 @@ type MissionsContextType = {
   uploadProfilePhoto: (userId: string, file: File) => Promise<string>; // NEW: Function to upload profile photo
   addMissionExpense: (missionId: string, type: string, amount: number, description: string | null, photoFile: File | null) => Promise<void>; // NEW: Function to add mission expense
   
+  // NEW: Functions for Departure and Arrival Sheets
+  createDepartureSheet: (missionId: string, sheetData: Omit<DepartureSheet, 'id' | 'created_at' | 'mission_id' | 'photos'>, photos: FileList | null) => Promise<void>;
+  createArrivalSheet: (missionId: string, sheetData: Omit<ArrivalSheet, 'id' | 'created_at' | 'mission_id' | 'photos'>, photos: FileList | null) => Promise<void>;
+  uploadSheetPhotos: (missionId: string, sheetType: 'departure' | 'arrival', files: FileList) => Promise<string[]>;
+  useDepartureSheet: (missionId: string | undefined) => { sheet: DepartureSheet | undefined; isLoading: boolean; };
+  useArrivalSheet: (missionId: string | undefined) => { sheet: ArrivalSheet | undefined; isLoading: boolean; };
+
   // Hooks pour récupérer les missions et profils
   useClientMissions: (userId: string | undefined) => { missions: Mission[] | undefined; isLoading: boolean; };
   useAvailableMissions: () => { missions: Mission[] | undefined; isLoading: boolean; };
@@ -97,7 +136,7 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
   // Mutation for adding a mission
   const addMissionMutation = useMutation({
-    mutationFn: async (missionData: Omit<Mission, 'id' | 'created_at' | 'statut' | 'convoyeur_id' | 'commentaires' | 'photos' | 'client_price' | 'convoyeur_payout' | 'updates' | 'convoyeur_first_name' | 'convoyeur_last_name' | 'expenses' | 'is_paid'> & { client_id: string }) => { // Mis à jour pour client_id
+    mutationFn: async (missionData: Omit<Mission, 'id' | 'created_at' | 'statut' | 'convoyeur_id' | 'commentaires' | 'photos' | 'client_price' | 'convoyeur_payout' | 'updates' | 'convoyeur_first_name' | 'convoyeur_last_name' | 'expenses' | 'is_paid' | 'departure_details' | 'arrival_details'> & { client_id: string }) => { // Mis à jour pour client_id
       const { data, error } = await supabase.from('commandes').insert({
         immatriculation: missionData.immatriculation,
         modele: missionData.modele,
@@ -111,6 +150,8 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         updates: [], // Initialize updates as an empty array
         expenses: [], // Initialize expenses as an empty array
         is_paid: false, // NEW: Initialize is_paid to false
+        departure_details: null, // NEW: Initialize departure_details
+        arrival_details: null, // NEW: Initialize arrival_details
       });
       if (error) throw error;
       return data;
@@ -126,7 +167,7 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     },
   });
 
-  const addMission = async (missionData: Omit<Mission, 'id' | 'created_at' | 'statut' | 'convoyeur_id' | 'commentaires' | 'photos' | 'client_price' | 'convoyeur_payout' | 'updates' | 'convoyeur_first_name' | 'convoyeur_last_name' | 'expenses' | 'is_paid'> & { client_id: string }) => { // Mis à jour pour client_id
+  const addMission = async (missionData: Omit<Mission, 'id' | 'created_at' | 'statut' | 'convoyeur_id' | 'commentaires' | 'photos' | 'client_price' | 'convoyeur_payout' | 'updates' | 'convoyeur_first_name' | 'convoyeur_last_name' | 'expenses' | 'is_paid' | 'departure_details' | 'arrival_details'> & { client_id: string }) => { // Mis à jour pour client_id
     await addMissionMutation.mutateAsync(missionData);
   };
 
@@ -143,6 +184,8 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       queryClient.invalidateQueries({ queryKey: ['convoyeurMissions'] });
       queryClient.invalidateQueries({ queryKey: ['clientMissions'] });
       queryClient.invalidateQueries({ queryKey: ['monthlyTurnover'] });
+      queryClient.invalidateQueries({ queryKey: ['departureSheet'] }); // NEW
+      queryClient.invalidateQueries({ queryKey: ['arrivalSheet'] }); // NEW
       showSuccess("Mission mise à jour avec succès !");
     },
     onError: (error) => {
@@ -255,6 +298,34 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     }
   };
 
+  // NEW: Function to upload photos for departure/arrival sheets
+  const uploadSheetPhotos = async (missionId: string, sheetType: 'departure' | 'arrival', files: FileList): Promise<string[]> => {
+    const uploadedUrls: string[] = [];
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      const normalizedFileName = file.name.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+      const cleanedFileName = normalizedFileName.replace(/[' ]/g, '-');
+      const sanitizedFileName = encodeURIComponent(cleanedFileName);
+      const filePath = `${sheetType}-sheets/${missionId}/${uuidv4()}-${sanitizedFileName}`;
+      const { data, error } = await supabase.storage
+        .from('sheet-photos') // Assuming a new storage bucket for sheet photos
+        .upload(filePath, file, {
+          cacheControl: '3600',
+          upsert: false,
+        });
+
+      if (error) {
+        console.error(`Error uploading ${sheetType} sheet photo:`, error);
+        showError(`Erreur lors de l'upload de la photo de la fiche ${sheetType}.`);
+        throw error;
+      } else {
+        const { data: publicUrlData } = supabase.storage.from('sheet-photos').getPublicUrl(filePath);
+        uploadedUrls.push(publicUrlData.publicUrl);
+      }
+    }
+    return uploadedUrls;
+  };
+
   const addMissionUpdate = async (missionId: string, comment: string | null, photos: FileList | null) => {
     let photoUrls: string[] | null = null;
     if (photos && photos.length > 0) {
@@ -338,6 +409,88 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     await updateMission(missionId, { statut: 'livrée' });
   };
 
+  // NEW: Mutation for creating a departure sheet
+  const createDepartureSheetMutation = useMutation({
+    mutationFn: async ({ missionId, sheetData, photos }: { missionId: string; sheetData: Omit<DepartureSheet, 'id' | 'created_at' | 'mission_id' | 'photos'>; photos: FileList | null }) => {
+      let photoUrls: string[] = [];
+      if (photos && photos.length > 0) {
+        photoUrls = await uploadSheetPhotos(missionId, 'departure', photos);
+      }
+
+      const { data, error } = await supabase.from('departure_sheets').insert({
+        mission_id: missionId,
+        mileage: sheetData.mileage,
+        fuel_level: sheetData.fuel_level,
+        interior_cleanliness: sheetData.interior_cleanliness,
+        exterior_cleanliness: sheetData.exterior_cleanliness,
+        general_condition: sheetData.general_condition,
+        convoyeur_signature_name: sheetData.convoyeur_signature_name,
+        client_signature_name: sheetData.client_signature_name,
+        photos: photoUrls,
+      }).select().single(); // Select the inserted row to get its ID
+
+      if (error) throw error;
+
+      // Update the mission with the departure_details
+      await updateMission(missionId, { departure_details: data });
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['convoyeurMissions'] });
+      queryClient.invalidateQueries({ queryKey: ['departureSheet'] });
+      showSuccess("Fiche de départ créée avec succès !");
+    },
+    onError: (error) => {
+      console.error("Error creating departure sheet:", error);
+      showError("Erreur lors de la création de la fiche de départ.");
+    },
+  });
+
+  const createDepartureSheet = async (missionId: string, sheetData: Omit<DepartureSheet, 'id' | 'created_at' | 'mission_id' | 'photos'>, photos: FileList | null) => {
+    await createDepartureSheetMutation.mutateAsync({ missionId, sheetData, photos });
+  };
+
+  // NEW: Mutation for creating an arrival sheet
+  const createArrivalSheetMutation = useMutation({
+    mutationFn: async ({ missionId, sheetData, photos }: { missionId: string; sheetData: Omit<ArrivalSheet, 'id' | 'created_at' | 'mission_id' | 'photos'>; photos: FileList | null }) => {
+      let photoUrls: string[] = [];
+      if (photos && photos.length > 0) {
+        photoUrls = await uploadSheetPhotos(missionId, 'arrival', photos);
+      }
+
+      const { data, error } = await supabase.from('arrival_sheets').insert({
+        mission_id: missionId,
+        mileage: sheetData.mileage,
+        fuel_level: sheetData.fuel_level,
+        interior_cleanliness: sheetData.interior_cleanliness,
+        exterior_cleanliness: sheetData.exterior_cleanliness,
+        general_condition: sheetData.general_condition,
+        convoyeur_signature_name: sheetData.convoyeur_signature_name,
+        client_signature_name: sheetData.client_signature_name,
+        photos: photoUrls,
+      }).select().single(); // Select the inserted row to get its ID
+
+      if (error) throw error;
+
+      // Update the mission with the arrival_details
+      await updateMission(missionId, { arrival_details: data });
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['convoyeurMissions'] });
+      queryClient.invalidateQueries({ queryKey: ['arrivalSheet'] });
+      showSuccess("Fiche d'arrivée créée avec succès !");
+    },
+    onError: (error) => {
+      console.error("Error creating arrival sheet:", error);
+      showError("Erreur lors de la création de la fiche d'arrivée.");
+    },
+  });
+
+  const createArrivalSheet = async (missionId: string, sheetData: Omit<ArrivalSheet, 'id' | 'created_at' | 'mission_id' | 'photos'>, photos: FileList | null) => {
+    await createArrivalSheetMutation.mutateAsync({ missionId, sheetData, photos });
+  };
+
   // Hooks pour récupérer les missions
   const useClientMissions = (userId: string | undefined) => {
     const { data, isLoading } = useQuery<Mission[]>({
@@ -347,7 +500,7 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         // Join with profiles to get convoyeur's first_name and last_name
         const { data, error } = await supabase
           .from('commandes')
-          .select('*, profiles!commandes_convoyeur_id_fkey(first_name, last_name)') // Explicitly name the join for clarity
+          .select('*, profiles!commandes_convoyeur_id_fkey(first_name, last_name), departure_sheets(*), arrival_sheets(*)') // Explicitly name the join for clarity
           .eq('client_id', userId); // Mis à jour pour client_id
         if (error) throw error;
         return data.map(m => ({
@@ -371,6 +524,8 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
           updates: m.updates,
           expenses: m.expenses, // Include expenses
           is_paid: m.is_paid, // Include is_paid
+          departure_details: m.departure_sheets?.[0] || null, // NEW: Map departure sheet
+          arrival_details: m.arrival_sheets?.[0] || null, // NEW: Map arrival sheet
         }));
       },
       enabled: !!userId,
@@ -383,7 +538,7 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       queryKey: ['availableMissions'],
       queryFn: async () => {
         // Only fetch missions where convoyeur_payout is not null AND is_paid is true
-        const { data, error } = await supabase.from('commandes').select('*').eq('statut', 'Disponible').not('convoyeur_payout', 'is', null).eq('is_paid', true);
+        const { data, error } = await supabase.from('commandes').select('*, departure_sheets(*), arrival_sheets(*)').eq('statut', 'Disponible').not('convoyeur_payout', 'is', null).eq('is_paid', true);
         if (error) throw error;
         return data.map(m => ({
           id: m.id,
@@ -403,6 +558,8 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
           updates: m.updates,
           expenses: m.expenses, // Include expenses
           is_paid: m.is_paid, // Include is_paid
+          departure_details: m.departure_sheets?.[0] || null, // NEW: Map departure sheet
+          arrival_details: m.arrival_sheets?.[0] || null, // NEW: Map arrival sheet
         }));
       },
     });
@@ -416,7 +573,7 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         if (!userId) return [];
         const { data, error } = await supabase
           .from('commandes')
-          .select('*, profiles!commandes_convoyeur_id_fkey(first_name, last_name)') // Select profile data for convoyeur
+          .select('*, profiles!commandes_convoyeur_id_fkey(first_name, last_name), departure_sheets(*), arrival_sheets(*)') // Select profile data for convoyeur
           .eq('convoyeur_id', userId)
           .in('statut', ['en cours', 'livrée'])
           .eq('is_paid', true); // NEW: Only show if paid
@@ -441,6 +598,8 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
           updates: m.updates,
           expenses: m.expenses, // Include expenses
           is_paid: m.is_paid, // Include is_paid
+          departure_details: m.departure_sheets?.[0] || null, // NEW: Map departure sheet
+          arrival_details: m.arrival_sheets?.[0] || null, // NEW: Map arrival sheet
         }));
       },
       enabled: !!userId,
@@ -483,7 +642,7 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       queryKey: ['allMissions'],
       queryFn: async () => {
         // Join with profiles to get convoyeur's first_name and last_name
-        const { data, error } = await supabase.from('commandes').select('*, profiles!commandes_convoyeur_id_fkey(first_name, last_name)');
+        const { data, error } = await supabase.from('commandes').select('*, profiles!commandes_convoyeur_id_fkey(first_name, last_name), departure_sheets(*), arrival_sheets(*)');
         if (error) throw error;
         return data.map(m => ({
           id: m.id,
@@ -506,6 +665,8 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
           updates: m.updates,
           expenses: m.expenses, // Include expenses
           is_paid: m.is_paid, // Include is_paid
+          departure_details: m.departure_sheets?.[0] || null, // NEW: Map departure sheet
+          arrival_details: m.arrival_sheets?.[0] || null, // NEW: Map arrival sheet
         }));
       },
     });
@@ -538,6 +699,44 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     return { profiles: data, isLoading };
   };
 
+  // NEW: Hook to fetch a specific departure sheet
+  const useDepartureSheet = (missionId: string | undefined) => {
+    const { data, isLoading } = useQuery<DepartureSheet | undefined>({
+      queryKey: ['departureSheet', missionId],
+      queryFn: async () => {
+        if (!missionId) return undefined;
+        const { data, error } = await supabase
+          .from('departure_sheets')
+          .select('*')
+          .eq('mission_id', missionId)
+          .single();
+        if (error && error.code !== 'PGRST116') throw error; // PGRST116 means no rows found
+        return data || undefined;
+      },
+      enabled: !!missionId,
+    });
+    return { sheet: data, isLoading };
+  };
+
+  // NEW: Hook to fetch a specific arrival sheet
+  const useArrivalSheet = (missionId: string | undefined) => {
+    const { data, isLoading } = useQuery<ArrivalSheet | undefined>({
+      queryKey: ['arrivalSheet', missionId],
+      queryFn: async () => {
+        if (!missionId) return undefined;
+        const { data, error } = await supabase
+          .from('arrival_sheets')
+          .select('*')
+          .eq('mission_id', missionId)
+          .single();
+        if (error && error.code !== 'PGRST116') throw error; // PGRST116 means no rows found
+        return data || undefined;
+      },
+      enabled: !!missionId,
+    });
+    return { sheet: data, isLoading };
+  };
+
 
   const contextValue = useMemo(() => ({
     addMission,
@@ -549,6 +748,11 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     uploadMissionPhotos,
     uploadProfilePhoto, // NEW
     addMissionExpense, // NEW
+    createDepartureSheet, // NEW
+    createArrivalSheet, // NEW
+    uploadSheetPhotos, // NEW
+    useDepartureSheet, // NEW
+    useArrivalSheet, // NEW
     useClientMissions,
     useAvailableMissions,
     useConvoyeurMissions,
@@ -566,6 +770,11 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     uploadMissionPhotos,
     uploadProfilePhoto,
     addMissionExpense, // NEW
+    createDepartureSheet, // NEW
+    createArrivalSheet, // NEW
+    uploadSheetPhotos, // NEW
+    useDepartureSheet, // NEW
+    useArrivalSheet, // NEW
     useClientMissions,
     useAvailableMissions,
     useConvoyeurMissions,
