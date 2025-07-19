@@ -1,19 +1,15 @@
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { useMissions, Mission, Profile } from "@/context/MissionsContext";
 import { showSuccess, showError } from "@/utils/toast";
-import MissionDetailDialog from "./MissionDetailDialog"; // Import the new dialog component
-import AddExpenseDialog from "./AddExpenseDialog"; // NEW: Import AddExpenseDialog
-import MissionSheetForm from "./MissionSheetForm"; // NEW: Import MissionSheetForm
+import MissionDetailDialog from "./MissionDetailDialog";
+import AddExpenseDialog from "./AddExpenseDialog";
+import MissionSheetForm from "./MissionSheetForm";
 
 interface MyMissionsProps {
   userId: string;
-  // missionComments, missionPhotos, missionPrices are now managed within MissionDetailDialog or MissionsContext
-  // No longer needed as props here, but keeping for now to avoid breaking other parts if they still rely on them
+  // These props are now largely redundant for the new flow, but kept for compatibility
   missionComments: { [key: string]: string };
   missionPhotos: { [key: string]: string[] };
   missionPrices: { [key: string]: number };
@@ -24,7 +20,6 @@ interface MyMissionsProps {
 
 const MyMissions: React.FC<MyMissionsProps> = ({
   userId,
-  // These props are now largely redundant for the new flow, but kept for compatibility
   missionComments,
   missionPhotos,
   missionPrices,
@@ -39,14 +34,12 @@ const MyMissions: React.FC<MyMissionsProps> = ({
 
   const [isDetailDialogOpen, setIsDetailDialogOpen] = useState(false);
   const [isExpenseDialogOpen, setIsExpenseDialogOpen] = useState(false);
-  const [isSheetFormOpen, setIsSheetFormOpen] = useState(false); // NEW: State for sheet form dialog
-  const [sheetFormType, setSheetFormType] = useState<'departure' | 'arrival'>('departure'); // NEW: Type of sheet to open
+  const [isSheetFormOpen, setIsSheetFormOpen] = useState(false);
+  const [sheetFormType, setSheetFormType] = useState<'departure' | 'arrival'>('departure');
   const [selectedMission, setSelectedMission] = useState<Mission | null>(null);
 
   const convoyeurProfile = convoyeurs?.find(p => p.id === userId) || null;
-  // Determine the client profile for the currently selected mission
   const currentClientProfile = selectedMission ? (clients?.find(p => p.id === selectedMission.client_id) || null) : null;
-
 
   const handleOpenDetailDialog = (mission: Mission) => {
     setSelectedMission(mission);
@@ -68,7 +61,6 @@ const MyMissions: React.FC<MyMissionsProps> = ({
     setIsExpenseDialogOpen(false);
   };
 
-  // NEW: Handlers for sheet form dialog
   const handleOpenSheetForm = (mission: Mission, type: 'departure' | 'arrival') => {
     setSelectedMission(mission);
     setSheetFormType(type);
@@ -81,7 +73,11 @@ const MyMissions: React.FC<MyMissionsProps> = ({
   };
 
   if (isLoadingConvoyeurMissions || isLoadingConvoyeurs || isLoadingClients) {
-    return <p className="text-gray-700 dark:text-gray-300">Chargement de vos missions...</p>;
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-100 dark:bg-gray-900">
+        <p className="text-gray-700 dark:text-gray-300">Chargement de vos missions...</p>
+      </div>
+    );
   }
 
   return (
@@ -91,56 +87,52 @@ const MyMissions: React.FC<MyMissionsProps> = ({
         {convoyeurMissions && convoyeurMissions.length === 0 ? (
           <p className="col-span-full text-center text-gray-600 dark:text-gray-400">Vous n'avez pas de missions en cours ou livrées.</p>
         ) : (
-          convoyeurMissions?.map((mission) => {
-            // clientProfile is now derived for each mission within the map, but we need it for selectedMission outside
-            // const clientProfile = clients?.find(p => p.id === mission.client_id) || null; // This line is no longer needed here
-            return (
-              <Card key={mission.id} className="w-full bg-white dark:bg-gray-800 shadow-lg">
-                <CardHeader>
-                  <CardTitle className="text-xl font-semibold">{mission.modele} ({mission.immatriculation})</CardTitle>
-                  <CardDescription className="text-gray-600 dark:text-gray-400">
-                    De: {mission.lieu_depart} à {mission.lieu_arrivee}
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <p><strong>Statut:</strong> <span className={`font-medium ${
-                    mission.statut === 'en cours' ? 'text-orange-600 dark:text-orange-400' :
-                    'text-green-600 dark:text-green-400'
-                  }`}>{mission.statut}</span></p>
-                  <p><strong>Heure limite:</strong> {new Date(mission.heureLimite).toLocaleString()}</p>
-                  <p>
-                    <strong>Rémunération:</strong>{" "}
-                    {mission.convoyeur_payout ? `${mission.convoyeur_payout.toFixed(2)} €` : "Non définie"}
-                  </p>
-                  {mission.statut === 'en cours' && (
-                    <div className="flex flex-col space-y-2">
-                      <Button onClick={(e) => { e.stopPropagation(); handleOpenDetailDialog(mission); }} className="w-full">
-                        Voir les détails / Mettre à jour
-                      </Button>
-                      {!mission.departure_details && (
-                        <Button onClick={(e) => { e.stopPropagation(); handleOpenSheetForm(mission, 'departure'); }} variant="outline" className="w-full">
-                          Remplir Fiche de Départ
-                        </Button>
-                      )}
-                      {mission.departure_details && !mission.arrival_details && (
-                        <Button onClick={(e) => { e.stopPropagation(); handleOpenSheetForm(mission, 'arrival'); }} variant="outline" className="w-full">
-                          Remplir Fiche d'Arrivée
-                        </Button>
-                      )}
-                      <Button onClick={(e) => { e.stopPropagation(); handleOpenExpenseDialog(mission); }} variant="outline" className="w-full">
-                        Ajouter des frais
-                      </Button>
-                    </div>
-                  )}
-                  {mission.statut === 'livrée' && (
-                    <Button onClick={(e) => { e.stopPropagation(); handleOpenDetailDialog(mission); }} variant="outline" className="w-full">
-                      Voir l'historique & Frais
+          convoyeurMissions?.map((mission) => (
+            <Card key={mission.id} className="w-full bg-white dark:bg-gray-800 shadow-lg">
+              <CardHeader>
+                <CardTitle className="text-xl font-semibold">{mission.modele} ({mission.immatriculation})</CardTitle>
+                <CardDescription className="text-gray-600 dark:text-gray-400">
+                  De: {mission.lieu_depart} à {mission.lieu_arrivee}
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <p><strong>Statut:</strong> <span className={`font-medium ${
+                  mission.statut === 'en cours' ? 'text-orange-600 dark:text-orange-400' :
+                  'text-green-600 dark:text-green-400'
+                }`}>{mission.statut}</span></p>
+                <p><strong>Heure limite:</strong> {new Date(mission.heureLimite).toLocaleString()}</p>
+                <p>
+                  <strong>Rémunération:</strong>{" "}
+                  {mission.convoyeur_payout ? `${mission.convoyeur_payout.toFixed(2)} €` : "Non définie"}
+                </p>
+                {mission.statut === 'en cours' && (
+                  <div className="flex flex-col space-y-2">
+                    <Button onClick={(e) => { e.stopPropagation(); handleOpenDetailDialog(mission); }} className="w-full">
+                      Voir les détails / Mettre à jour
                     </Button>
-                  )}
-                </CardContent>
-              </Card>
-            );
-          })
+                    {!mission.departure_details && (
+                      <Button onClick={(e) => { e.stopPropagation(); handleOpenSheetForm(mission, 'departure'); }} variant="outline" className="w-full">
+                        Remplir Fiche de Départ
+                      </Button>
+                    )}
+                    {mission.departure_details && !mission.arrival_details && (
+                      <Button onClick={(e) => { e.stopPropagation(); handleOpenSheetForm(mission, 'arrival'); }} variant="outline" className="w-full">
+                        Remplir Fiche d'Arrivée
+                      </Button>
+                    )}
+                    <Button onClick={(e) => { e.stopPropagation(); handleOpenExpenseDialog(mission); }} variant="outline" className="w-full">
+                      Ajouter des frais
+                    </Button>
+                  </div>
+                )}
+                {mission.statut === 'livrée' && (
+                  <Button onClick={(e) => { e.stopPropagation(); handleOpenDetailDialog(mission); }} variant="outline" className="w-full">
+                    Voir l'historique & Frais
+                  </Button>
+                )}
+              </CardContent>
+            </Card>
+          ))
         )}
       </div>
       <MissionDetailDialog
@@ -154,14 +146,13 @@ const MyMissions: React.FC<MyMissionsProps> = ({
         isOpen={isExpenseDialogOpen}
         onClose={handleCloseExpenseDialog}
       />
-      {/* NEW: Add MissionSheetForm */}
       <MissionSheetForm
         mission={selectedMission}
         isOpen={isSheetFormOpen}
         onClose={handleCloseSheetForm}
         type={sheetFormType}
         convoyeurProfile={convoyeurProfile}
-        clientProfile={currentClientProfile} {/* Corrected: Pass currentClientProfile */}
+        clientProfile={currentClientProfile}
       />
     </div>
   );
