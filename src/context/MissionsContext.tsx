@@ -27,10 +27,10 @@ export type DepartureSheet = {
   mission_id: string;
   created_at: string;
   mileage: number;
-  fuel_level: string;
-  interior_cleanliness: string;
-  exterior_cleanliness: string;
-  general_condition: string;
+  fuel_level: number; // Changed from string to number (rating 1-8)
+  interior_cleanliness: number; // Changed from string to number (rating 1-8)
+  exterior_cleanliness: number; // Changed from string to number (rating 1-8)
+  general_condition: string; // Remains string (Textarea)
   convoyeur_signature_name: string;
   client_signature_name: string;
   photos: string[];
@@ -42,10 +42,10 @@ export type ArrivalSheet = {
   mission_id: string;
   created_at: string;
   mileage: number;
-  fuel_level: string;
-  interior_cleanliness: string;
-  exterior_cleanliness: string;
-  general_condition: string;
+  fuel_level: number; // Changed from string to number (rating 1-8)
+  interior_cleanliness: number; // Changed from string to number (rating 1-8)
+  exterior_cleanliness: number; // Changed from string to number (rating 1-8)
+  general_condition: string; // Remains string (Textarea)
   convoyeur_signature_name: string;
   client_signature_name: string;
   photos: string[];
@@ -243,7 +243,7 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         throw error;
       } else {
         const { data: publicUrlData } = supabase.storage.from('mission-photos').getPublicUrl(filePath);
-        uploadedUrls.push(publicUrlData.publicUrl);
+        uploadedUrls.push(publicUrlUrlData.publicUrl);
       }
     }
     return uploadedUrls;

@@ -3,9 +3,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useMissions, DepartureSheet } from "@/context/MissionsContext";
-import { showSuccess, showError } from "@/utils/toast";
+import { showError } from "@/utils/toast";
 
 interface DepartureSheetFormProps {
   missionId: string;
@@ -15,9 +14,9 @@ interface DepartureSheetFormProps {
 const DepartureSheetForm: React.FC<DepartureSheetFormProps> = ({ missionId, onSheetCreated }) => {
   const { createDepartureSheet } = useMissions();
   const [mileage, setMileage] = useState<string>("");
-  const [fuelLevel, setFuelLevel] = useState<string>("");
-  const [interiorCleanliness, setInteriorCleanliness] = useState<string>("");
-  const [exteriorCleanliness, setExteriorCleanliness] = useState<string>("");
+  const [fuelLevel, setFuelLevel] = useState<string>(""); // Will be parsed to number
+  const [interiorCleanliness, setInteriorCleanliness] = useState<string>(""); // Will be parsed to number
+  const [exteriorCleanliness, setExteriorCleanliness] = useState<string>(""); // Will be parsed to number
   const [generalCondition, setGeneralCondition] = useState<string>("");
   const [convoyeurSignatureName, setConvoyeurSignatureName] = useState<string>("");
   const [clientSignatureName, setClientSignatureName] = useState<string>("");
@@ -26,22 +25,32 @@ const DepartureSheetForm: React.FC<DepartureSheetFormProps> = ({ missionId, onSh
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!mileage || !fuelLevel || !interiorCleanliness || !exteriorCleanliness || !generalCondition || !convoyeurSignatureName || !clientSignatureName) {
-      showError("Veuillez remplir tous les champs obligatoires.");
-      return;
-    }
-    if (isNaN(parseFloat(mileage))) {
-      showError("Le kilométrage doit être un nombre valide.");
+    
+    const parsedMileage = parseFloat(mileage);
+    const parsedFuelLevel = parseInt(fuelLevel);
+    const parsedInteriorCleanliness = parseInt(interiorCleanliness);
+    const parsedExteriorCleanliness = parseInt(exteriorCleanliness);
+
+    if (
+      isNaN(parsedMileage) ||
+      isNaN(parsedFuelLevel) || parsedFuelLevel < 1 || parsedFuelLevel > 8 ||
+      isNaN(parsedInteriorCleanliness) || parsedInteriorCleanliness < 1 || parsedInteriorCleanliness > 8 ||
+      isNaN(parsedExteriorCleanliness) || parsedExteriorCleanliness < 1 || parsedExteriorCleanliness > 8 ||
+      !generalCondition ||
+      !convoyeurSignatureName ||
+      !clientSignatureName
+    ) {
+      showError("Veuillez remplir tous les champs obligatoires avec des valeurs valides (notes entre 1 et 8).");
       return;
     }
 
     setIsSubmitting(true);
     try {
       const sheetData: Omit<DepartureSheet, 'id' | 'created_at' | 'mission_id' | 'photos'> = {
-        mileage: parseFloat(mileage),
-        fuel_level: fuelLevel,
-        interior_cleanliness: interiorCleanliness,
-        exterior_cleanliness: exteriorCleanliness,
+        mileage: parsedMileage,
+        fuel_level: parsedFuelLevel,
+        interior_cleanliness: parsedInteriorCleanliness,
+        exterior_cleanliness: parsedExteriorCleanliness,
         general_condition: generalCondition,
         convoyeur_signature_name: convoyeurSignatureName,
         client_signature_name: clientSignatureName,
@@ -64,50 +73,46 @@ const DepartureSheetForm: React.FC<DepartureSheetFormProps> = ({ missionId, onSh
         <Input id="mileage" type="number" value={mileage} onChange={(e) => setMileage(e.target.value)} required className="mt-1" />
       </div>
       <div>
-        <Label htmlFor="fuelLevel">Niveau de carburant</Label>
-        <Select value={fuelLevel} onValueChange={setFuelLevel} required>
-          <SelectTrigger className="w-full mt-1">
-            <SelectValue placeholder="Sélectionnez le niveau" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="vide">Vide</SelectItem>
-            <SelectItem value="quart">1/4</SelectItem>
-            <SelectItem value="moitie">1/2</SelectItem>
-            <SelectItem value="trois-quarts">3/4</SelectItem>
-            <SelectItem value="plein">Plein</SelectItem>
-          </SelectContent>
-        </Select>
+        <Label htmlFor="fuelLevel">Niveau de carburant (1-8)</Label>
+        <Input 
+          id="fuelLevel" 
+          type="number" 
+          min="1" 
+          max="8" 
+          value={fuelLevel} 
+          onChange={(e) => setFuelLevel(e.target.value)} 
+          required 
+          className="mt-1" 
+        />
       </div>
       <div>
-        <Label htmlFor="interiorCleanliness">Propreté intérieure</Label>
-        <Select value={interiorCleanliness} onValueChange={setInteriorCleanliness} required>
-          <SelectTrigger className="w-full mt-1">
-            <SelectValue placeholder="Sélectionnez l'état" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="impeccable">Impeccable</SelectItem>
-            <SelectItem value="propre">Propre</SelectItem>
-            <SelectItem value="moyen">Moyen</SelectItem>
-            <SelectItem value="sale">Sale</SelectItem>
-          </SelectContent>
-        </Select>
+        <Label htmlFor="interiorCleanliness">Propreté intérieure (1-8)</Label>
+        <Input 
+          id="interiorCleanliness" 
+          type="number" 
+          min="1" 
+          max="8" 
+          value={interiorCleanliness} 
+          onChange={(e) => setInteriorCleanliness(e.target.value)} 
+          required 
+          className="mt-1" 
+        />
       </div>
       <div>
-        <Label htmlFor="exteriorCleanliness">Propreté extérieure</Label>
-        <Select value={exteriorCleanliness} onValueChange={setExteriorCleanliness} required>
-          <SelectTrigger className="w-full mt-1">
-            <SelectValue placeholder="Sélectionnez l'état" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="impeccable">Impeccable</SelectItem>
-            <SelectItem value="propre">Propre</SelectItem>
-            <SelectItem value="moyen">Moyen</SelectItem>
-            <SelectItem value="sale">Sale</SelectItem>
-          </SelectContent>
-        </Select>
+        <Label htmlFor="exteriorCleanliness">Propreté extérieure (1-8)</Label>
+        <Input 
+          id="exteriorCleanliness" 
+          type="number" 
+          min="1" 
+          max="8" 
+          value={exteriorCleanliness} 
+          onChange={(e) => setExteriorCleanliness(e.target.value)} 
+          required 
+          className="mt-1" 
+        />
       </div>
       <div>
-        <Label htmlFor="generalCondition">État général du véhicule</Label>
+        <Label htmlFor="generalCondition">État général du véhicule (commentaires)</Label>
         <Textarea id="generalCondition" value={generalCondition} onChange={(e) => setGeneralCondition(e.target.value)} placeholder="Décrivez l'état général du véhicule (rayures, bosses, etc.)" required className="mt-1" />
       </div>
       <div>
