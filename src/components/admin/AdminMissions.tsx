@@ -10,8 +10,9 @@ import {
 } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox"; // Import Checkbox
+import { Checkbox } from "@/components/ui/checkbox";
 import { showError } from "@/utils/toast";
+import ClientMissionDetailDialog from "@/components/client/ClientMissionDetailDialog"; // Import the dialog
 
 const AdminMissions: React.FC = () => {
   const { useAllMissions, updateMission } = useMissions();
@@ -19,6 +20,9 @@ const AdminMissions: React.FC = () => {
   const [editingMissionId, setEditingMissionId] = useState<string | null>(null);
   const [currentClientPrice, setCurrentClientPrice] = useState<number>(0);
   const [currentConvoyeurPayout, setCurrentConvoyeurPayout] = useState<number>(0);
+
+  const [isDetailDialogOpen, setIsDetailDialogOpen] = useState(false); // NEW state for dialog
+  const [selectedMission, setSelectedMission] = useState<Mission | null>(null); // NEW state for selected mission
 
   const handleEditPrices = (mission: Mission) => {
     setEditingMissionId(mission.id);
@@ -39,6 +43,17 @@ const AdminMissions: React.FC = () => {
 
   const handleTogglePaidStatus = async (mission: Mission) => {
     await updateMission(mission.id, { is_paid: !mission.is_paid });
+  };
+
+  // NEW: Handlers for the detail dialog
+  const handleOpenDetailDialog = (mission: Mission) => {
+    setSelectedMission(mission);
+    setIsDetailDialogOpen(true);
+  };
+
+  const handleCloseDetailDialog = () => {
+    setSelectedMission(null);
+    setIsDetailDialogOpen(false);
   };
 
   if (isLoading) {
@@ -66,7 +81,7 @@ const AdminMissions: React.FC = () => {
                 <TableHead>Heure Limite</TableHead>
                 <TableHead>Prix Client (€)</TableHead>
                 <TableHead>Rémunération Convoyeur (€)</TableHead>
-                <TableHead>Payée</TableHead> {/* NEW */}
+                <TableHead>Payée</TableHead>
                 <TableHead>Actions</TableHead>
               </TableRow>
             </TableHeader>
@@ -115,7 +130,7 @@ const AdminMissions: React.FC = () => {
                       aria-label="Mission payée"
                     />
                   </TableCell>
-                  <TableCell>
+                  <TableCell className="flex flex-col space-y-2">
                     {editingMissionId === mission.id ? (
                       <Button size="sm" onClick={() => handleSavePrices(mission.id)}>
                         Sauver
@@ -125,6 +140,9 @@ const AdminMissions: React.FC = () => {
                         Modifier Prix
                       </Button>
                     )}
+                    <Button size="sm" variant="secondary" onClick={() => handleOpenDetailDialog(mission)}>
+                      Détails
+                    </Button>
                   </TableCell>
                 </TableRow>
               ))}
@@ -132,6 +150,11 @@ const AdminMissions: React.FC = () => {
           </Table>
         </div>
       )}
+      <ClientMissionDetailDialog
+        mission={selectedMission}
+        isOpen={isDetailDialogOpen}
+        onClose={handleCloseDetailDialog}
+      />
     </div>
   );
 };

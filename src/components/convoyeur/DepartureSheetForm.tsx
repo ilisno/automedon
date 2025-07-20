@@ -1,27 +1,51 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useMissions, DepartureSheet } from "@/context/MissionsContext";
-import { showError } from "@/utils/toast";
+import { showError, showSuccess } from "@/utils/toast";
 
 interface DepartureSheetFormProps {
   missionId: string;
   onSheetCreated: () => void;
+  initialData?: DepartureSheet; // NEW: Optional prop for initial data
 }
 
-const DepartureSheetForm: React.FC<DepartureSheetFormProps> = ({ missionId, onSheetCreated }) => {
-  const { createDepartureSheet } = useMissions();
+const DepartureSheetForm: React.FC<DepartureSheetFormProps> = ({ missionId, onSheetCreated, initialData }) => {
+  const { createDepartureSheet, updateMission } = useMissions(); // Add updateMission
   const [mileage, setMileage] = useState<string>("");
-  const [fuelLevel, setFuelLevel] = useState<string>(""); // Will be parsed to number
-  const [interiorCleanliness, setInteriorCleanliness] = useState<string>(""); // Will be parsed to number
-  const [exteriorCleanliness, setExteriorCleanliness] = useState<string>(""); // Will be parsed to number
+  const [fuelLevel, setFuelLevel] = useState<string>("");
+  const [interiorCleanliness, setInteriorCleanliness] = useState<string>("");
+  const [exteriorCleanliness, setExteriorCleanliness] = useState<string>("");
   const [generalCondition, setGeneralCondition] = useState<string>("");
   const [convoyeurSignatureName, setConvoyeurSignatureName] = useState<string>("");
   const [clientSignatureName, setClientSignatureName] = useState<string>("");
   const [photos, setPhotos] = useState<FileList | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useEffect(() => {
+    if (initialData) {
+      setMileage(initialData.mileage.toString());
+      setFuelLevel(initialData.fuel_level.toString());
+      setInteriorCleanliness(initialData.interior_cleanliness.toString());
+      setExteriorCleanliness(initialData.exterior_cleanliness.toString());
+      setGeneralCondition(initialData.general_condition);
+      setConvoyeurSignatureName(initialData.convoyeur_signature_name);
+      setClientSignatureName(initialData.client_signature_name);
+      // Note: Photos are not pre-filled for security/complexity reasons, user re-uploads if needed
+    } else {
+      // Reset form if no initial data (for new sheet creation)
+      setMileage("");
+      setFuelLevel("");
+      setInteriorCleanliness("");
+      setExteriorCleanliness("");
+      setGeneralCondition("");
+      setConvoyeurSignatureName("");
+      setClientSignatureName("");
+      setPhotos(null);
+    }
+  }, [initialData]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -55,11 +79,24 @@ const DepartureSheetForm: React.FC<DepartureSheetFormProps> = ({ missionId, onSh
         convoyeur_signature_name: convoyeurSignatureName,
         client_signature_name: clientSignatureName,
       };
-      await createDepartureSheet(missionId, sheetData, photos);
+
+      if (initialData) {
+        // Update existing sheet
+        let photoUrls = initialData.photos;
+        if (photos && photos.length > 0) {
+          photoUrls = await useMissions().uploadSheetPhotos(missionId, 'departure', photos);
+        }
+        const { error } = await supabase.from('departure_sheets').update({ ...sheetData, photos: photoUrls }).eq('id', initialData.id);
+        if (error) throw error;
+        showSuccess("Fiche de départ mise à jour avec succès !");
+      } else {
+        // Create new sheet
+        await createDepartureSheet(missionId, sheetData, photos);
+      }
       onSheetCreated(); // Callback to notify parent component
     } catch (error) {
-      console.error("Error creating departure sheet:", error);
-      showError("Erreur lors de la création de la fiche de départ.");
+      console.error("Error processing departure sheet:", error);
+      showError("Erreur lors de l'enregistrement de la fiche de départ.");
     } finally {
       setIsSubmitting(false);
     }
@@ -67,7 +104,7 @@ const DepartureSheetForm: React.FC<DepartureSheetFormProps> = ({ missionId, onSh
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4 p-4">
-      <h3 className="text-xl font-semibold mb-4">Fiche de Départ</h3>
+      <h3 className="text-xl font-semibold mb-4">{initialData ? "Modifier la Fiche de Départ" : "Fiche de Départ"}</h3>
       <div>
         <Label htmlFor="mileage">Kilométrage au départ</Label>
         <Input id="mileage" type="number" value={mileage} onChange={(e) => setMileage(e.target.value)} required className="mt-1" />
@@ -127,11 +164,11 @@ const DepartureSheetForm: React.FC<DepartureSheetFormProps> = ({ missionId, onSh
         <Label htmlFor="photos">Photos du véhicule au départ</Label>
         <Input id="photos" type="file" multiple accept="image/*" onChange={(e) => setPhotos(e.target.files)} className="mt-1" />
         <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-          Veuillez prendre des photos de tous les côtés du véhicule.
+          Veuillez prendre des photos de tous les côtés du véhicule. {initialData && initialData.photos && initialData.photos.length > 0 && `(${initialData.photos.length} photos existantes)`}
         </p>
       </div>
       <Button type="submit" className="w-full" disabled={isSubmitting}>
-        {isSubmitting ? "Envoi en cours..." : "Enregistrer la Fiche de Départ"}
+        {isSubmitting ? "Envoi en cours..." : (initialData ? "Mettre à jour la Fiche" : "Enregistrer la Fiche de Départ")}
       </Button>
     </form>
   );
