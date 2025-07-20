@@ -12,7 +12,7 @@ type Profile = {
   id: string;
   first_name: string | null;
   last_name: string | null;
-  role: 'client' | 'convoyeur' | null;
+  role: 'client' | 'convoyeur' | 'admin' | null; // Corrected type
   phone: string | null;
   company_type: string | null;
   siret: string | null;
@@ -33,7 +33,7 @@ const ClientProfile: React.FC<ClientProfileProps> = ({ userId }) => {
   const [email, setEmail] = useState(""); // NEW: State for user email
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
-  const [role, setRole] = useState<'client' | 'convoyeur' | ''>("");
+  const [role, setRole] = useState<'client' | 'convoyeur' | ''>(""); // Corrected type
   const [phone, setPhone] = useState("");
   const [companyType, setCompanyType] = useState("");
   const [siret, setSiret] = useState("");
@@ -97,10 +97,10 @@ const ClientProfile: React.FC<ClientProfileProps> = ({ userId }) => {
     e.preventDefault();
     setLoading(true);
 
-    const updatedProfile: Omit<Profile, 'id' | 'avatar_url'> = {
+    const updatedProfile: Partial<Omit<Profile, 'id' | 'avatar_url'>> = { // Changed type to Partial<Omit<Profile, 'id' | 'avatar_url'>>
       first_name: firstName,
       last_name: lastName,
-      role: role || null,
+      role: (role === 'client' || role === 'convoyeur' || role === 'admin') ? role : null, // Explicitly cast role
       phone: phone || null,
       company_type: companyType || null,
       siret: siret || null,

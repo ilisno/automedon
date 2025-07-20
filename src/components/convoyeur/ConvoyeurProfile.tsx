@@ -17,7 +17,7 @@ type Profile = {
   id: string;
   first_name: string | null;
   last_name: string | null;
-  role: 'concessionnaire' | 'convoyeur' | null;
+  role: 'client' | 'convoyeur' | 'admin' | null; // Corrected type
   phone: string | null;
   date_of_birth: string | null; // ISO string
   languages: string[] | null;
@@ -41,7 +41,7 @@ const ConvoyeurProfile: React.FC<ConvoyeurProfileProps> = ({ userId }) => {
   const [email, setEmail] = useState(""); // NEW: State for user email
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
-  const [role, setRole] = useState<'concessionnaire' | 'convoyeur' | ''>("");
+  const [role, setRole] = useState<'client' | 'convoyeur' | ''>(""); // Corrected type
   const [phone, setPhone] = useState("");
   const [dateOfBirth, setDateOfBirth] = useState<Date | undefined>(undefined);
   const [languages, setLanguages] = useState("");
@@ -132,10 +132,10 @@ const ConvoyeurProfile: React.FC<ConvoyeurProfileProps> = ({ userId }) => {
       }
     }
 
-    const updatedProfile: Omit<Profile, 'id'> = {
+    const updatedProfile: Partial<Omit<Profile, 'id'>> = { // Changed type to Partial<Omit<Profile, 'id'>>
       first_name: firstName,
       last_name: lastName,
-      role: role || null,
+      role: (role === 'client' || role === 'convoyeur' || role === 'admin') ? role : null, // Explicitly cast role
       phone: phone || null,
       date_of_birth: dateOfBirth ? format(dateOfBirth, "yyyy-MM-dd") : null,
       languages: languages ? languages.split(",").map(lang => lang.trim()) : null,
@@ -208,12 +208,12 @@ const ConvoyeurProfile: React.FC<ConvoyeurProfileProps> = ({ userId }) => {
         </div>
         <div>
           <Label htmlFor="role">Rôle</Label>
-          <Select value={role} onValueChange={(value: 'concessionnaire' | 'convoyeur') => setRole(value)}>
+          <Select value={role} onValueChange={(value: 'client' | 'convoyeur') => setRole(value)}>
             <SelectTrigger className="w-full mt-1">
               <SelectValue placeholder="Sélectionnez votre rôle" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="concessionnaire">Concessionnaire</SelectItem>
+              <SelectItem value="client">Client</SelectItem>
               <SelectItem value="convoyeur">Convoyeur</SelectItem>
             </SelectContent>
           </Select>

@@ -5,6 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useMissions, DepartureSheet } from "@/context/MissionsContext";
 import { showError, showSuccess } from "@/utils/toast";
+import { supabase } from "@/integrations/supabase/client"; // Added missing import
 
 interface DepartureSheetFormProps {
   missionId: string;

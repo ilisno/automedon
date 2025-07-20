@@ -243,7 +243,7 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         throw error;
       } else {
         const { data: publicUrlData } = supabase.storage.from('mission-photos').getPublicUrl(filePath);
-        uploadedUrls.push(publicUrlUrlData.publicUrl);
+        uploadedUrls.push(publicUrlData.publicUrl); // Corrected typo here
       }
     }
     return uploadedUrls;
