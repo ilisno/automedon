@@ -112,10 +112,12 @@ type MissionsContextType = {
   
   // NEW: Functions for Departure and Arrival Sheets
   createDepartureSheet: (missionId: string, sheetData: Omit<DepartureSheet, 'id' | 'created_at' | 'mission_id' | 'photos'>, photos: FileList | null) => Promise<void>;
+  updateDepartureSheet: (sheetId: string, missionId: string, sheetData: Omit<DepartureSheet, 'id' | 'created_at' | 'mission_id' | 'photos'>, photos: FileList | null) => Promise<void>; // NEW
   createArrivalSheet: (missionId: string, sheetData: Omit<ArrivalSheet, 'id' | 'created_at' | 'mission_id' | 'photos'>, photos: FileList | null) => Promise<void>;
+  updateArrivalSheet: (sheetId: string, missionId: string, sheetData: Omit<ArrivalSheet, 'id' | 'created_at' | 'mission_id' | 'photos'>, photos: FileList | null) => Promise<void>; // NEW
   uploadSheetPhotos: (missionId: string, sheetType: 'departure' | 'arrival', files: FileList) => Promise<string[]>;
-  useDepartureSheet: (missionId: string | undefined) => { sheet: DepartureSheet | undefined; isLoading: boolean; };
-  useArrivalSheet: (missionId: string | undefined) => { sheet: ArrivalSheet | undefined; isLoading: boolean; };
+  useDepartureSheet: (missionId: string | undefined) => { sheet: DepartureSheet | null; isLoading: boolean; };
+  useArrivalSheet: (missionId: string | undefined) => { sheet: ArrivalSheet | null; isLoading: boolean; };
 
   // Hooks pour récupérer les missions et profils
   useClientMissions: (userId: string | undefined) => { missions: Mission[] | undefined; isLoading: boolean; };
@@ -243,7 +245,7 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         throw error;
       } else {
         const { data: publicUrlData } = supabase.storage.from('mission-photos').getPublicUrl(filePath);
-        uploadedUrls.push(publicUrlData.publicUrl); // Corrected typo here
+        uploadedUrls.push(publicUrlData.publicUrl);
       }
     }
     return uploadedUrls;
@@ -450,6 +452,36 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     await createDepartureSheetMutation.mutateAsync({ missionId, sheetData, photos });
   };
 
+  // NEW: Mutation for updating a departure sheet
+  const updateDepartureSheetMutation = useMutation({
+    mutationFn: async ({ sheetId, missionId, sheetData, photos }: { sheetId: string; missionId: string; sheetData: Omit<DepartureSheet, 'id' | 'created_at' | 'mission_id' | 'photos'>; photos: FileList | null }) => {
+      let photoUrls: string[] = sheetData.photos || []; // Start with existing photos if any
+      if (photos && photos.length > 0) {
+        const newPhotos = await uploadSheetPhotos(missionId, 'departure', photos);
+        photoUrls = [...photoUrls, ...newPhotos]; // Append new photos
+      }
+
+      const { data, error } = await supabase.from('departure_sheets').update({ ...sheetData, photos: photoUrls }).eq('id', sheetId).select().single();
+      if (error) throw error;
+
+      await updateMission(missionId, { departure_details: data });
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['convoyeurMissions'] });
+      queryClient.invalidateQueries({ queryKey: ['departureSheet'] });
+      showSuccess("Fiche de départ mise à jour avec succès !");
+    },
+    onError: (error) => {
+      console.error("Error updating departure sheet:", error);
+      showError("Erreur lors de la mise à jour de la fiche de départ.");
+    },
+  });
+
+  const updateDepartureSheet = async (sheetId: string, missionId: string, sheetData: Omit<DepartureSheet, 'id' | 'created_at' | 'mission_id' | 'photos'>, photos: FileList | null) => {
+    await updateDepartureSheetMutation.mutateAsync({ sheetId, missionId, sheetData, photos });
+  };
+
   // NEW: Mutation for creating an arrival sheet
   const createArrivalSheetMutation = useMutation({
     mutationFn: async ({ missionId, sheetData, photos }: { missionId: string; sheetData: Omit<ArrivalSheet, 'id' | 'created_at' | 'mission_id' | 'photos'>; photos: FileList | null }) => {
@@ -489,6 +521,36 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
   const createArrivalSheet = async (missionId: string, sheetData: Omit<ArrivalSheet, 'id' | 'created_at' | 'mission_id' | 'photos'>, photos: FileList | null) => {
     await createArrivalSheetMutation.mutateAsync({ missionId, sheetData, photos });
+  };
+
+  // NEW: Mutation for updating an arrival sheet
+  const updateArrivalSheetMutation = useMutation({
+    mutationFn: async ({ sheetId, missionId, sheetData, photos }: { sheetId: string; missionId: string; sheetData: Omit<ArrivalSheet, 'id' | 'created_at' | 'mission_id' | 'photos'>; photos: FileList | null }) => {
+      let photoUrls: string[] = sheetData.photos || []; // Start with existing photos if any
+      if (photos && photos.length > 0) {
+        const newPhotos = await uploadSheetPhotos(missionId, 'arrival', photos);
+        photoUrls = [...photoUrls, ...newPhotos]; // Append new photos
+      }
+
+      const { data, error } = await supabase.from('arrival_sheets').update({ ...sheetData, photos: photoUrls }).eq('id', sheetId).select().single();
+      if (error) throw error;
+
+      await updateMission(missionId, { arrival_details: data });
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['convoyeurMissions'] });
+      queryClient.invalidateQueries({ queryKey: ['arrivalSheet'] });
+      showSuccess("Fiche d'arrivée mise à jour avec succès !");
+    },
+    onError: (error) => {
+      console.error("Error updating arrival sheet:", error);
+      showError("Erreur lors de la mise à jour de la fiche d'arrivée.");
+    },
+  });
+
+  const updateArrivalSheet = async (sheetId: string, missionId: string, sheetData: Omit<ArrivalSheet, 'id' | 'created_at' | 'mission_id' | 'photos'>, photos: FileList | null) => {
+    await updateArrivalSheetMutation.mutateAsync({ sheetId, missionId, sheetData, photos });
   };
 
   // Hooks pour récupérer les missions
@@ -701,17 +763,20 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
   // NEW: Hook to fetch a specific departure sheet
   const useDepartureSheet = (missionId: string | undefined) => {
-    const { data, isLoading } = useQuery<DepartureSheet | undefined>({
+    const { data, isLoading } = useQuery<DepartureSheet | null>({
       queryKey: ['departureSheet', missionId],
       queryFn: async () => {
-        if (!missionId) return undefined;
+        if (!missionId) return null;
         const { data, error } = await supabase
           .from('departure_sheets')
           .select('*')
           .eq('mission_id', missionId)
           .single();
-        if (error && error.code !== 'PGRST116') throw error; // PGRST116 means no rows found
-        return data || undefined;
+        if (error && error.code !== 'PGRST116') { // PGRST116 means no rows found
+          console.error("Error fetching departure sheet:", error);
+          throw error;
+        }
+        return data || null;
       },
       enabled: !!missionId,
     });
@@ -720,17 +785,20 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
   // NEW: Hook to fetch a specific arrival sheet
   const useArrivalSheet = (missionId: string | undefined) => {
-    const { data, isLoading } = useQuery<ArrivalSheet | undefined>({
+    const { data, isLoading } = useQuery<ArrivalSheet | null>({
       queryKey: ['arrivalSheet', missionId],
       queryFn: async () => {
-        if (!missionId) return undefined;
+        if (!missionId) return null;
         const { data, error } = await supabase
           .from('arrival_sheets')
           .select('*')
           .eq('mission_id', missionId)
           .single();
-        if (error && error.code !== 'PGRST116') throw error; // PGRST116 means no rows found
-        return data || undefined;
+        if (error && error.code !== 'PGRST116') { // PGRST116 means no rows found
+          console.error("Error fetching arrival sheet:", error);
+          throw error;
+        }
+        return data || null;
       },
       enabled: !!missionId,
     });
@@ -749,7 +817,9 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     uploadProfilePhoto, // NEW
     addMissionExpense, // NEW
     createDepartureSheet, // NEW
+    updateDepartureSheet, // NEW
     createArrivalSheet, // NEW
+    updateArrivalSheet, // NEW
     uploadSheetPhotos, // NEW
     useDepartureSheet, // NEW
     useArrivalSheet, // NEW
@@ -771,7 +841,9 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     uploadProfilePhoto,
     addMissionExpense, // NEW
     createDepartureSheet, // NEW
+    updateDepartureSheet, // NEW
     createArrivalSheet, // NEW
+    updateArrivalSheet, // NEW
     uploadSheetPhotos, // NEW
     useDepartureSheet, // NEW
     useArrivalSheet, // NEW

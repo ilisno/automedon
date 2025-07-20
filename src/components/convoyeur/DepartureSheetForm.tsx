@@ -14,7 +14,7 @@ interface DepartureSheetFormProps {
 }
 
 const DepartureSheetForm: React.FC<DepartureSheetFormProps> = ({ missionId, onSheetCreated, initialData }) => {
-  const { createDepartureSheet, updateMission } = useMissions(); // Add updateMission
+  const { createDepartureSheet, updateDepartureSheet } = useMissions(); // Use both create and update
   const [mileage, setMileage] = useState<string>("");
   const [fuelLevel, setFuelLevel] = useState<string>("");
   const [interiorCleanliness, setInteriorCleanliness] = useState<string>("");
@@ -83,13 +83,7 @@ const DepartureSheetForm: React.FC<DepartureSheetFormProps> = ({ missionId, onSh
 
       if (initialData) {
         // Update existing sheet
-        let photoUrls = initialData.photos;
-        if (photos && photos.length > 0) {
-          photoUrls = await useMissions().uploadSheetPhotos(missionId, 'departure', photos);
-        }
-        const { error } = await supabase.from('departure_sheets').update({ ...sheetData, photos: photoUrls }).eq('id', initialData.id);
-        if (error) throw error;
-        showSuccess("Fiche de départ mise à jour avec succès !");
+        await updateDepartureSheet(initialData.id, missionId, sheetData, photos);
       } else {
         // Create new sheet
         await createDepartureSheet(missionId, sheetData, photos);
