@@ -8,7 +8,7 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Mission, MissionUpdate, Expense, useMissions } from "@/context/MissionsContext";
+import { Mission, MissionUpdate, Expense, useMissions, PartyDetails } from "@/context/MissionsContext";
 import { format } from "date-fns";
 import { generatePdf } from "@/utils/pdfGenerator";
 import DepartureSheetDisplay from "@/components/pdf/DepartureSheetDisplay";
@@ -34,6 +34,20 @@ const ClientMissionDetailDialog: React.FC<ClientMissionDetailDialogProps> = ({
 
   const handleDownloadDeparturePdf = async () => {
     if (!mission || !departureSheet) return;
+
+    const clientDetails: PartyDetails = {
+      firstName: mission.client_first_name,
+      lastName: mission.client_last_name,
+      companyType: mission.client_company_type,
+      phone: mission.client_phone,
+    };
+
+    const convoyeurDetails: PartyDetails = {
+      firstName: mission.convoyeur_first_name,
+      lastName: mission.convoyeur_last_name,
+      phone: mission.convoyeur_phone,
+    };
+
     const tempDiv = document.createElement('div');
     tempDiv.style.position = 'absolute';
     tempDiv.style.left = '-9999px';
@@ -49,6 +63,8 @@ const ClientMissionDetailDialog: React.FC<ClientMissionDetailDialogProps> = ({
           lieu_depart: mission.lieu_depart, 
           lieu_arrivee: mission.lieu_arrivee 
         }} 
+        clientDetails={clientDetails}
+        convoyeurDetails={convoyeurDetails}
       />
     );
 
@@ -62,6 +78,20 @@ const ClientMissionDetailDialog: React.FC<ClientMissionDetailDialogProps> = ({
 
   const handleDownloadArrivalPdf = async () => {
     if (!mission || !arrivalSheet) return;
+
+    const clientDetails: PartyDetails = {
+      firstName: mission.client_first_name,
+      lastName: mission.client_last_name,
+      companyType: mission.client_company_type,
+      phone: mission.client_phone,
+    };
+
+    const convoyeurDetails: PartyDetails = {
+      firstName: mission.convoyeur_first_name,
+      lastName: mission.convoyeur_last_name,
+      phone: mission.convoyeur_phone,
+    };
+
     const tempDiv = document.createElement('div');
     tempDiv.style.position = 'absolute';
     tempDiv.style.left = '-9999px';
@@ -77,6 +107,8 @@ const ClientMissionDetailDialog: React.FC<ClientMissionDetailDialogProps> = ({
           lieu_depart: mission.lieu_depart, 
           lieu_arrivee: mission.lieu_arrivee 
         }} 
+        clientDetails={clientDetails}
+        convoyeurDetails={convoyeurDetails}
       />
     );
 
@@ -136,6 +168,17 @@ const ClientMissionDetailDialog: React.FC<ClientMissionDetailDialogProps> = ({
                     lieu_depart: mission.lieu_depart, 
                     lieu_arrivee: mission.lieu_arrivee 
                   }} 
+                  clientDetails={{
+                    firstName: mission.client_first_name,
+                    lastName: mission.client_last_name,
+                    companyType: mission.client_company_type,
+                    phone: mission.client_phone,
+                  }}
+                  convoyeurDetails={{
+                    firstName: mission.convoyeur_first_name,
+                    lastName: mission.convoyeur_last_name,
+                    phone: mission.convoyeur_phone,
+                  }}
                 />
                 <div className="flex gap-2 mt-4">
                   <Button onClick={handleDownloadDeparturePdf} className="flex-1">Télécharger PDF</Button>
@@ -161,6 +204,17 @@ const ClientMissionDetailDialog: React.FC<ClientMissionDetailDialogProps> = ({
                     lieu_depart: mission.lieu_depart, 
                     lieu_arrivee: mission.lieu_arrivee 
                   }} 
+                  clientDetails={{
+                    firstName: mission.client_first_name,
+                    lastName: mission.client_last_name,
+                    companyType: mission.client_company_type,
+                    phone: mission.client_phone,
+                  }}
+                  convoyeurDetails={{
+                    firstName: mission.convoyeur_first_name,
+                    lastName: mission.convoyeur_last_name,
+                    phone: mission.convoyeur_phone,
+                  }}
                 />
                 <div className="flex gap-2 mt-4">
                   <Button onClick={handleDownloadArrivalPdf} className="flex-1">Télécharger PDF</Button>

@@ -63,6 +63,11 @@ export type Mission = {
   convoyeur_id: string | null;
   convoyeur_first_name?: string | null; // Nouveau champ pour le prénom du convoyeur
   convoyeur_last_name?: string | null;  // Nouveau champ pour le nom du convoyeur
+  convoyeur_phone?: string | null; // NEW: Convoyeur phone
+  client_first_name?: string | null; // NEW: Client first name
+  client_last_name?: string | null; // NEW: Client last name
+  client_company_type?: string | null; // NEW: Client company type
+  client_phone?: string | null; // NEW: Client phone
   heureLimite: string; // ISO string, from DB heure_limite
   commentaires?: string | null; // This will become deprecated, replaced by updates
   photos?: string[] | null; // This will become deprecated, replaced by updates
@@ -98,9 +103,17 @@ export type Profile = {
 type UpdateMissionPayload = Partial<Omit<Mission, 'id' | 'created_at'>>;
 type UpdateProfilePayload = Partial<Omit<Profile, 'id'>>;
 
+// NEW: Type for details passed to PDF display components
+export type PartyDetails = {
+  firstName: string | null;
+  lastName: string | null;
+  companyType?: string | null; // Only for client
+  phone: string | null;
+};
+
 // 2. Définition du type du contexte
 type MissionsContextType = {
-  addMission: (missionData: Omit<Mission, 'id' | 'created_at' | 'statut' | 'convoyeur_id' | 'commentaires' | 'photos' | 'client_price' | 'convoyeur_payout' | 'updates' | 'convoyeur_first_name' | 'convoyeur_last_name' | 'expenses' | 'is_paid' | 'departure_details' | 'arrival_details'> & { client_id: string }) => Promise<void>; // Mis à jour pour client_id et les nouveaux prix
+  addMission: (missionData: Omit<Mission, 'id' | 'created_at' | 'statut' | 'convoyeur_id' | 'commentaires' | 'photos' | 'client_price' | 'convoyeur_payout' | 'updates' | 'convoyeur_first_name' | 'convoyeur_last_name' | 'expenses' | 'is_paid' | 'departure_details' | 'arrival_details' | 'convoyeur_phone' | 'client_first_name' | 'client_last_name' | 'client_company_type' | 'client_phone'> & { client_id: string }) => Promise<void>; // Mis à jour pour client_id et les nouveaux prix
   updateMission: (id: string, payload: UpdateMissionPayload) => Promise<void>; // Generic update function
   updateProfile: (id: string, payload: UpdateProfilePayload) => Promise<void>; // NEW: Generic update function for profiles
   takeMission: (missionId: string, convoyeurId: string) => Promise<void>;
@@ -138,7 +151,7 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
   // Mutation for adding a mission
   const addMissionMutation = useMutation({
-    mutationFn: async (missionData: Omit<Mission, 'id' | 'created_at' | 'statut' | 'convoyeur_id' | 'commentaires' | 'photos' | 'client_price' | 'convoyeur_payout' | 'updates' | 'convoyeur_first_name' | 'convoyeur_last_name' | 'expenses' | 'is_paid' | 'departure_details' | 'arrival_details'> & { client_id: string }) => { // Mis à jour pour client_id
+    mutationFn: async (missionData: Omit<Mission, 'id' | 'created_at' | 'statut' | 'convoyeur_id' | 'commentaires' | 'photos' | 'client_price' | 'convoyeur_payout' | 'updates' | 'convoyeur_first_name' | 'convoyeur_last_name' | 'expenses' | 'is_paid' | 'departure_details' | 'arrival_details' | 'convoyeur_phone' | 'client_first_name' | 'client_last_name' | 'client_company_type' | 'client_phone'> & { client_id: string }) => { // Mis à jour pour client_id
       const { data, error } = await supabase.from('commandes').insert({
         immatriculation: missionData.immatriculation,
         modele: missionData.modele,
@@ -169,7 +182,7 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     },
   });
 
-  const addMission = async (missionData: Omit<Mission, 'id' | 'created_at' | 'statut' | 'convoyeur_id' | 'commentaires' | 'photos' | 'client_price' | 'convoyeur_payout' | 'updates' | 'convoyeur_first_name' | 'convoyeur_last_name' | 'expenses' | 'is_paid' | 'departure_details' | 'arrival_details'> & { client_id: string }) => { // Mis à jour pour client_id
+  const addMission = async (missionData: Omit<Mission, 'id' | 'created_at' | 'statut' | 'convoyeur_id' | 'commentaires' | 'photos' | 'client_price' | 'convoyeur_payout' | 'updates' | 'convoyeur_first_name' | 'convoyeur_last_name' | 'expenses' | 'is_paid' | 'departure_details' | 'arrival_details' | 'convoyeur_phone' | 'client_first_name' | 'client_last_name' | 'client_company_type' | 'client_phone'> & { client_id: string }) => { // Mis à jour pour client_id
     await addMissionMutation.mutateAsync(missionData);
   };
 
@@ -562,7 +575,7 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         // Join with profiles to get convoyeur's first_name and last_name
         const { data, error } = await supabase
           .from('commandes')
-          .select('*, profiles!commandes_convoyeur_id_fkey(first_name, last_name), departure_sheets(*), arrival_sheets(*)') // Explicitly name the join for clarity
+          .select('*, convoyeur_profile:profiles!commandes_convoyeur_id_fkey(first_name, last_name, phone), client_profile:profiles!commandes_client_id_fkey(first_name, last_name, company_type, phone), departure_sheets(*), arrival_sheets(*)') // Explicitly name the join for clarity
           .eq('client_id', userId); // Mis à jour pour client_id
         if (error) throw error;
         return data.map(m => ({
@@ -576,8 +589,13 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
           client_id: m.client_id, // Mis à jour pour client_id
           convoyeur_id: m.convoyeur_id,
           // Map joined profile data to new fields
-          convoyeur_first_name: m.profiles?.first_name || null,
-          convoyeur_last_name: m.profiles?.last_name || null,
+          convoyeur_first_name: m.convoyeur_profile?.first_name || null,
+          convoyeur_last_name: m.convoyeur_profile?.last_name || null,
+          convoyeur_phone: m.convoyeur_profile?.phone || null, // NEW
+          client_first_name: m.client_profile?.first_name || null, // NEW
+          client_last_name: m.client_profile?.last_name || null, // NEW
+          client_company_type: m.client_profile?.company_type || null, // NEW
+          client_phone: m.client_profile?.phone || null, // NEW
           heureLimite: m.heureLimite,
           commentaires: m.commentaires,
           photos: m.photos,
@@ -600,7 +618,7 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       queryKey: ['availableMissions'],
       queryFn: async () => {
         // Only fetch missions where convoyeur_payout is not null AND is_paid is true
-        const { data, error } = await supabase.from('commandes').select('*, departure_sheets(*), arrival_sheets(*)').eq('statut', 'Disponible').not('convoyeur_payout', 'is', null).eq('is_paid', true);
+        const { data, error } = await supabase.from('commandes').select('*, convoyeur_profile:profiles!commandes_convoyeur_id_fkey(first_name, last_name, phone), client_profile:profiles!commandes_client_id_fkey(first_name, last_name, company_type, phone), departure_sheets(*), arrival_sheets(*)').eq('statut', 'Disponible').not('convoyeur_payout', 'is', null).eq('is_paid', true);
         if (error) throw error;
         return data.map(m => ({
           id: m.id,
@@ -612,6 +630,13 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
           statut: m.statut,
           client_id: m.client_id, // Mis à jour pour client_id
           convoyeur_id: m.convoyeur_id,
+          convoyeur_first_name: m.convoyeur_profile?.first_name || null,
+          convoyeur_last_name: m.convoyeur_profile?.last_name || null,
+          convoyeur_phone: m.convoyeur_profile?.phone || null,
+          client_first_name: m.client_profile?.first_name || null,
+          client_last_name: m.client_profile?.last_name || null,
+          client_company_type: m.client_profile?.company_type || null,
+          client_phone: m.client_profile?.phone || null,
           heureLimite: m.heureLimite,
           commentaires: m.commentaires,
           photos: m.photos,
@@ -635,7 +660,7 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         if (!userId) return [];
         const { data, error } = await supabase
           .from('commandes')
-          .select('*, profiles!commandes_convoyeur_id_fkey(first_name, last_name), departure_sheets(*), arrival_sheets(*)') // Select profile data for convoyeur
+          .select('*, convoyeur_profile:profiles!commandes_convoyeur_id_fkey(first_name, last_name, phone), client_profile:profiles!commandes_client_id_fkey(first_name, last_name, company_type, phone), departure_sheets(*), arrival_sheets(*)') // Select profile data for convoyeur
           .eq('convoyeur_id', userId)
           .in('statut', ['en cours', 'livrée'])
           .eq('is_paid', true); // NEW: Only show if paid
@@ -650,8 +675,13 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
           statut: m.statut,
           client_id: m.client_id, // Mis à jour pour client_id
           convoyeur_id: m.convoyeur_id,
-          convoyeur_first_name: m.profiles?.first_name || null, // Map joined profile data
-          convoyeur_last_name: m.profiles?.last_name || null, // Map joined profile data
+          convoyeur_first_name: m.convoyeur_profile?.first_name || null, // Map joined profile data
+          convoyeur_last_name: m.convoyeur_profile?.last_name || null, // Map joined profile data
+          convoyeur_phone: m.convoyeur_profile?.phone || null, // NEW
+          client_first_name: m.client_profile?.first_name || null, // NEW
+          client_last_name: m.client_profile?.last_name || null, // NEW
+          client_company_type: m.client_profile?.company_type || null, // NEW
+          client_phone: m.client_profile?.phone || null, // NEW
           heureLimite: m.heureLimite,
           commentaires: m.commentaires,
           photos: m.photos,
@@ -704,7 +734,7 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       queryKey: ['allMissions'],
       queryFn: async () => {
         // Join with profiles to get convoyeur's first_name and last_name
-        const { data, error } = await supabase.from('commandes').select('*, profiles!commandes_convoyeur_id_fkey(first_name, last_name), departure_sheets(*), arrival_sheets(*)');
+        const { data, error } = await supabase.from('commandes').select('*, convoyeur_profile:profiles!commandes_convoyeur_id_fkey(first_name, last_name, phone), client_profile:profiles!commandes_client_id_fkey(first_name, last_name, company_type, phone), departure_sheets(*), arrival_sheets(*)');
         if (error) throw error;
         return data.map(m => ({
           id: m.id,
@@ -717,8 +747,13 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
           client_id: m.client_id, // Mis à jour pour client_id
           convoyeur_id: m.convoyeur_id,
           // Map joined profile data to new fields
-          convoyeur_first_name: m.profiles?.first_name || null,
-          convoyeur_last_name: m.profiles?.last_name || null,
+          convoyeur_first_name: m.convoyeur_profile?.first_name || null,
+          convoyeur_last_name: m.convoyeur_profile?.last_name || null,
+          convoyeur_phone: m.convoyeur_profile?.phone || null,
+          client_first_name: m.client_profile?.first_name || null,
+          client_last_name: m.client_profile?.last_name || null,
+          client_company_type: m.client_profile?.company_type || null,
+          client_phone: m.client_profile?.phone || null,
           heureLimite: m.heureLimite,
           commentaires: m.commentaires,
           photos: m.photos,
