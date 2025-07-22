@@ -118,31 +118,17 @@ const MyMissions: React.FC<MyMissionsProps> = ({
                   <strong>Rémunération:</strong>{" "}
                   {mission.convoyeur_payout ? `${mission.convoyeur_payout.toFixed(2)} €` : "Non définie"}
                 </p>
-                {mission.statut === 'en cours' && (
-                  <div className="flex flex-col space-y-2">
-                    {!mission.departure_details ? (
-                      <Button onClick={(e) => { e.stopPropagation(); handleOpenDepartureSheetDialog(mission); }} className="w-full">
-                        Remplir Fiche de Départ
-                      </Button>
-                    ) : !mission.arrival_details ? (
-                      <Button onClick={(e) => { e.stopPropagation(); handleOpenArrivalSheetDialog(mission); }} className="w-full">
-                        Remplir Fiche d'Arrivée
-                      </Button>
-                    ) : (
-                      <Button onClick={(e) => { e.stopPropagation(); handleOpenDetailDialog(mission); }} className="w-full">
-                        Voir les détails / Mettre à jour
-                      </Button>
-                    )}
+                <div className="flex flex-col space-y-2">
+                  {/* Always show 'Voir les détails' for 'en cours' or 'livrée' missions */}
+                  <Button onClick={(e) => { e.stopPropagation(); handleOpenDetailDialog(mission); }} className="w-full">
+                    Voir les détails
+                  </Button>
+                  {mission.statut === 'en cours' && (
                     <Button onClick={(e) => { e.stopPropagation(); handleOpenExpenseDialog(mission); }} variant="outline" className="w-full">
                       Ajouter des frais
                     </Button>
-                  </div>
-                )}
-                {mission.statut === 'livrée' && (
-                  <Button onClick={(e) => { e.stopPropagation(); handleOpenDetailDialog(mission); }} variant="outline" className="w-full">
-                    Voir l'historique & Frais
-                  </Button>
-                )}
+                  )}
+                </div>
               </CardContent>
             </Card>
           ))
