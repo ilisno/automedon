@@ -49,6 +49,8 @@ const ClientMissionDetailDialog: React.FC<ClientMissionDetailDialogProps> = ({
           lieu_depart: mission.lieu_depart, 
           lieu_arrivee: mission.lieu_arrivee 
         }} 
+        clientProfile={mission.client_profile || null}
+        convoyeurProfile={mission.convoyeur_profile || null}
       />
     );
 
@@ -77,6 +79,8 @@ const ClientMissionDetailDialog: React.FC<ClientMissionDetailDialogProps> = ({
           lieu_depart: mission.lieu_depart, 
           lieu_arrivee: mission.lieu_arrivee 
         }} 
+        clientProfile={mission.client_profile || null}
+        convoyeurProfile={mission.convoyeur_profile || null}
       />
     );
 
@@ -136,6 +140,8 @@ const ClientMissionDetailDialog: React.FC<ClientMissionDetailDialogProps> = ({
                     lieu_depart: mission.lieu_depart, 
                     lieu_arrivee: mission.lieu_arrivee 
                   }} 
+                  clientProfile={mission.client_profile || null}
+                  convoyeurProfile={mission.convoyeur_profile || null}
                 />
                 <div className="flex gap-2 mt-4">
                   <Button onClick={handleDownloadDeparturePdf} className="flex-1">Télécharger PDF</Button>
@@ -161,6 +167,8 @@ const ClientMissionDetailDialog: React.FC<ClientMissionDetailDialogProps> = ({
                     lieu_depart: mission.lieu_depart, 
                     lieu_arrivee: mission.lieu_arrivee 
                   }} 
+                  clientProfile={mission.client_profile || null}
+                  convoyeurProfile={mission.convoyeur_profile || null}
                 />
                 <div className="flex gap-2 mt-4">
                   <Button onClick={handleDownloadArrivalPdf} className="flex-1">Télécharger PDF</Button>
