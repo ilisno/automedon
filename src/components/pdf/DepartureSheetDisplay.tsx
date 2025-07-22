@@ -1,5 +1,5 @@
 import React from "react";
-import { DepartureSheet, Profile } from "@/context/MissionsContext";
+import { DepartureSheet } from "@/context/MissionsContext";
 
 interface DepartureSheetDisplayProps {
   sheet: DepartureSheet;
@@ -9,45 +9,15 @@ interface DepartureSheetDisplayProps {
     lieu_depart: string;
     lieu_arrivee: string;
   };
-  clientProfile: Profile | null;
-  convoyeurProfile: Profile | null;
 }
 
-const DepartureSheetDisplay: React.FC<DepartureSheetDisplayProps> = ({ sheet, missionDetails, clientProfile, convoyeurProfile }) => {
+const DepartureSheetDisplay: React.FC<DepartureSheetDisplayProps> = ({ sheet, missionDetails }) => {
   return (
     <div className="p-6 bg-white dark:bg-gray-800 rounded-lg shadow-md print-area" id="departure-sheet-pdf">
       <h2 className="text-2xl font-bold text-center mb-6">Fiche de Départ</h2>
       <div className="mb-4 text-center">
         <p className="text-lg font-semibold">{missionDetails.modele} ({missionDetails.immatriculation})</p>
         <p className="text-md text-gray-600 dark:text-gray-400">De: {missionDetails.lieu_depart} à {missionDetails.lieu_arrivee}</p>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-        {clientProfile && (
-          <div className="border p-4 rounded-md">
-            <h3 className="font-bold text-lg mb-2">Informations Client</h3>
-            <table className="w-full text-sm">
-              <tbody>
-                <tr><td className="font-semibold pr-2">Nom:</td><td>{clientProfile.last_name || 'N/A'}</td></tr>
-                <tr><td className="font-semibold pr-2">Prénom:</td><td>{clientProfile.first_name || 'N/A'}</td></tr>
-                <tr><td className="font-semibold pr-2">Société:</td><td>{clientProfile.company_type || 'N/A'}</td></tr>
-                <tr><td className="font-semibold pr-2">N° téléphone:</td><td>{clientProfile.phone || 'N/A'}</td></tr>
-              </tbody>
-            </table>
-          </div>
-        )}
-        {convoyeurProfile && (
-          <div className="border p-4 rounded-md">
-            <h3 className="font-bold text-lg mb-2">Informations Convoyeur</h3>
-            <table className="w-full text-sm">
-              <tbody>
-                <tr><td className="font-semibold pr-2">Nom:</td><td>{convoyeurProfile.last_name || 'N/A'}</td></tr>
-                <tr><td className="font-semibold pr-2">Prénom:</td><td>{convoyeurProfile.first_name || 'N/A'}</td></tr>
-                <tr><td className="font-semibold pr-2">N° téléphone:</td><td>{convoyeurProfile.phone || 'N/A'}</td></tr>
-              </tbody>
-            </table>
-          </div>
-        )}
       </div>
 
       <table className="w-full border-collapse mb-6">
