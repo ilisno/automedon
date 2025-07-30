@@ -6,8 +6,8 @@ interface ConvoyeurTurnoverProps {
 }
 
 const ConvoyeurTurnover: React.FC<ConvoyeurTurnoverProps> = ({ userId }) => {
-  // Correction: Appeler directement useMonthlyTurnover depuis useMissions()
-  const { turnover: monthlyTurnover, isLoading: isLoadingMonthlyTurnover } = useMissions().useMonthlyTurnover(userId);
+  const { useMonthlyTurnover } = useMissions();
+  const { turnover: monthlyTurnover, isLoading: isLoadingMonthlyTurnover } = useMonthlyTurnover(userId);
 
   if (isLoadingMonthlyTurnover) {
     return <p className="text-gray-700 dark:text-gray-300">Chargement du chiffre d'affaires...</p>;
