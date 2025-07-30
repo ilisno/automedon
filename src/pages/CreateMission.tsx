@@ -3,7 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { showSuccess, showError } => "@/utils/toast";
+import { showSuccess, showError } from "@/utils/toast";
 import Header from "@/components/Header";
 import { useMissions } from "@/context/MissionsContext";
 import { supabase } from "@/integrations/supabase/client";
