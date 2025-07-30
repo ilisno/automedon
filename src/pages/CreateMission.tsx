@@ -3,7 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { showSuccess, showError } from "@/utils/toast";
+import { showSuccess, showError } => "@/utils/toast";
 import Header from "@/components/Header";
 import { useMissions } from "@/context/MissionsContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -11,7 +11,8 @@ import { supabase } from "@/integrations/supabase/client";
 const CreateMission = () => {
   const { addMission } = useMissions();
   const navigate = useNavigate();
-  const [clientId, setClientId] = useState<string | null>(null);
+  const [userId, setUserId] = useState<string | null>(null);
+  const [userRole, setUserRole] = useState<'client' | 'convoyeur' | 'admin' | null>(null); // Track user role
   const [loadingUser, setLoadingUser] = useState(true);
 
   const [immatriculation, setImmatriculation] = useState("");
@@ -19,6 +20,8 @@ const CreateMission = () => {
   const [lieu_depart, setLieu_depart] = useState("");
   const [lieu_arrivee, setLieu_arrivee] = useState("");
   const [heureLimite, setHeureLimite] = useState("");
+  const [clientPrice, setClientPrice] = useState<string>(""); // NEW: State for client price
+  const [convoyeurPayout, setConvoyeurPayout] = useState<string>(""); // NEW: State for convoyeur payout
 
   useEffect(() => {
     const fetchUserAndRole = async () => {
@@ -37,13 +40,21 @@ const CreateMission = () => {
         .eq('id', user.id)
         .single();
 
-      if (profileError || !profile || profile.role !== 'client') {
-        showError("Seuls les clients peuvent créer des missions.");
-        navigate("/account"); // Redirect to account page if not a client
+      if (profileError || !profile) {
+        showError("Erreur lors du chargement de votre profil.");
+        navigate("/account");
         return;
       }
 
-      setClientId(user.id);
+      setUserId(user.id);
+      setUserRole(profile.role); // Set the user's role
+
+      if (profile.role !== 'client' && profile.role !== 'admin') { // Allow both client and admin to access
+        showError("Seuls les clients ou administrateurs peuvent créer des missions.");
+        navigate("/account"); // Redirect to account page if not a client or admin
+        return;
+      }
+
       setLoadingUser(false);
     };
     fetchUserAndRole();
@@ -52,8 +63,20 @@ const CreateMission = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!clientId) {
-      showError("Impossible de créer la mission : utilisateur non identifié ou rôle incorrect.");
+    if (!userId) {
+      showError("Impossible de créer la mission : utilisateur non identifié.");
+      return;
+    }
+
+    const parsedClientPrice = parseFloat(clientPrice);
+    const parsedConvoyeurPayout = parseFloat(convoyeurPayout);
+
+    if (isNaN(parsedClientPrice) || parsedClientPrice <= 0) {
+      showError("Veuillez entrer un prix client valide et positif.");
+      return;
+    }
+    if (isNaN(parsedConvoyeurPayout) || parsedConvoyeurPayout <= 0) {
+      showError("Veuillez entrer une rémunération convoyeur valide et positive.");
       return;
     }
 
@@ -64,7 +87,9 @@ const CreateMission = () => {
         lieu_depart,
         lieu_arrivee,
         heureLimite,
-        client_id: clientId,
+        client_id: userId,
+        client_price: parsedClientPrice, // NEW: Pass client price
+        convoyeur_payout: parsedConvoyeurPayout, // NEW: Pass convoyeur payout
       });
 
       // Vider le formulaire
@@ -73,6 +98,8 @@ const CreateMission = () => {
       setLieu_depart("");
       setLieu_arrivee("");
       setHeureLimite("");
+      setClientPrice(""); // NEW: Clear client price
+      setConvoyeurPayout(""); // NEW: Clear convoyeur payout
     } catch (error) {
       // Error handled by useMutation in MissionsContext
     }
@@ -84,6 +111,11 @@ const CreateMission = () => {
         <p className="text-gray-700 dark:text-gray-300">Chargement...</p>
       </div>
     );
+  }
+
+  // Only allow clients and admins to see the form
+  if (userRole !== 'client' && userRole !== 'admin') {
+    return null; // Or a message indicating unauthorized access
   }
 
   return (
@@ -144,6 +176,32 @@ const CreateMission = () => {
                 type="datetime-local"
                 value={heureLimite}
                 onChange={(e) => setHeureLimite(e.target.value)}
+                required
+                className="mt-1"
+              />
+            </div>
+            {/* NEW: Client Price Input */}
+            <div>
+              <Label htmlFor="clientPrice">Prix Client (€)</Label>
+              <Input
+                id="clientPrice"
+                type="number"
+                step="0.01"
+                value={clientPrice}
+                onChange={(e) => setClientPrice(e.target.value)}
+                required
+                className="mt-1"
+              />
+            </div>
+            {/* NEW: Convoyeur Payout Input */}
+            <div>
+              <Label htmlFor="convoyeurPayout">Rémunération Convoyeur (€)</Label>
+              <Input
+                id="convoyeurPayout"
+                type="number"
+                step="0.01"
+                value={convoyeurPayout}
+                onChange={(e) => setConvoyeurPayout(e.target.value)}
                 required
                 className="mt-1"
               />
