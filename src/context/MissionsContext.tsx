@@ -838,6 +838,7 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     useClientMissions,
     useAvailableMissions,
     useConvoyeurMissions,
+    useMonthlyTurnover, // <-- Ajouté ici
     useAllMissions,
     useConvoyeurs,
     useClients,
