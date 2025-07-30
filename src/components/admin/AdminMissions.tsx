@@ -35,7 +35,8 @@ const AdminMissions: React.FC = () => {
       showError("Les prix doivent être des nombres positifs.");
       return;
     }
-    await updateMission(missionId, { client_price: currentClientPrice, convoyeur_payout: currentConvoyeurPayout });
+    // Automatically set is_paid to true when prices are saved
+    await updateMission(missionId, { client_price: currentClientPrice, convoyeur_payout: currentConvoyeurPayout, is_paid: true });
     setEditingMissionId(null);
     setCurrentClientPrice(0);
     setCurrentConvoyeurPayout(0);
