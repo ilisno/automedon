@@ -565,7 +565,7 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         // Join with profiles to get convoyeur's first_name and last_name
         const { data, error } = await supabase
           .from('commandes')
-          .select('*, departure_sheets(*), arrival_sheets(*), client_profile:profiles!commandes_client_id_fkey(*), convoyeur_profile:profiles!commandes_convoyeur_id_fkey(*)') // Explicitly name the join for clarity
+          .select('*, departure_sheets(*), arrival_sheets(*), client_id(profiles(*)), convoyeur_id(profiles(*))') // Simplified select
           .eq('client_id', userId); // Mis à jour pour client_id
         if (error) throw error;
         return data.map(m => ({
@@ -579,8 +579,8 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
           client_id: m.client_id, // Mis à jour pour client_id
           convoyeur_id: m.convoyeur_id,
           // Map joined profile data to new fields
-          convoyeur_first_name: m.convoyeur_profile?.first_name || null, // Use convoyeur_profile
-          convoyeur_last_name: m.convoyeur_profile?.last_name || null,  // Use convoyeur_profile
+          convoyeur_first_name: m.convoyeur_id?.profiles?.[0]?.first_name || null, // Use nested profiles
+          convoyeur_last_name: m.convoyeur_id?.profiles?.[0]?.last_name || null,  // Use nested profiles
           heureLimite: m.heureLimite,
           commentaires: m.commentaires,
           photos: m.photos,
@@ -591,8 +591,8 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
           is_paid: m.is_paid, // Include is_paid
           departure_details: m.departure_sheets?.[0] || null, // NEW: Map departure sheet
           arrival_details: m.arrival_sheets?.[0] || null, // NEW: Map arrival sheet
-          client_profile: m.client_profile || null, // NEW: Map client profile
-          convoyeur_profile: m.convoyeur_profile || null, // NEW: Map convoyeur profile
+          client_profile: m.client_id?.profiles?.[0] || null, // NEW: Map client profile
+          convoyeur_profile: m.convoyeur_id?.profiles?.[0] || null, // NEW: Map convoyeur profile
         }));
       },
       enabled: !!userId,
@@ -605,7 +605,7 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       queryKey: ['availableMissions'],
       queryFn: async () => {
         // Only fetch missions where convoyeur_payout is not null AND is_paid is true
-        const { data, error } = await supabase.from('commandes').select('*, departure_sheets(*), arrival_sheets(*), client_profile:profiles!commandes_client_id_fkey(*), convoyeur_profile:profiles!commandes_convoyeur_id_fkey(*)')
+        const { data, error } = await supabase.from('commandes').select('*, departure_sheets(*), arrival_sheets(*), client_id(profiles(*)), convoyeur_id(profiles(*))') // Simplified select
         .eq('statut', 'Disponible').not('convoyeur_payout', 'is', null).eq('is_paid', true);
         if (error) throw error;
         return data.map(m => ({
@@ -628,8 +628,8 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
           is_paid: m.is_paid, // Include is_paid
           departure_details: m.departure_sheets?.[0] || null, // NEW: Map departure sheet
           arrival_details: m.arrival_sheets?.[0] || null, // NEW: Map arrival sheet
-          client_profile: m.client_profile || null, // NEW: Map client profile
-          convoyeur_profile: m.convoyeur_profile || null, // NEW: Map convoyeur profile
+          client_profile: m.client_id?.profiles?.[0] || null, // NEW: Map client profile
+          convoyeur_profile: m.convoyeur_id?.profiles?.[0] || null, // NEW: Map convoyeur profile
         }));
       },
     });
@@ -643,7 +643,7 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         if (!userId) return [];
         const { data, error } = await supabase
           .from('commandes')
-          .select('*, departure_sheets(*), arrival_sheets(*), client_profile:profiles!commandes_client_id_fkey(*), convoyeur_profile:profiles!commandes_convoyeur_id_fkey(*)') // Select profile data for convoyeur
+          .select('*, departure_sheets(*), arrival_sheets(*), client_id(profiles(*)), convoyeur_id(profiles(*))') // Simplified select
           .eq('convoyeur_id', userId)
           .in('statut', ['en cours', 'livrée'])
           .eq('is_paid', true); // NEW: Only show if paid
@@ -658,8 +658,8 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
           statut: m.statut,
           client_id: m.client_id, // Mis à jour pour client_id
           convoyeur_id: m.convoyeur_id,
-          convoyeur_first_name: m.convoyeur_profile?.first_name || null, // Use convoyeur_profile
-          convoyeur_last_name: m.convoyeur_profile?.last_name || null, // Use convoyeur_profile
+          convoyeur_first_name: m.convoyeur_id?.profiles?.[0]?.first_name || null, // Use nested profiles
+          convoyeur_last_name: m.convoyeur_id?.profiles?.[0]?.last_name || null, // Use nested profiles
           heureLimite: m.heureLimite,
           commentaires: m.commentaires,
           photos: m.photos,
@@ -670,8 +670,8 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
           is_paid: m.is_paid, // Include is_paid
           departure_details: m.departure_sheets?.[0] || null, // NEW: Map departure sheet
           arrival_details: m.arrival_sheets?.[0] || null, // NEW: Map arrival sheet
-          client_profile: m.client_profile || null, // NEW: Map client profile
-          convoyeur_profile: m.convoyeur_profile || null, // NEW: Map convoyeur profile
+          client_profile: m.client_id?.profiles?.[0] || null, // NEW: Map client profile
+          convoyeur_profile: m.convoyeur_id?.profiles?.[0] || null, // NEW: Map convoyeur profile
         }));
       },
       enabled: !!userId,
@@ -714,7 +714,7 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       queryKey: ['allMissions'],
       queryFn: async () => {
         // Join with profiles to get convoyeur's first_name and last_name
-        const { data, error } = await supabase.from('commandes').select('*, departure_sheets(*), arrival_sheets(*), client_profile:profiles!commandes_client_id_fkey(*), convoyeur_profile:profiles!commandes_convoyeur_id_fkey(*)');
+        const { data, error } = await supabase.from('commandes').select('*, departure_sheets(*), arrival_sheets(*), client_id(profiles(*)), convoyeur_id(profiles(*))'); // Simplified select
         if (error) throw error;
         return data.map(m => ({
           id: m.id,
@@ -727,8 +727,8 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
           client_id: m.client_id, // Mis à jour pour client_id
           convoyeur_id: m.convoyeur_id,
           // Map joined profile data to new fields
-          convoyeur_first_name: m.convoyeur_profile?.first_name || null, // Use convoyeur_profile
-          convoyeur_last_name: m.convoyeur_profile?.last_name || null, // Use convoyeur_profile
+          convoyeur_first_name: m.convoyeur_id?.profiles?.[0]?.first_name || null, // Use nested profiles
+          convoyeur_last_name: m.convoyeur_id?.profiles?.[0]?.last_name || null, // Use nested profiles
           heureLimite: m.heureLimite,
           commentaires: m.commentaires,
           photos: m.photos,
@@ -739,8 +739,8 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
           is_paid: m.is_paid, // Include is_paid
           departure_details: m.departure_sheets?.[0] || null, // NEW: Map departure sheet
           arrival_details: m.arrival_sheets?.[0] || null, // NEW: Map arrival sheet
-          client_profile: m.client_profile || null, // NEW: Map client profile
-          convoyeur_profile: m.convoyeur_profile || null, // NEW: Map convoyeur profile
+          client_profile: m.client_id?.profiles?.[0] || null, // NEW: Map client profile
+          convoyeur_profile: m.convoyeur_id?.profiles?.[0] || null, // NEW: Map convoyeur profile
         }));
       },
     });
@@ -838,7 +838,6 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     useClientMissions,
     useAvailableMissions,
     useConvoyeurMissions,
-    useMonthlyTurnover,
     useAllMissions,
     useConvoyeurs,
     useClients,
