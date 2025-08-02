@@ -124,9 +124,21 @@ const MyMissions: React.FC<MyMissionsProps> = ({
                     Voir les détails
                   </Button>
                   {mission.statut === 'en cours' && (
-                    <Button onClick={(e) => { e.stopPropagation(); handleOpenExpenseDialog(mission); }} variant="outline" className="w-full">
-                      Ajouter des frais
-                    </Button>
+                    <>
+                      {!mission.departure_details && (
+                        <Button onClick={(e) => { e.stopPropagation(); handleOpenDepartureSheetDialog(mission); }} variant="outline" className="w-full">
+                          Ajouter Fiche Départ
+                        </Button>
+                      )}
+                      {mission.departure_details && !mission.arrival_details && (
+                        <Button onClick={(e) => { e.stopPropagation(); handleOpenArrivalSheetDialog(mission); }} variant="outline" className="w-full">
+                          Ajouter Fiche Arrivée
+                        </Button>
+                      )}
+                      <Button onClick={(e) => { e.stopPropagation(); handleOpenExpenseDialog(mission); }} variant="outline" className="w-full">
+                        Ajouter des frais
+                      </Button>
+                    </>
                   )}
                 </div>
               </CardContent>
