@@ -10,22 +10,22 @@ import ArrivalSheetForm from "./ArrivalSheetForm";
 
 interface MyMissionsProps {
   userId: string;
-  missionComments: { [key: string]: string };
-  missionPhotos: { [key: string]: string[] };
-  missionPrices: { [key: string]: number };
-  setMissionComments: React.Dispatch<React.SetStateAction<{ [key: string]: string }>>;
-  setMissionPhotos: React.Dispatch<React.SetStateAction<{ [key: string]: string[] }>>;
-  setMissionPrices: React.Dispatch<React.SetStateAction<{ [key: string]: number }>>;
+  // Removed: missionComments: { [key: string]: string };
+  // Removed: missionPhotos: { [key: string]: string[] };
+  // Removed: missionPrices: { [key: string]: number };
+  // Removed: setMissionComments: React.Dispatch<React.SetStateAction<{ [key: string]: string }>>;
+  // Removed: setMissionPhotos: React.Dispatch<React.SetStateAction<{ [key: string]: string[] }>>;
+  // Removed: setMissionPrices: React.Dispatch<React.SetStateAction<{ [key: string]: number }>>;
 }
 
 const MyMissions: React.FC<MyMissionsProps> = ({
   userId,
-  missionComments,
-  missionPhotos,
-  missionPrices,
-  setMissionComments,
-  setMissionPhotos,
-  setMissionPrices,
+  // Removed: missionComments,
+  // Removed: missionPhotos,
+  // Removed: missionPrices,
+  // Removed: setMissionComments,
+  // Removed: setMissionPhotos,
+  // Removed: setMissionPrices,
 }) => {
   // Destructure refetch from useConvoyeurMissions
   const { missions: convoyeurMissions, isLoading: isLoadingConvoyeurMissions, refetch: refetchConvoyeurMissions } = useMissions().useConvoyeurMissions(userId);

@@ -8,15 +8,14 @@ import ConvoyeurProfile from "./ConvoyeurProfile";
 import AvailableMissions from "./AvailableMissions";
 import MyMissions from "./MyMissions";
 import ConvoyeurTurnover from "./ConvoyeurTurnover";
+import { useMissions } from "@/context/MissionsContext"; // Import useMissions to get refetch
 
 const ConvoyeurDashboard = () => {
   const navigate = useNavigate();
   const [userId, setUserId] = useState<string | null>(null);
   const [loadingUser, setLoadingUser] = useState(true);
-
-  const [missionComments, setMissionComments] = useState<{ [key: string]: string }>({});
-  const [missionPhotos, setMissionPhotos] = useState<{ [key: string]: string[] }>({});
-  const [missionPrices, setMissionPrices] = useState<{ [key: string]: number }>({});
+  const { useConvoyeurMissions } = useMissions();
+  const { missions: convoyeurMissions } = useConvoyeurMissions(userId); // Get missions to use for key
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -65,12 +64,7 @@ const ConvoyeurDashboard = () => {
         <TabsContent value="my-missions" className="mt-6">
           <MyMissions
             userId={userId}
-            missionComments={missionComments}
-            missionPhotos={missionPhotos}
-            missionPrices={missionPrices}
-            setMissionComments={setMissionComments}
-            setMissionPhotos={setMissionPhotos}
-            setMissionPrices={setMissionPrices}
+            key={convoyeurMissions?.length} // Force re-render when mission count changes
           />
         </TabsContent>
         <TabsContent value="profile" className="mt-6">
