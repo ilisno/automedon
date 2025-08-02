@@ -10,25 +10,13 @@ import ArrivalSheetForm from "./ArrivalSheetForm";
 
 interface MyMissionsProps {
   userId: string;
-  // Removed: missionComments: { [key: string]: string };
-  // Removed: missionPhotos: { [key: string]: string[] };
-  // Removed: missionPrices: { [key: string]: number };
-  // Removed: setMissionComments: React.Dispatch<React.SetStateAction<{ [key: string]: string }>>;
-  // Removed: setMissionPhotos: React.Dispatch<React.SetStateAction<{ [key: string]: string[] }>>;
-  // Removed: setMissionPrices: React.Dispatch<React.SetStateAction<{ [key: string]: number }>>;
 }
 
 const MyMissions: React.FC<MyMissionsProps> = ({
   userId,
-  // Removed: missionComments,
-  // Removed: missionPhotos,
-  // Removed: missionPrices,
-  // Removed: setMissionComments,
-  // Removed: setMissionPhotos,
-  // Removed: setMissionPrices,
 }) => {
-  // Destructure refetch from useConvoyeurMissions
   const { missions: convoyeurMissions, isLoading: isLoadingConvoyeurMissions, refetch: refetchConvoyeurMissions } = useMissions().useConvoyeurMissions(userId);
+  const queryClient = useMissions().queryClient; // Access queryClient from context
 
   const [isDetailDialogOpen, setIsDetailDialogOpen] = useState(false);
   const [isExpenseDialogOpen, setIsExpenseDialogOpen] = useState(false);
@@ -37,7 +25,6 @@ const MyMissions: React.FC<MyMissionsProps> = ({
   const [selectedMission, setSelectedMission] = useState<Mission | null>(null);
 
   const handleOpenDetailDialog = (mission: Mission) => {
-    // Ensure selectedMission is the latest version from the fetched list
     const latestMission = convoyeurMissions?.find(m => m.id === mission.id) || mission;
     setSelectedMission(latestMission);
     setIsDetailDialogOpen(true);
@@ -83,8 +70,16 @@ const MyMissions: React.FC<MyMissionsProps> = ({
   const handleSheetCreated = async () => {
     handleCloseDepartureSheetDialog();
     handleCloseArrivalSheetDialog();
-    // Explicitly refetch missions to ensure the UI updates with the latest sheet details
-    await refetchConvoyeurMissions();
+    await refetchConvoyeurMissions(); // This refetches the entire list
+
+    // After refetching, find the updated mission and set it as selectedMission
+    if (selectedMission) {
+      const updatedMissions = queryClient.getQueryData(['convoyeurMissions', userId]) as Mission[] | undefined;
+      const latestSelectedMission = updatedMissions?.find(m => m.id === selectedMission.id);
+      if (latestSelectedMission) {
+        setSelectedMission(latestSelectedMission);
+      }
+    }
   };
 
   if (isLoadingConvoyeurMissions) {
@@ -164,7 +159,7 @@ const MyMissions: React.FC<MyMissionsProps> = ({
             <DepartureSheetForm
               missionId={selectedMission.id}
               onSheetCreated={handleSheetCreated}
-              initialData={selectedMission.departure_details || undefined} // Pass existing data for editing
+              initialData={selectedMission.departure_details || undefined}
             />
           )}
         </DialogContent>
@@ -179,7 +174,7 @@ const MyMissions: React.FC<MyMissionsProps> = ({
             <ArrivalSheetForm
               missionId={selectedMission.id}
               onSheetCreated={handleSheetCreated}
-              initialData={selectedMission.arrival_details || undefined} // Pass existing data for editing
+              initialData={selectedMission.arrival_details || undefined}
             />
           )}
         </DialogContent>
