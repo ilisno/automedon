@@ -95,7 +95,7 @@ export type Profile = {
   avatar_url: string | null; // NEW: Add avatar_url to Profile type
 };
 
-type UpdateMissionPayload = Partial<Omit<Mission, 'id' | 'created_at'>>;
+type UpdateMissionPayload = Partial<Omit<Mission, 'id' | 'created_at' | 'departure_details' | 'arrival_details'>>; // Removed departure_details and arrival_details
 type UpdateProfilePayload = Partial<Omit<Profile, 'id'>>;
 
 // 2. Définition du type du contexte
@@ -152,8 +152,7 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         updates: [], // Initialize updates as an empty array
         expenses: [], // Initialize expenses as an empty array
         is_paid: false, // NEW: Initialize is_paid to false
-        departure_details: null, // NEW: Initialize departure_details
-        arrival_details: null, // NEW: Initialize arrival_details
+        // Removed departure_details and arrival_details from insert
       });
       if (error) throw error;
       return data;
@@ -433,8 +432,7 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
       if (error) throw error;
 
-      // Update the mission with the departure_details
-      await updateMission(missionId, { departure_details: data });
+      // Removed: await updateMission(missionId, { departure_details: data });
       return data;
     },
     onSuccess: () => {
@@ -464,7 +462,7 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       const { data, error } = await supabase.from('departure_sheets').update({ ...sheetData, photos: photoUrls }).eq('id', sheetId).select().single();
       if (error) throw error;
 
-      await updateMission(missionId, { departure_details: data });
+      // Removed: await updateMission(missionId, { departure_details: data });
       return data;
     },
     onSuccess: () => {
@@ -504,8 +502,7 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
       if (error) throw error;
 
-      // Update the mission with the arrival_details
-      await updateMission(missionId, { arrival_details: data });
+      // Removed: await updateMission(missionId, { arrival_details: data });
       return data;
     },
     onSuccess: () => {
@@ -535,7 +532,7 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       const { data, error } = await supabase.from('arrival_sheets').update({ ...sheetData, photos: photoUrls }).eq('id', sheetId).select().single();
       if (error) throw error;
 
-      await updateMission(missionId, { arrival_details: data });
+      // Removed: await updateMission(missionId, { arrival_details: data });
       return data;
     },
     onSuccess: () => {
