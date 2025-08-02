@@ -41,7 +41,9 @@ const MyMissions: React.FC<MyMissionsProps> = ({
   const [selectedMission, setSelectedMission] = useState<Mission | null>(null);
 
   const handleOpenDetailDialog = (mission: Mission) => {
-    setSelectedMission(mission);
+    // Ensure selectedMission is the latest version from the fetched list
+    const latestMission = convoyeurMissions?.find(m => m.id === mission.id) || mission;
+    setSelectedMission(latestMission);
     setIsDetailDialogOpen(true);
   };
 
@@ -62,7 +64,9 @@ const MyMissions: React.FC<MyMissionsProps> = ({
 
   // NEW: Handlers for Departure Sheet Dialog
   const handleOpenDepartureSheetDialog = (mission: Mission) => {
-    setSelectedMission(mission);
+    // Ensure selectedMission is the latest version from the fetched list
+    const latestMission = convoyeurMissions?.find(m => m.id === mission.id) || mission;
+    setSelectedMission(latestMission);
     setIsDepartureSheetDialogOpen(true);
   };
 
@@ -73,7 +77,9 @@ const MyMissions: React.FC<MyMissionsProps> = ({
 
   // NEW: Handlers for Arrival Sheet Dialog
   const handleOpenArrivalSheetDialog = (mission: Mission) => {
-    setSelectedMission(mission);
+    // Ensure selectedMission is the latest version from the fetched list
+    const latestMission = convoyeurMissions?.find(m => m.id === mission.id) || mission;
+    setSelectedMission(latestMission);
     setIsArrivalSheetDialogOpen(true);
   };
 
