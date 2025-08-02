@@ -1,16 +1,12 @@
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { useMissions, Mission } from "@/context/MissionsContext";
-import { showSuccess, showError } from "@/utils/toast";
 import MissionDetailDialog from "./MissionDetailDialog";
 import AddExpenseDialog from "./AddExpenseDialog";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"; // Import Dialog components
-import DepartureSheetForm from "./DepartureSheetForm"; // Import DepartureSheetForm
-import ArrivalSheetForm from "./ArrivalSheetForm"; // Import ArrivalSheetForm
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import DepartureSheetForm from "./DepartureSheetForm";
+import ArrivalSheetForm from "./ArrivalSheetForm";
 
 interface MyMissionsProps {
   userId: string;
@@ -31,13 +27,13 @@ const MyMissions: React.FC<MyMissionsProps> = ({
   setMissionPhotos,
   setMissionPrices,
 }) => {
-  const { useConvoyeurMissions } = useMissions();
-  const { missions: convoyeurMissions, isLoading: isLoadingConvoyeurMissions } = useConvoyeurMissions(userId);
+  // Destructure refetch from useConvoyeurMissions
+  const { missions: convoyeurMissions, isLoading: isLoadingConvoyeurMissions, refetch: refetchConvoyeurMissions } = useMissions().useConvoyeurMissions(userId);
 
   const [isDetailDialogOpen, setIsDetailDialogOpen] = useState(false);
   const [isExpenseDialogOpen, setIsExpenseDialogOpen] = useState(false);
-  const [isDepartureSheetDialogOpen, setIsDepartureSheetDialogOpen] = useState(false); // NEW
-  const [isArrivalSheetDialogOpen, setIsArrivalSheetDialogOpen] = useState(false); // NEW
+  const [isDepartureSheetDialogOpen, setIsDepartureSheetDialogOpen] = useState(false);
+  const [isArrivalSheetDialogOpen, setIsArrivalSheetDialogOpen] = useState(false);
   const [selectedMission, setSelectedMission] = useState<Mission | null>(null);
 
   const handleOpenDetailDialog = (mission: Mission) => {
@@ -62,9 +58,7 @@ const MyMissions: React.FC<MyMissionsProps> = ({
     setIsExpenseDialogOpen(false);
   };
 
-  // NEW: Handlers for Departure Sheet Dialog
   const handleOpenDepartureSheetDialog = (mission: Mission) => {
-    // Ensure selectedMission is the latest version from the fetched list
     const latestMission = convoyeurMissions?.find(m => m.id === mission.id) || mission;
     setSelectedMission(latestMission);
     setIsDepartureSheetDialogOpen(true);
@@ -75,9 +69,7 @@ const MyMissions: React.FC<MyMissionsProps> = ({
     setIsDepartureSheetDialogOpen(false);
   };
 
-  // NEW: Handlers for Arrival Sheet Dialog
   const handleOpenArrivalSheetDialog = (mission: Mission) => {
-    // Ensure selectedMission is the latest version from the fetched list
     const latestMission = convoyeurMissions?.find(m => m.id === mission.id) || mission;
     setSelectedMission(latestMission);
     setIsArrivalSheetDialogOpen(true);
@@ -88,11 +80,11 @@ const MyMissions: React.FC<MyMissionsProps> = ({
     setIsArrivalSheetDialogOpen(false);
   };
 
-  // Function to refresh missions after sheet creation
-  const handleSheetCreated = () => {
+  const handleSheetCreated = async () => {
     handleCloseDepartureSheetDialog();
     handleCloseArrivalSheetDialog();
-    // The useConvoyeurMissions hook will automatically re-fetch due to queryClient.invalidateQueries in MissionsContext
+    // Explicitly refetch missions to ensure the UI updates with the latest sheet details
+    await refetchConvoyeurMissions();
   };
 
   if (isLoadingConvoyeurMissions) {
@@ -125,7 +117,6 @@ const MyMissions: React.FC<MyMissionsProps> = ({
                   {mission.convoyeur_payout ? `${mission.convoyeur_payout.toFixed(2)} €` : "Non définie"}
                 </p>
                 <div className="flex flex-col space-y-2">
-                  {/* Always show 'Voir les détails' for 'en cours' or 'livrée' missions */}
                   <Button onClick={(e) => { e.stopPropagation(); handleOpenDetailDialog(mission); }} className="w-full">
                     Voir les détails
                   </Button>
@@ -164,26 +155,32 @@ const MyMissions: React.FC<MyMissionsProps> = ({
         onClose={handleCloseExpenseDialog}
       />
 
-      {/* NEW: Departure Sheet Dialog */}
       <Dialog open={isDepartureSheetDialogOpen} onOpenChange={setIsDepartureSheetDialogOpen}>
         <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Fiche de Départ pour {selectedMission?.modele}</DialogTitle>
           </DialogHeader>
           {selectedMission && (
-            <DepartureSheetForm missionId={selectedMission.id} onSheetCreated={handleSheetCreated} />
+            <DepartureSheetForm
+              missionId={selectedMission.id}
+              onSheetCreated={handleSheetCreated}
+              initialData={selectedMission.departure_details || undefined} // Pass existing data for editing
+            />
           )}
         </DialogContent>
       </Dialog>
 
-      {/* NEW: Arrival Sheet Dialog */}
       <Dialog open={isArrivalSheetDialogOpen} onOpenChange={setIsArrivalSheetDialogOpen}>
         <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Fiche d'Arrivée pour {selectedMission?.modele}</DialogTitle>
           </DialogHeader>
           {selectedMission && (
-            <ArrivalSheetForm missionId={selectedMission.id} onSheetCreated={handleSheetCreated} />
+            <ArrivalSheetForm
+              missionId={selectedMission.id}
+              onSheetCreated={handleSheetCreated}
+              initialData={selectedMission.arrival_details || undefined} // Pass existing data for editing
+            />
           )}
         </DialogContent>
       </Dialog>
