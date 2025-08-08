@@ -5,16 +5,15 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useMissions, ArrivalSheet } from "@/context/MissionsContext";
 import { showError, showSuccess } from "@/utils/toast";
-import { supabase } from "@/integrations/supabase/client"; // Added missing import
 
 interface ArrivalSheetFormProps {
   missionId: string;
   onSheetCreated: () => void;
-  initialData?: ArrivalSheet; // NEW: Optional prop for initial data
+  initialData?: ArrivalSheet;
 }
 
 const ArrivalSheetForm: React.FC<ArrivalSheetFormProps> = ({ missionId, onSheetCreated, initialData }) => {
-  const { createArrivalSheet, updateMission } = useMissions(); // Add updateMission
+  const { createArrivalSheet, updateArrivalSheet } = useMissions();
   const [mileage, setMileage] = useState<string>("");
   const [fuelLevel, setFuelLevel] = useState<string>("");
   const [interiorCleanliness, setInteriorCleanliness] = useState<string>("");
@@ -34,7 +33,7 @@ const ArrivalSheetForm: React.FC<ArrivalSheetFormProps> = ({ missionId, onSheetC
       setGeneralCondition(initialData.general_condition);
       setConvoyeurSignatureName(initialData.convoyeur_signature_name);
       setClientSignatureName(initialData.client_signature_name);
-      // Note: Photos are not pre-filled for security/complexity reasons, user re-uploads if needed
+      // Photos are not pre-filled for security/complexity reasons, user re-uploads if needed
     } else {
       // Reset form if no initial data (for new sheet creation)
       setMileage("");
@@ -57,15 +56,15 @@ const ArrivalSheetForm: React.FC<ArrivalSheetFormProps> = ({ missionId, onSheetC
     const parsedExteriorCleanliness = parseInt(exteriorCleanliness);
 
     if (
-      isNaN(parsedMileage) ||
+      isNaN(parsedMileage) || parsedMileage <= 0 ||
       isNaN(parsedFuelLevel) || parsedFuelLevel < 1 || parsedFuelLevel > 8 ||
       isNaN(parsedInteriorCleanliness) || parsedInteriorCleanliness < 1 || parsedInteriorCleanliness > 8 ||
       isNaN(parsedExteriorCleanliness) || parsedExteriorCleanliness < 1 || parsedExteriorCleanliness > 8 ||
-      !generalCondition ||
-      !convoyeurSignatureName ||
-      !clientSignatureName
+      !generalCondition.trim() ||
+      !convoyeurSignatureName.trim() ||
+      !clientSignatureName.trim()
     ) {
-      showError("Veuillez remplir tous les champs obligatoires avec des valeurs valides (notes entre 1 et 8).");
+      showError("Veuillez remplir tous les champs obligatoires avec des valeurs valides (kilométrage > 0, notes entre 1 et 8).");
       return;
     }
 
@@ -76,25 +75,17 @@ const ArrivalSheetForm: React.FC<ArrivalSheetFormProps> = ({ missionId, onSheetC
         fuel_level: parsedFuelLevel,
         interior_cleanliness: parsedInteriorCleanliness,
         exterior_cleanliness: parsedExteriorCleanliness,
-        general_condition: generalCondition,
-        convoyeur_signature_name: convoyeurSignatureName,
-        client_signature_name: clientSignatureName,
+        general_condition: generalCondition.trim(),
+        convoyeur_signature_name: convoyeurSignatureName.trim(),
+        client_signature_name: clientSignatureName.trim(),
       };
 
       if (initialData) {
-        // Update existing sheet
-        let photoUrls = initialData.photos;
-        if (photos && photos.length > 0) {
-          photoUrls = await useMissions().uploadSheetPhotos(missionId, 'arrival', photos);
-        }
-        const { error } = await supabase.from('arrival_sheets').update({ ...sheetData, photos: photoUrls }).eq('id', initialData.id);
-        if (error) throw error;
-        showSuccess("Fiche d'arrivée mise à jour avec succès !");
+        await updateArrivalSheet(initialData.id, missionId, sheetData, photos);
       } else {
-        // Create new sheet
         await createArrivalSheet(missionId, sheetData, photos);
       }
-      onSheetCreated(); // Callback to notify parent component
+      onSheetCreated();
     } catch (error) {
       console.error("Error processing arrival sheet:", error);
       showError("Erreur lors de l'enregistrement de la fiche d'arrivée.");
