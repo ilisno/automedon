@@ -321,7 +321,7 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         throw error;
       } else {
         const { data: publicUrlData } = supabase.storage.from('sheet-photos').getPublicUrl(filePath);
-        return publicUrlData.publicUrl; // Return single URL for each file
+        uploadedUrls.push(publicUrlData.publicUrl); // Collect all URLs
       }
     }
     return uploadedUrls;
@@ -451,10 +451,11 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   // NEW: Mutation for updating a departure sheet
   const updateDepartureSheetMutation = useMutation({
     mutationFn: async ({ sheetId, missionId, sheetData, photos }: { sheetId: string; missionId: string; sheetData: Omit<DepartureSheet, 'id' | 'created_at' | 'mission_id' | 'photos'>; photos: FileList | null }) => {
-      let photoUrls: string[] = sheetData.photos || []; // Start with existing photos if any
+      let photoUrls: string[] = []; // Start with empty, new photos will replace/add
       if (photos && photos.length > 0) {
-        const newPhotos = await uploadSheetPhotos(missionId, 'departure', photos);
-        photoUrls = [...photoUrls, ...newPhotos]; // Append new photos
+        photoUrls = await uploadSheetPhotos(missionId, 'departure', photos);
+      } else if (sheetData.photos) { // If no new photos, keep existing ones if passed in sheetData
+        photoUrls = sheetData.photos;
       }
 
       const { data, error } = await supabase.from('departure_sheets').update({ ...sheetData, photos: photoUrls }).eq('id', sheetId).select().single();
@@ -517,10 +518,11 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   // NEW: Mutation for updating an arrival sheet
   const updateArrivalSheetMutation = useMutation({
     mutationFn: async ({ sheetId, missionId, sheetData, photos }: { sheetId: string; missionId: string; sheetData: Omit<ArrivalSheet, 'id' | 'created_at' | 'mission_id' | 'photos'>; photos: FileList | null }) => {
-      let photoUrls: string[] = sheetData.photos || []; // Start with existing photos if any
+      let photoUrls: string[] = []; // Start with empty, new photos will replace/add
       if (photos && photos.length > 0) {
-        const newPhotos = await uploadSheetPhotos(missionId, 'arrival', photos);
-        photoUrls = [...photoUrls, ...newPhotos]; // Append new photos
+        photoUrls = await uploadSheetPhotos(missionId, 'arrival', photos);
+      } else if (sheetData.photos) { // If no new photos, keep existing ones if passed in sheetData
+        photoUrls = sheetData.photos;
       }
 
       const { data, error } = await supabase.from('arrival_sheets').update({ ...sheetData, photos: photoUrls }).eq('id', sheetId).select().single();
@@ -755,16 +757,20 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     const { data, isLoading, refetch } = useQuery<DepartureSheet | null>({
       queryKey: ['departureSheet', missionId],
       queryFn: async () => {
-        if (!missionId) return null;
+        if (!missionId) {
+          console.log(`useDepartureSheet: No missionId provided.`);
+          return null;
+        }
         const { data, error } = await supabase
           .from('departure_sheets')
           .select('*')
           .eq('mission_id', missionId)
           .single();
         if (error && error.code !== 'PGRST116') { // PGRST116 means no rows found
-          console.error("Error fetching departure sheet:", error);
+          console.error(`useDepartureSheet: Error fetching sheet for mission ${missionId}:`, error);
           throw error;
         }
+        console.log(`useDepartureSheet: Sheet for mission ${missionId} found:`, !!data);
         return data || null;
       },
       enabled: !!missionId,
@@ -777,16 +783,20 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     const { data, isLoading, refetch } = useQuery<ArrivalSheet | null>({
       queryKey: ['arrivalSheet', missionId],
       queryFn: async () => {
-        if (!missionId) return null;
+        if (!missionId) {
+          console.log(`useArrivalSheet: No missionId provided.`);
+          return null;
+        }
         const { data, error } = await supabase
           .from('arrival_sheets')
           .select('*')
           .eq('mission_id', missionId)
           .single();
         if (error && error.code !== 'PGRST116') { // PGRST116 means no rows found
-          console.error("Error fetching arrival sheet:", error);
+          console.error(`useArrivalSheet: Error fetching sheet for mission ${missionId}:`, error);
           throw error;
         }
+        console.log(`useArrivalSheet: Sheet for mission ${missionId} found:`, !!data);
         return data || null;
       },
       enabled: !!missionId,

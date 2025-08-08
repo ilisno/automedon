@@ -16,7 +16,7 @@ const MyMissions: React.FC<MyMissionsProps> = ({
   userId,
 }) => {
   const { missions: convoyeurMissions, isLoading: isLoadingConvoyeurMissions, refetch: refetchConvoyeurMissions } = useMissions().useConvoyeurMissions(userId);
-  const queryClient = useMissions().queryClient; // Access queryClient from context
+  // Removed direct access to queryClient as it's not exposed by the context
 
   const [isDetailDialogOpen, setIsDetailDialogOpen] = useState(false);
   const [isExpenseDialogOpen, setIsExpenseDialogOpen] = useState(false);
@@ -25,9 +25,11 @@ const MyMissions: React.FC<MyMissionsProps> = ({
   const [selectedMission, setSelectedMission] = useState<Mission | null>(null);
 
   const handleOpenDetailDialog = (mission: Mission) => {
+    // Ensure we use the latest mission data from the fetched list
     const latestMission = convoyeurMissions?.find(m => m.id === mission.id) || mission;
     setSelectedMission(latestMission);
     setIsDetailDialogOpen(true);
+    console.log(`MyMissions: Opening detail dialog for mission ${mission.id}. Departure sheet exists: ${!!latestMission.departure_details}, Arrival sheet exists: ${!!latestMission.arrival_details}`);
   };
 
   const handleCloseDetailDialog = () => {
@@ -49,6 +51,7 @@ const MyMissions: React.FC<MyMissionsProps> = ({
     const latestMission = convoyeurMissions?.find(m => m.id === mission.id) || mission;
     setSelectedMission(latestMission);
     setIsDepartureSheetDialogOpen(true);
+    console.log(`MyMissions: Opening departure sheet dialog for mission ${mission.id}. Current departure sheet:`, latestMission.departure_details);
   };
 
   const handleCloseDepartureSheetDialog = () => {
@@ -60,6 +63,7 @@ const MyMissions: React.FC<MyMissionsProps> = ({
     const latestMission = convoyeurMissions?.find(m => m.id === mission.id) || mission;
     setSelectedMission(latestMission);
     setIsArrivalSheetDialogOpen(true);
+    console.log(`MyMissions: Opening arrival sheet dialog for mission ${mission.id}. Current arrival sheet:`, latestMission.arrival_details);
   };
 
   const handleCloseArrivalSheetDialog = () => {
@@ -70,16 +74,9 @@ const MyMissions: React.FC<MyMissionsProps> = ({
   const handleSheetCreated = async () => {
     handleCloseDepartureSheetDialog();
     handleCloseArrivalSheetDialog();
-    await refetchConvoyeurMissions(); // This refetches the entire list
-
-    // After refetching, find the updated mission and set it as selectedMission
-    if (selectedMission) {
-      const updatedMissions = queryClient.getQueryData(['convoyeurMissions', userId]) as Mission[] | undefined;
-      const latestSelectedMission = updatedMissions?.find(m => m.id === selectedMission.id);
-      if (latestSelectedMission) {
-        setSelectedMission(latestSelectedMission);
-      }
-    }
+    await refetchConvoyeurMissions(); // This refetches the entire list and updates `convoyeurMissions` state
+    // No need to manually update selectedMission here, as the dialog is closed.
+    // When it's re-opened, it will fetch the latest from `convoyeurMissions`.
   };
 
   if (isLoadingConvoyeurMissions) {
@@ -93,50 +90,52 @@ const MyMissions: React.FC<MyMissionsProps> = ({
         {convoyeurMissions && convoyeurMissions.length === 0 ? (
           <p className="col-span-full text-center text-gray-600 dark:text-gray-400">Vous n'avez pas de missions en cours ou livrées.</p>
         ) : (
-          convoyeurMissions?.map((mission) => (
-            <Card key={mission.id} className="w-full bg-white dark:bg-gray-800 shadow-lg">
-              <CardHeader>
-                <CardTitle className="text-xl font-semibold">{mission.modele} ({mission.immatriculation})</CardTitle>
-                <CardDescription className="text-gray-600 dark:text-gray-400">
-                  De: {mission.lieu_depart} à {mission.lieu_arrivee}
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <p><strong>Statut:</strong> <span className={`font-medium ${
-                  mission.statut === 'en cours' ? 'text-orange-600 dark:text-orange-400' :
-                  'text-green-600 dark:text-green-400'
-                }`}>{mission.statut}</span></p>
-                <p><strong>Heure limite:</strong> {new Date(mission.heureLimite).toLocaleString()}</p>
-                <p>
-                  <strong>Rémunération:</strong>{" "}
-                  {mission.convoyeur_payout ? `${mission.convoyeur_payout.toFixed(2)} €` : "Non définie"}
-                </p>
-                <div className="flex flex-col space-y-2">
-                  <Button onClick={(e) => { e.stopPropagation(); handleOpenDetailDialog(mission); }} className="w-full">
-                    Voir les détails
-                  </Button>
-                  {mission.statut === 'en cours' && (
-                    <>
-                      {!mission.departure_details && (
-                        <Button onClick={(e) => { e.stopPropagation(); handleOpenDepartureSheetDialog(mission); }} variant="outline" className="w-full">
-                          Ajouter Fiche Départ
+          convoyeurMissions?.map((mission) => {
+            console.log(`MyMissions: Rendering mission ${mission.id}. Departure details:`, mission.departure_details, `Arrival details:`, mission.arrival_details);
+            return (
+              <Card key={mission.id} className="w-full bg-white dark:bg-gray-800 shadow-lg">
+                <CardHeader>
+                  <CardTitle className="text-xl font-semibold">{mission.modele} ({mission.immatriculation})</CardTitle>
+                  <CardDescription className="text-gray-600 dark:text-gray-400">
+                    De: {mission.lieu_depart} à {mission.lieu_arrivee}
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <p><strong>Statut:</strong> <span className={`font-medium ${
+                    mission.statut === 'en cours' ? 'text-orange-600 dark:text-orange-400' :
+                    'text-green-600 dark:text-green-400'
+                  }`}>{mission.statut}</span></p>
+                  <p><strong>Heure limite:</strong> {new Date(mission.heureLimite).toLocaleString()}</p>
+                  <p>
+                    <strong>Rémunération:</strong>{" "}
+                    {mission.convoyeur_payout ? `${mission.convoyeur_payout.toFixed(2)} €` : "Non définie"}
+                  </p>
+                  <div className="flex flex-col space-y-2">
+                    <Button onClick={(e) => { e.stopPropagation(); handleOpenDetailDialog(mission); }} className="w-full">
+                      Voir les détails
+                    </Button>
+                    {mission.statut === 'en cours' && (
+                      <>
+                        {!mission.departure_details && ( // Only show if departure sheet does NOT exist
+                          <Button onClick={(e) => { e.stopPropagation(); handleOpenDepartureSheetDialog(mission); }} variant="outline" className="w-full">
+                            Ajouter Fiche Départ
+                          </Button>
+                        )}
+                        {mission.departure_details && ( // Always show if departure sheet DOES exist
+                          <Button onClick={(e) => { e.stopPropagation(); handleOpenArrivalSheetDialog(mission); }} variant="outline" className="w-full">
+                            Ajouter Fiche Arrivée
+                          </Button>
+                        )}
+                        <Button onClick={(e) => { e.stopPropagation(); handleOpenExpenseDialog(mission); }} variant="outline" className="w-full">
+                          Ajouter des frais
                         </Button>
-                      )}
-                      {/* Always show "Ajouter Fiche Arrivée" if departure_details exists */}
-                      {mission.departure_details && (
-                        <Button onClick={(e) => { e.stopPropagation(); handleOpenArrivalSheetDialog(mission); }} variant="outline" className="w-full">
-                          Ajouter Fiche Arrivée
-                        </Button>
-                      )}
-                      <Button onClick={(e) => { e.stopPropagation(); handleOpenExpenseDialog(mission); }} variant="outline" className="w-full">
-                        Ajouter des frais
-                      </Button>
-                    </>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          ))
+                      </>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            );
+          })
         )}
       </div>
       <MissionDetailDialog
