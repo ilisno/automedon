@@ -116,17 +116,17 @@ type MissionsContextType = {
   createArrivalSheet: (missionId: string, sheetData: Omit<ArrivalSheet, 'id' | 'created_at' | 'mission_id' | 'photos'>, photos: FileList | null) => Promise<void>;
   updateArrivalSheet: (sheetId: string, missionId: string, sheetData: Omit<ArrivalSheet, 'id' | 'created_at' | 'mission_id' | 'photos'>, photos: FileList | null) => Promise<void>; // NEW
   uploadSheetPhotos: (missionId: string, sheetType: 'departure' | 'arrival', files: FileList) => Promise<string[]>;
-  useDepartureSheet: (missionId: string | undefined) => { sheet: DepartureSheet | null; isLoading: boolean; };
-  useArrivalSheet: (missionId: string | undefined) => { sheet: ArrivalSheet | null; isLoading: boolean; };
-
-  // Hooks pour récupérer les missions et profils
-  useClientMissions: (userId: string | undefined) => { missions: Mission[] | undefined; isLoading: boolean; };
-  useAvailableMissions: () => { missions: Mission[] | undefined; isLoading: boolean; };
-  useConvoyeurMissions: (userId: string | undefined) => { missions: Mission[] | undefined; isLoading: boolean; };
-  useMonthlyTurnover: (convoyeurId: string | undefined) => { turnover: number; isLoading: boolean; };
-  useAllMissions: () => { missions: Mission[] | undefined; isLoading: boolean; }; // New hook for all missions
-  useConvoyeurs: () => { profiles: Profile[] | undefined; isLoading: boolean; }; // New hook for all convoyeurs
-  useClients: () => { profiles: Profile[] | undefined; isLoading: boolean; }; // New hook for all clients
+  
+  // Hooks pour récupérer les missions et profils (maintenant avec refetch)
+  useDepartureSheet: (missionId: string | undefined) => { sheet: DepartureSheet | null; isLoading: boolean; refetch: () => Promise<any>; };
+  useArrivalSheet: (missionId: string | undefined) => { sheet: ArrivalSheet | null; isLoading: boolean; refetch: () => Promise<any>; };
+  useClientMissions: (userId: string | undefined) => { missions: Mission[] | undefined; isLoading: boolean; refetch: () => Promise<any>; };
+  useAvailableMissions: () => { missions: Mission[] | undefined; isLoading: boolean; refetch: () => Promise<any>; };
+  useConvoyeurMissions: (userId: string | undefined) => { missions: Mission[] | undefined; isLoading: boolean; refetch: () => Promise<any>; };
+  useMonthlyTurnover: (convoyeurId: string | undefined) => { turnover: number; isLoading: boolean; refetch: () => Promise<any>; };
+  useAllMissions: () => { missions: Mission[] | undefined; isLoading: boolean; refetch: () => Promise<any>; }; // New hook for all missions
+  useConvoyeurs: () => { profiles: Profile[] | undefined; isLoading: boolean; refetch: () => Promise<any>; }; // New hook for all convoyeurs
+  useClients: () => { profiles: Profile[] | undefined; isLoading: boolean; refetch: () => Promise<any>; }; // New hook for all clients
 };
 
 // 3. Création du contexte
@@ -321,7 +321,7 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         throw error;
       } else {
         const { data: publicUrlData } = supabase.storage.from('sheet-photos').getPublicUrl(filePath);
-        uploadedUrls.push(publicUrlData.publicUrl);
+        return publicUrlData.publicUrl; // Return single URL for each file
       }
     }
     return uploadedUrls;
@@ -431,8 +431,6 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       }).select().single(); // Select the inserted row to get its ID
 
       if (error) throw error;
-
-      // Removed: await updateMission(missionId, { departure_details: data });
       return data;
     },
     onSuccess: () => {
@@ -461,8 +459,6 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
       const { data, error } = await supabase.from('departure_sheets').update({ ...sheetData, photos: photoUrls }).eq('id', sheetId).select().single();
       if (error) throw error;
-
-      // Removed: await updateMission(missionId, { departure_details: data });
       return data;
     },
     onSuccess: () => {
@@ -501,8 +497,6 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       }).select().single(); // Select the inserted row to get its ID
 
       if (error) throw error;
-
-      // Removed: await updateMission(missionId, { arrival_details: data });
       return data;
     },
     onSuccess: () => {
@@ -531,8 +525,6 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
       const { data, error } = await supabase.from('arrival_sheets').update({ ...sheetData, photos: photoUrls }).eq('id', sheetId).select().single();
       if (error) throw error;
-
-      // Removed: await updateMission(missionId, { arrival_details: data });
       return data;
     },
     onSuccess: () => {
@@ -552,7 +544,7 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
   // Hooks pour récupérer les missions
   const useClientMissions = (userId: string | undefined) => {
-    const { data, isLoading } = useQuery<Mission[]>({
+    const { data, isLoading, refetch } = useQuery<Mission[]>({
       queryKey: ['clientMissions', userId],
       queryFn: async () => {
         if (!userId) return [];
@@ -589,11 +581,11 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       },
       enabled: !!userId,
     });
-    return { missions: data, isLoading };
+    return { missions: data, isLoading, refetch };
   };
 
   const useAvailableMissions = () => {
-    const { data, isLoading } = useQuery<Mission[]>({
+    const { data, isLoading, refetch } = useQuery<Mission[]>({
       queryKey: ['availableMissions'],
       queryFn: async () => {
         // Only fetch missions where convoyeur_payout is not null AND is_paid is true
@@ -622,11 +614,11 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         }));
       },
     });
-    return { missions: data, isLoading };
+    return { missions: data, isLoading, refetch };
   };
 
   const useConvoyeurMissions = (userId: string | undefined) => {
-    const { data, isLoading } = useQuery<Mission[]>({
+    const { data, isLoading, refetch } = useQuery<Mission[]>({
       queryKey: ['convoyeurMissions', userId],
       queryFn: async () => {
         if (!userId) return [];
@@ -663,11 +655,11 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       },
       enabled: !!userId,
     });
-    return { missions: data, isLoading };
+    return { missions: data, isLoading, refetch };
   };
 
   const useMonthlyTurnover = (convoyeurId: string | undefined) => {
-    const { data, isLoading } = useQuery<number>({
+    const { data, isLoading, refetch } = useQuery<number>({
       queryKey: ['monthlyTurnover', convoyeurId],
       queryFn: async () => {
         if (!convoyeurId) return 0;
@@ -692,12 +684,12 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       },
       enabled: !!convoyeurId,
     });
-    return { turnover: data || 0, isLoading };
+    return { turnover: data || 0, isLoading, refetch };
   };
 
   // New hook to fetch all missions for admin
   const useAllMissions = () => {
-    const { data, isLoading } = useQuery<Mission[]>({
+    const { data, isLoading, refetch } = useQuery<Mission[]>({
       queryKey: ['allMissions'],
       queryFn: async () => {
         // Join with profiles to get convoyeur's first_name and last_name
@@ -729,12 +721,12 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         }));
       },
     });
-    return { missions: data, isLoading };
+    return { missions: data, isLoading, refetch };
   };
 
   // New hook to fetch all convoyeur profiles
   const useConvoyeurs = () => {
-    const { data, isLoading } = useQuery<Profile[]>({
+    const { data, isLoading, refetch } = useQuery<Profile[]>({
       queryKey: ['convoyeurs'],
       queryFn: async () => {
         const { data, error } = await supabase.from('profiles').select('*').eq('role', 'convoyeur');
@@ -742,12 +734,12 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         return data;
       },
     });
-    return { profiles: data, isLoading };
+    return { profiles: data, isLoading, refetch };
   };
 
   // New hook to fetch all client profiles
   const useClients = () => {
-    const { data, isLoading } = useQuery<Profile[]>({
+    const { data, isLoading, refetch } = useQuery<Profile[]>({
       queryKey: ['clients'],
       queryFn: async () => {
         const { data, error } = await supabase.from('profiles').select('*').eq('role', 'client');
@@ -755,12 +747,12 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         return data;
       },
     });
-    return { profiles: data, isLoading };
+    return { profiles: data, isLoading, refetch };
   };
 
   // NEW: Hook to fetch a specific departure sheet
   const useDepartureSheet = (missionId: string | undefined) => {
-    const { data, isLoading } = useQuery<DepartureSheet | null>({
+    const { data, isLoading, refetch } = useQuery<DepartureSheet | null>({
       queryKey: ['departureSheet', missionId],
       queryFn: async () => {
         if (!missionId) return null;
@@ -777,12 +769,12 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       },
       enabled: !!missionId,
     });
-    return { sheet: data, isLoading };
+    return { sheet: data, isLoading, refetch };
   };
 
   // NEW: Hook to fetch a specific arrival sheet
   const useArrivalSheet = (missionId: string | undefined) => {
-    const { data, isLoading } = useQuery<ArrivalSheet | null>({
+    const { data, isLoading, refetch } = useQuery<ArrivalSheet | null>({
       queryKey: ['arrivalSheet', missionId],
       queryFn: async () => {
         if (!missionId) return null;
@@ -799,7 +791,7 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       },
       enabled: !!missionId,
     });
-    return { sheet: data, isLoading };
+    return { sheet: data, isLoading, refetch };
   };
 
 
