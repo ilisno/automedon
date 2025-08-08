@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { useMissions, Mission } from "@/context/MissionsContext";
 import MissionDetailDialog from "./MissionDetailDialog";
 import AddExpenseDialog from "./AddExpenseDialog";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription as ShadcnDialogDescription } from "@/components/ui/dialog"; // Import DialogDescription
 import DepartureSheetForm from "./DepartureSheetForm";
 import ArrivalSheetForm from "./ArrivalSheetForm";
 
@@ -154,6 +154,9 @@ const MyMissions: React.FC<MyMissionsProps> = ({
         <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Fiche de Départ pour {selectedMission?.modele}</DialogTitle>
+            <ShadcnDialogDescription>
+              Veuillez remplir les détails de la fiche de départ pour cette mission.
+            </ShadcnDialogDescription>
           </DialogHeader>
           {selectedMission && (
             <DepartureSheetForm
@@ -169,6 +172,9 @@ const MyMissions: React.FC<MyMissionsProps> = ({
         <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Fiche d'Arrivée pour {selectedMission?.modele}</DialogTitle>
+            <ShadcnDialogDescription>
+              Veuillez remplir les détails de la fiche d'arrivée pour cette mission.
+            </ShadcnDialogDescription>
           </DialogHeader>
           {selectedMission && (
             <ArrivalSheetForm

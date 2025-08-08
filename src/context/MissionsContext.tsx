@@ -624,36 +624,62 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       queryKey: ['convoyeurMissions', userId],
       queryFn: async () => {
         if (!userId) return [];
-        const { data, error } = await supabase
+        const { data: missionsData, error: missionsError } = await supabase
           .from('commandes')
-          .select('*, profiles!commandes_convoyeur_id_fkey(first_name, last_name), departure_sheets(*), arrival_sheets(*)') // Select profile data for convoyeur
+          .select('*, profiles!commandes_convoyeur_id_fkey(first_name, last_name)') // Select profile data for convoyeur
           .eq('convoyeur_id', userId)
           .in('statut', ['en cours', 'livrée'])
           .eq('is_paid', true); // NEW: Only show if paid
-        if (error) throw error;
-        return data.map(m => ({
-          id: m.id,
-          created_at: m.created_at,
-          immatriculation: m.immatriculation,
-          modele: m.modele,
-          lieu_depart: m.lieu_depart,
-          lieu_arrivee: m.lieu_arrivee,
-          statut: m.statut,
-          client_id: m.client_id, // Mis à jour pour client_id
-          convoyeur_id: m.convoyeur_id,
-          convoyeur_first_name: m.profiles?.first_name || null, // Map joined profile data
-          convoyeur_last_name: m.profiles?.last_name || null, // Map joined profile data
-          heureLimite: m.heureLimite,
-          commentaires: m.commentaires,
-          photos: m.photos,
-          client_price: m.client_price, // Include client_price
-          convoyeur_payout: m.convoyeur_payout, // Include convoyeur_payout
-          updates: m.updates,
-          expenses: m.expenses, // Include expenses
-          is_paid: m.is_paid, // Include is_paid
-          departure_details: m.departure_sheets?.[0] || null, // NEW: Map departure sheet
-          arrival_details: m.arrival_sheets?.[0] || null, // NEW: Map arrival sheet
+        
+        if (missionsError) throw missionsError;
+
+        // Explicitly fetch departure and arrival sheets for each mission
+        const missionsWithSheets = await Promise.all(missionsData.map(async (m) => {
+          const { data: departureSheet, error: depError } = await supabase
+            .from('departure_sheets')
+            .select('*')
+            .eq('mission_id', m.id)
+            .single();
+          if (depError && depError.code !== 'PGRST116') { // PGRST116 means no rows found
+            console.error(`useConvoyeurMissions: Error fetching individual departure sheet for mission ${m.id}:`, depError);
+          }
+          console.log(`useConvoyeurMissions: Departure sheet for mission ${m.id} found:`, !!departureSheet);
+
+          const { data: arrivalSheet, error: arrError } = await supabase
+            .from('arrival_sheets')
+            .select('*')
+            .eq('mission_id', m.id)
+            .single();
+          if (arrError && arrError.code !== 'PGRST116') { // PGRST116 means no rows found
+            console.error(`useConvoyeurMissions: Error fetching individual arrival sheet for mission ${m.id}:`, arrError);
+          }
+          console.log(`useConvoyeurMissions: Arrival sheet for mission ${m.id} found:`, !!arrivalSheet);
+
+          return {
+            id: m.id,
+            created_at: m.created_at,
+            immatriculation: m.immatriculation,
+            modele: m.modele,
+            lieu_depart: m.lieu_depart,
+            lieu_arrivee: m.lieu_arrivee,
+            statut: m.statut,
+            client_id: m.client_id, // Mis à jour pour client_id
+            convoyeur_id: m.convoyeur_id,
+            convoyeur_first_name: m.profiles?.first_name || null, // Map joined profile data
+            convoyeur_last_name: m.profiles?.last_name || null, // Map joined profile data
+            heureLimite: m.heureLimite,
+            commentaires: m.commentaires,
+            photos: m.photos,
+            client_price: m.client_price, // Include client_price
+            convoyeur_payout: m.convoyeur_payout, // Include convoyeur_payout
+            updates: m.updates,
+            expenses: m.expenses, // Include expenses
+            is_paid: m.is_paid, // Include is_paid
+            departure_details: departureSheet || null, // Use the individually fetched sheet
+            arrival_details: arrivalSheet || null, // Use the individually fetched sheet
+          };
         }));
+        return missionsWithSheets;
       },
       enabled: !!userId,
     });
