@@ -122,7 +122,8 @@ const MyMissions: React.FC<MyMissionsProps> = ({
                           Ajouter Fiche Départ
                         </Button>
                       )}
-                      {mission.departure_details && !mission.arrival_details && (
+                      {/* Always show "Ajouter Fiche Arrivée" if departure_details exists */}
+                      {mission.departure_details && (
                         <Button onClick={(e) => { e.stopPropagation(); handleOpenArrivalSheetDialog(mission); }} variant="outline" className="w-full">
                           Ajouter Fiche Arrivée
                         </Button>
