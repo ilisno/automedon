@@ -31,7 +31,6 @@ const Header = () => {
 
   const navLinks = (
     <>
-      {/* Removed: <Link to="/" className="text-lg font-medium hover:text-primary-foreground transition-colors">Accueil</Link> */}
       {session ? (
         <>
           <Link to="/account" className="text-lg font-medium hover:text-primary-foreground transition-colors flex items-center">
@@ -54,7 +53,8 @@ const Header = () => {
   return (
     <header className="w-full bg-primary text-primary-foreground p-4 shadow-md flex items-center justify-between">
       <div className="flex items-center">
-        <Link to="/" className="text-2xl font-bold">
+        <Link to="/" className="text-2xl font-bold flex items-center">
+          <img src="/automedonlogo.jpg" alt="Automedon Logo" className="h-8 w-8 mr-2 rounded-full" />
           Automedon
         </Link>
       </div>
