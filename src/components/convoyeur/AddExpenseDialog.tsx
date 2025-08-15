@@ -125,7 +125,7 @@ const AddExpenseDialog: React.FC<AddExpenseDialogProps> = ({
           </div>
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="photo" className="text-right">
-              Photo (preuve)
+              Justificatif
             </Label>
             <Input
               id="photo"
