@@ -13,11 +13,11 @@ const Footer = () => {
             CGV
           </Link>
           <Link to="/" className="hover:underline">
-            Automédon
+            Automedon
           </Link>
         </div>
         <p className="text-center md:text-right">
-          © 2025 Automédon. Tous droits réservés.
+          © 2025 Automedon. Tous droits réservés.
         </p>
       </div>
     </footer>

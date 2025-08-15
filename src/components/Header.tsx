@@ -55,7 +55,7 @@ const Header = () => {
     <header className="w-full bg-primary text-primary-foreground p-4 shadow-md flex items-center justify-between">
       <div className="flex items-center">
         <Link to="/" className="text-2xl font-bold">
-          Automédon
+          Automedon
         </Link>
       </div>
       {isMobile ? (

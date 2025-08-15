@@ -12,12 +12,12 @@ const CGV = () => {
         <h1 className="text-4xl font-bold mb-6">Conditions Générales de Vente (CGV)</h1>
         <div className="text-left max-w-3xl mx-auto space-y-4 text-gray-700 dark:text-gray-300">
           <p>
-            Bienvenue sur Automédon. Les présentes Conditions Générales de Vente (CGV) régissent l'utilisation de nos services.
+            Bienvenue sur Automedon. Les présentes Conditions Générales de Vente (CGV) régissent l'utilisation de nos services.
             En utilisant notre plateforme, vous acceptez de vous conformer à ces conditions.
           </p>
           <h2 className="text-2xl font-semibold mt-6 mb-2">1. Objet</h2>
           <p>
-            Automédon est une plateforme de mise en relation entre concessionnaires et convoyeurs pour la gestion et le convoyage de véhicules.
+            Automedon est une plateforme de mise en relation entre concessionnaires et convoyeurs pour la gestion et le convoyage de véhicules.
           </p>
           <h2 className="text-2xl font-semibold mt-6 mb-2">2. Inscription et Compte Utilisateur</h2>
           <p>
@@ -29,11 +29,11 @@ const CGV = () => {
           </p>
           <h2 className="text-2xl font-semibold mt-6 mb-2">4. Responsabilité</h2>
           <p>
-            Automédon s'efforce d'assurer la qualité de ses services mais ne peut garantir l'absence d'erreurs ou d'interruptions.
+            Automedon s'efforce d'assurer la qualité de ses services mais ne peut garantir l'absence d'erreurs ou d'interruptions.
           </p>
           <h2 className="text-2xl font-semibold mt-6 mb-2">5. Propriété Intellectuelle</h2>
           <p>
-            Tous les contenus de la plateforme sont la propriété d'Automédon ou de ses partenaires.
+            Tous les contenus de la plateforme sont la propriété d'Automedon ou de ses partenaires.
           </p>
           <h2 className="text-2xl font-semibold mt-6 mb-2">6. Droit Applicable et Litiges</h2>
           <p>

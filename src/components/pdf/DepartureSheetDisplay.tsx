@@ -74,7 +74,7 @@ const DepartureSheetDisplay: React.FC<DepartureSheetDisplayProps> = ({ sheet, mi
       )}
 
       <p className="text-sm text-gray-500 dark:text-gray-400 text-center mt-8">
-        Document généré par Automédon le {new Date().toLocaleDateString()}.
+        Document généré par Automedon le {new Date().toLocaleDateString()}.
       </p>
     </div>
   );
