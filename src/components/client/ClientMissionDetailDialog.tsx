@@ -204,7 +204,7 @@ const ClientMissionDetailDialog: React.FC<ClientMissionDetailDialogProps> = ({
                       {item.description && <p><strong>Description:</strong> {item.description}</p>}
                       {item.photo_url && (
                         <div className="mt-2">
-                          <p className="text-sm text-gray-500 dark:text-gray-400">Preuve:</p>
+                          <p className="text-sm text-gray-500 dark:text-gray-400">Justificatif:</p>
                           <img
                             src={item.photo_url}
                             alt={`Expense photo for ${item.type}`}
