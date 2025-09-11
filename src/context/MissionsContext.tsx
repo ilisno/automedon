@@ -96,7 +96,7 @@ export type Profile = {
 };
 
 type UpdateMissionPayload = Partial<Omit<Mission, 'id' | 'created_at' | 'departure_details' | 'arrival_details'>>; // Removed departure_details and arrival_details
-type UpdateProfilePayload = Partial<Omit<Profile, 'id'>>;
+type UpdateProfilePayload = Partial<Omit<Profile, 'id' | 'role'>>; // Exclude 'role' from updatable fields
 
 // 2. Définition du type du contexte
 type MissionsContextType = {
@@ -202,7 +202,12 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   // NEW: Generic mutation for updating profile fields
   const updateProfileMutation = useMutation({
     mutationFn: async ({ id, payload }: { id: string; payload: UpdateProfilePayload }) => {
-      const { data, error } = await supabase.from('profiles').update(payload).eq('id', id);
+      // Ensure 'role' is not updated
+      const { role, ...updatablePayload } = payload;
+      if (role !== undefined) {
+        console.warn("Attempted to update 'role' field in profile, but role is immutable. Ignoring role update.");
+      }
+      const { data, error } = await supabase.from('profiles').update(updatablePayload).eq('id', id);
       if (error) throw error;
       return data;
     },

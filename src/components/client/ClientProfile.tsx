@@ -33,7 +33,7 @@ const ClientProfile: React.FC<ClientProfileProps> = ({ userId }) => {
   const [email, setEmail] = useState(""); // NEW: State for user email
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
-  const [role, setRole] = useState<'client' | 'convoyeur' | ''>(""); // Corrected type
+  const [role, setRole] = useState<'client' | 'convoyeur' | 'admin' | ''>(""); // Corrected type to include admin
   const [phone, setPhone] = useState("");
   const [companyType, setCompanyType] = useState("");
   const [siret, setSiret] = useState("");
@@ -97,10 +97,9 @@ const ClientProfile: React.FC<ClientProfileProps> = ({ userId }) => {
     e.preventDefault();
     setLoading(true);
 
-    const updatedProfile: Partial<Omit<Profile, 'id' | 'avatar_url'>> = { // Changed type to Partial<Omit<Profile, 'id' | 'avatar_url'>>
+    const updatedProfile: Partial<Omit<Profile, 'id' | 'avatar_url' | 'role'>> = { // Removed 'role' from updatable fields
       first_name: firstName,
       last_name: lastName,
-      role: (role === 'client' || role === 'convoyeur' || role === 'admin') ? role : null, // Explicitly cast role
       phone: phone || null,
       company_type: companyType || null,
       siret: siret || null,
@@ -146,15 +145,7 @@ const ClientProfile: React.FC<ClientProfileProps> = ({ userId }) => {
         </div>
         <div>
           <Label htmlFor="role">Rôle</Label>
-          <Select value={role} onValueChange={(value: 'client' | 'convoyeur') => setRole(value)}>
-            <SelectTrigger className="w-full mt-1">
-              <SelectValue placeholder="Sélectionnez votre rôle" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="client">Client</SelectItem>
-              <SelectItem value="convoyeur">Convoyeur</SelectItem>
-            </SelectContent>
-          </Select>
+          <Input id="role" type="text" value={role.charAt(0).toUpperCase() + role.slice(1)} disabled className="mt-1 bg-gray-100 dark:bg-gray-700 cursor-not-allowed" />
         </div>
         <div>
           <Label htmlFor="phone">Téléphone</Label>

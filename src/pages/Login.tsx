@@ -72,6 +72,19 @@ const Login = () => {
               },
             },
           }}
+          // NEW: Add extra_fields for role selection during signup
+          extra_fields={[
+            {
+              name: 'role',
+              label: 'Je suis...',
+              input_type: 'select',
+              options: [
+                { value: 'client', label: 'Client' },
+                { value: 'convoyeur', label: 'Convoyeur' },
+              ],
+              required: true,
+            },
+          ]}
         />
       </div>
     </div>
