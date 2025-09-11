@@ -44,7 +44,6 @@ const Login = () => {
               },
             }}
             theme="light"
-            // Set the initial view to 'sign_up' if a role is preselected
             view={preselectedRole ? "sign_up" : "sign_in"}
             localization={{
               variables: {
@@ -90,7 +89,7 @@ const Login = () => {
                   { value: 'convoyeur', label: 'Convoyeur' },
                 ],
                 required: true,
-                defaultValue: preselectedRole || 'client',
+                // Removed defaultValue to force user selection
               },
             ]}
           />
