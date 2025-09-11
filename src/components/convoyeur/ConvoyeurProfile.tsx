@@ -3,7 +3,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { format } from "date-fns";
@@ -17,15 +16,15 @@ type Profile = {
   id: string;
   first_name: string | null;
   last_name: string | null;
-  role: 'client' | 'convoyeur' | 'admin' | null; // Corrected type
+  role: 'client' | 'convoyeur' | 'admin' | null;
   phone: string | null;
-  date_of_birth: string | null; // ISO string
+  date_of_birth: string | null;
   languages: string[] | null;
   address: string | null;
   postal_code: string | null;
   city: string | null;
   driver_license_number: string | null;
-  license_issue_date: string | null; // ISO string
+  license_issue_date: string | null;
   license_issue_city: string | null;
   is_profile_complete: boolean;
   avatar_url: string | null;
@@ -33,15 +32,16 @@ type Profile = {
 
 interface ConvoyeurProfileProps {
   userId: string;
+  onProfileCompleteChange: (isComplete: boolean) => void; // NEW: Callback to update parent
 }
 
-const ConvoyeurProfile: React.FC<ConvoyeurProfileProps> = ({ userId }) => {
+const ConvoyeurProfile: React.FC<ConvoyeurProfileProps> = ({ userId, onProfileCompleteChange }) => {
   const { updateProfile, uploadProfilePhoto } = useMissions();
   const [loading, setLoading] = useState(true);
-  const [email, setEmail] = useState(""); // NEW: State for user email
+  const [email, setEmail] = useState("");
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
-  const [role, setRole] = useState<'client' | 'convoyeur' | 'admin' | ''>(""); // Corrected type to include admin
+  const [role, setRole] = useState<'client' | 'convoyeur' | 'admin' | ''>("");
   const [phone, setPhone] = useState("");
   const [dateOfBirth, setDateOfBirth] = useState<Date | undefined>(undefined);
   const [languages, setLanguages] = useState("");
@@ -51,7 +51,7 @@ const ConvoyeurProfile: React.FC<ConvoyeurProfileProps> = ({ userId }) => {
   const [driverLicenseNumber, setDriverLicenseNumber] = useState("");
   const [licenseIssueDate, setLicenseIssueDate] = useState<Date | undefined>(undefined);
   const [licenseIssueCity, setLicenseIssueCity] = useState("");
-  const [isProfileComplete, setIsProfileComplete] = useState(false);
+  const [isProfileComplete, setIsProfileComplete] = useState(false); // Local state for completion
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
 
@@ -65,7 +65,7 @@ const ConvoyeurProfile: React.FC<ConvoyeurProfileProps> = ({ userId }) => {
         setLoading(false);
         return;
       }
-      setEmail(user.email || ""); // NEW: Set user email
+      setEmail(user.email || "");
 
       const { data, error } = await supabase
         .from('profiles')
@@ -91,25 +91,30 @@ const ConvoyeurProfile: React.FC<ConvoyeurProfileProps> = ({ userId }) => {
         setLicenseIssueCity(data.license_issue_city || "");
         setAvatarUrl(data.avatar_url || null);
         setIsProfileComplete(data.is_profile_complete);
+        onProfileCompleteChange(data.is_profile_complete); // Inform parent on initial load
       }
       setLoading(false);
     };
     fetchUserProfile();
-  }, [userId]);
+  }, [userId, onProfileCompleteChange]);
 
-  const checkConvoyeurProfileCompletion = (currentAvatarUrl: string | null) => {
+  const checkConvoyeurProfileCompletion = (
+    fName: string, lName: string, p: string, dob: Date | undefined, langs: string,
+    addr: string, pCode: string, c: string, dln: string, lid: Date | undefined, lic: string,
+    currentAvatarUrl: string | null
+  ) => {
     return (
-      firstName !== "" &&
-      lastName !== "" &&
-      phone !== "" &&
-      dateOfBirth !== undefined &&
-      languages !== "" &&
-      address !== "" &&
-      postalCode !== "" &&
-      city !== "" &&
-      driverLicenseNumber !== "" &&
-      licenseIssueDate !== undefined &&
-      licenseIssueCity !== "" &&
+      fName.trim() !== "" &&
+      lName.trim() !== "" &&
+      p.trim() !== "" &&
+      dob !== undefined &&
+      langs.trim() !== "" &&
+      addr.trim() !== "" &&
+      pCode.trim() !== "" &&
+      c.trim() !== "" &&
+      dln.trim() !== "" &&
+      lid !== undefined &&
+      lic.trim() !== "" &&
       currentAvatarUrl !== null
     );
   };
@@ -132,24 +137,32 @@ const ConvoyeurProfile: React.FC<ConvoyeurProfileProps> = ({ userId }) => {
       }
     }
 
-    const updatedProfile: Partial<Omit<Profile, 'id' | 'role'>> = { // Removed 'role' from updatable fields
-      first_name: firstName,
-      last_name: lastName,
-      phone: phone || null,
+    const isConvoyeurProfileNowComplete = checkConvoyeurProfileCompletion(
+      firstName, lastName, phone, dateOfBirth, languages,
+      address, postalCode, city, driverLicenseNumber, licenseIssueDate, licenseIssueCity,
+      newAvatarUrl
+    );
+
+    const updatedProfile: Partial<Omit<Profile, 'id' | 'role'>> = {
+      first_name: firstName.trim(),
+      last_name: lastName.trim(),
+      phone: phone.trim() || null,
       date_of_birth: dateOfBirth ? format(dateOfBirth, "yyyy-MM-dd") : null,
       languages: languages ? languages.split(",").map(lang => lang.trim()) : null,
-      address: address || null,
-      postal_code: postalCode || null,
-      city: city || null,
-      driver_license_number: driverLicenseNumber || null,
+      address: address.trim() || null,
+      postal_code: postalCode.trim() || null,
+      city: city.trim() || null,
+      driver_license_number: driverLicenseNumber.trim() || null,
       license_issue_date: licenseIssueDate ? format(licenseIssueDate, "yyyy-MM-dd") : null,
-      license_issue_city: licenseIssueCity || null,
+      license_issue_city: licenseIssueCity.trim() || null,
       avatar_url: newAvatarUrl,
-      is_profile_complete: checkConvoyeurProfileCompletion(newAvatarUrl),
+      is_profile_complete: isConvoyeurProfileNowComplete,
     };
 
     try {
       await updateProfile(userId, updatedProfile);
+      setIsProfileComplete(isConvoyeurProfileNowComplete); // Update local state
+      onProfileCompleteChange(isConvoyeurProfileNowComplete); // Inform parent
       showSuccess("Profil mis à jour avec succès !");
     } catch (error) {
       console.error("Error updating profile:", error);

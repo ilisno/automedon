@@ -67,8 +67,8 @@ const Account = () => {
     <div className="min-h-screen flex flex-col bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100">
       <Header />
       <main className="flex-grow">
-        {userRole === 'client' && <ClientDashboard userId={userId!} isProfileComplete={isProfileComplete} />}
-        {userRole === 'convoyeur' && <ConvoyeurDashboard userId={userId!} isProfileComplete={isProfileComplete} />}
+        {userRole === 'client' && <ClientDashboard userId={userId!} isProfileComplete={isProfileComplete} onProfileCompleteChange={setIsProfileComplete} />}
+        {userRole === 'convoyeur' && <ConvoyeurDashboard userId={userId!} isProfileComplete={isProfileComplete} onProfileCompleteChange={setIsProfileComplete} />}
         {!userRole && (
           <div className="flex flex-col items-center justify-center p-4 text-center">
             <h1 className="text-4xl font-bold mb-6">Bienvenue sur votre compte</h1>

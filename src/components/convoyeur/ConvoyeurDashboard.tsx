@@ -15,9 +15,10 @@ import { Info } from "lucide-react";
 interface ConvoyeurDashboardProps {
   userId: string;
   isProfileComplete: boolean;
+  onProfileCompleteChange: (isComplete: boolean) => void; // NEW: Prop to receive callback
 }
 
-const ConvoyeurDashboard: React.FC<ConvoyeurDashboardProps> = ({ userId, isProfileComplete }) => {
+const ConvoyeurDashboard: React.FC<ConvoyeurDashboardProps> = ({ userId, isProfileComplete, onProfileCompleteChange }) => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState(isProfileComplete ? "available-missions" : "profile"); // Set default tab based on profile completion
   const { useConvoyeurMissions } = useMissions();
@@ -29,6 +30,13 @@ const ConvoyeurDashboard: React.FC<ConvoyeurDashboardProps> = ({ userId, isProfi
       navigate("/login");
     }
   }, [userId, navigate]);
+
+  // Update activeTab if isProfileComplete changes
+  useEffect(() => {
+    if (!isProfileComplete && activeTab !== "profile") {
+      setActiveTab("profile");
+    }
+  }, [isProfileComplete, activeTab]);
 
   return (
     <div className="flex flex-col items-center justify-center p-4 text-center">
@@ -65,7 +73,7 @@ const ConvoyeurDashboard: React.FC<ConvoyeurDashboardProps> = ({ userId, isProfi
           />
         </TabsContent>
         <TabsContent value="profile" className="mt-6">
-          <ConvoyeurProfile userId={userId} />
+          <ConvoyeurProfile userId={userId} onProfileCompleteChange={onProfileCompleteChange} />
         </TabsContent>
       </Tabs>
 

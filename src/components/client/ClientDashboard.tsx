@@ -12,9 +12,10 @@ import { Info } from "lucide-react";
 interface ClientDashboardProps {
   userId: string;
   isProfileComplete: boolean;
+  onProfileCompleteChange: (isComplete: boolean) => void; // NEW: Prop to receive callback
 }
 
-const ClientDashboard: React.FC<ClientDashboardProps> = ({ userId, isProfileComplete }) => {
+const ClientDashboard: React.FC<ClientDashboardProps> = ({ userId, isProfileComplete, onProfileCompleteChange }) => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState(isProfileComplete ? "missions" : "profile"); // Set default tab based on profile completion
 
@@ -24,6 +25,13 @@ const ClientDashboard: React.FC<ClientDashboardProps> = ({ userId, isProfileComp
       navigate("/login");
     }
   }, [userId, navigate]);
+
+  // Update activeTab if isProfileComplete changes
+  useEffect(() => {
+    if (!isProfileComplete && activeTab !== "profile") {
+      setActiveTab("profile");
+    }
+  }, [isProfileComplete, activeTab]);
 
   return (
     <div className="flex flex-col items-center justify-center p-4 text-center">
@@ -59,7 +67,7 @@ const ClientDashboard: React.FC<ClientDashboardProps> = ({ userId, isProfileComp
           <ClientMissionsList userId={userId} />
         </TabsContent>
         <TabsContent value="profile" className="mt-6">
-          <ClientProfile userId={userId} />
+          <ClientProfile userId={userId} onProfileCompleteChange={onProfileCompleteChange} />
         </TabsContent>
       </Tabs>
     </div>

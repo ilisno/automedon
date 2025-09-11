@@ -3,7 +3,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { showSuccess, showError } from "@/utils/toast";
 import { useMissions } from "@/context/MissionsContext";
@@ -12,7 +11,7 @@ type Profile = {
   id: string;
   first_name: string | null;
   last_name: string | null;
-  role: 'client' | 'convoyeur' | 'admin' | null; // Corrected type
+  role: 'client' | 'convoyeur' | 'admin' | null;
   phone: string | null;
   company_type: string | null;
   siret: string | null;
@@ -25,22 +24,23 @@ type Profile = {
 
 interface ClientProfileProps {
   userId: string;
+  onProfileCompleteChange: (isComplete: boolean) => void; // NEW: Callback to update parent
 }
 
-const ClientProfile: React.FC<ClientProfileProps> = ({ userId }) => {
+const ClientProfile: React.FC<ClientProfileProps> = ({ userId, onProfileCompleteChange }) => {
   const { updateProfile } = useMissions();
   const [loading, setLoading] = useState(true);
-  const [email, setEmail] = useState(""); // NEW: State for user email
+  const [email, setEmail] = useState("");
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
-  const [role, setRole] = useState<'client' | 'convoyeur' | 'admin' | ''>(""); // Corrected type to include admin
+  const [role, setRole] = useState<'client' | 'convoyeur' | 'admin' | ''>("");
   const [phone, setPhone] = useState("");
   const [companyType, setCompanyType] = useState("");
   const [siret, setSiret] = useState("");
   const [address, setAddress] = useState("");
   const [postalCode, setPostalCode] = useState("");
   const [city, setCity] = useState("");
-  const [isProfileComplete, setIsProfileComplete] = useState(false);
+  const [isProfileComplete, setIsProfileComplete] = useState(false); // Local state for completion
 
   useEffect(() => {
     const fetchUserProfile = async () => {
@@ -52,7 +52,7 @@ const ClientProfile: React.FC<ClientProfileProps> = ({ userId }) => {
         setLoading(false);
         return;
       }
-      setEmail(user.email || ""); // NEW: Set user email
+      setEmail(user.email || "");
 
       const { data, error } = await supabase
         .from('profiles')
@@ -74,22 +74,25 @@ const ClientProfile: React.FC<ClientProfileProps> = ({ userId }) => {
         setPostalCode(data.postal_code || "");
         setCity(data.city || "");
         setIsProfileComplete(data.is_profile_complete);
+        onProfileCompleteChange(data.is_profile_complete); // Inform parent on initial load
       }
       setLoading(false);
     };
     fetchUserProfile();
-  }, [userId]);
+  }, [userId, onProfileCompleteChange]);
 
-  const checkClientProfileCompletion = () => {
+  const checkClientProfileCompletion = (
+    fName: string, lName: string, p: string, cType: string, s: string, addr: string, pCode: string, c: string
+  ) => {
     return (
-      firstName !== "" &&
-      lastName !== "" &&
-      phone !== "" &&
-      companyType !== "" &&
-      siret !== "" &&
-      address !== "" &&
-      postalCode !== "" &&
-      city !== ""
+      fName.trim() !== "" &&
+      lName.trim() !== "" &&
+      p.trim() !== "" &&
+      cType.trim() !== "" &&
+      s.trim() !== "" &&
+      addr.trim() !== "" &&
+      pCode.trim() !== "" &&
+      c.trim() !== ""
     );
   };
 
@@ -97,20 +100,26 @@ const ClientProfile: React.FC<ClientProfileProps> = ({ userId }) => {
     e.preventDefault();
     setLoading(true);
 
-    const updatedProfile: Partial<Omit<Profile, 'id' | 'avatar_url' | 'role'>> = { // Removed 'role' from updatable fields
-      first_name: firstName,
-      last_name: lastName,
-      phone: phone || null,
-      company_type: companyType || null,
-      siret: siret || null,
-      address: address || null,
-      postal_code: postalCode || null,
-      city: city || null,
-      is_profile_complete: checkClientProfileCompletion(),
+    const isClientProfileNowComplete = checkClientProfileCompletion(
+      firstName, lastName, phone, companyType, siret, address, postalCode, city
+    );
+
+    const updatedProfile: Partial<Omit<Profile, 'id' | 'avatar_url' | 'role'>> = {
+      first_name: firstName.trim(),
+      last_name: lastName.trim(),
+      phone: phone.trim() || null,
+      company_type: companyType.trim() || null,
+      siret: siret.trim() || null,
+      address: address.trim() || null,
+      postal_code: postalCode.trim() || null,
+      city: city.trim() || null,
+      is_profile_complete: isClientProfileNowComplete,
     };
 
     try {
       await updateProfile(userId, updatedProfile);
+      setIsProfileComplete(isClientProfileNowComplete); // Update local state
+      onProfileCompleteChange(isClientProfileNowComplete); // Inform parent
       showSuccess("Profil mis à jour avec succès !");
     } catch (error) {
       console.error("Error updating profile:", error);
