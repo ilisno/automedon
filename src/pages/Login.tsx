@@ -81,7 +81,7 @@ const Login = () => {
                     password_input_placeholder: "Votre mot de passe",
                     button_label: "Se connecter",
                     social_provider_text: "Se connecter avec {{provider}}",
-                    link_text: "", // Removed the "Don't have an account? Sign up" link
+                    // Removed link_text property entirely
                   },
                   // Removed sign_up localization as it's handled by custom form
                   forgotten_password: {
