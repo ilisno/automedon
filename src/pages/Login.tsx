@@ -44,7 +44,8 @@ const Login = () => {
               },
             }}
             theme="light"
-            view={preselectedRole ? "sign_up" : "sign_in"}
+            // Always set the initial view to 'sign_up' to ensure extra_fields are visible
+            view="sign_up"
             localization={{
               variables: {
                 sign_in: {
