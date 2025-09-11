@@ -16,8 +16,9 @@ import AccountRedirect from "./pages/AccountRedirect";
 import Account from "./pages/Account";
 import Contact from "./pages/Contact";
 import CGV from "./pages/CGV";
-import AdminLogin from "./pages/AdminLogin"; // Import new AdminLogin page
-import AdminDashboard from "./pages/AdminDashboard"; // Import new AdminDashboard page
+import AdminLogin from "./pages/AdminLogin";
+import AdminDashboard from "./pages/AdminDashboard";
+import UpdatePassword from "./pages/UpdatePassword"; // NEW: Import UpdatePassword page
 
 const queryClient = new QueryClient();
 
@@ -28,7 +29,7 @@ const AppContent = () => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === 'SIGNED_OUT' || !session) {
         // Redirect to login if not authenticated and not on login page, home page, or admin pages
-        if (window.location.pathname !== "/login" && window.location.pathname !== "/" && !window.location.pathname.startsWith("/admin")) {
+        if (window.location.pathname !== "/login" && window.location.pathname !== "/" && !window.location.pathname.startsWith("/admin") && window.location.pathname !== "/update-password") { // NEW: Exclude /update-password
           navigate("/login");
         }
       } else if (session && window.location.pathname === "/login") {
@@ -49,8 +50,9 @@ const AppContent = () => {
       <Route path="/account" element={<Account />} />
       <Route path="/contact" element={<Contact />} />
       <Route path="/cgv" element={<CGV />} />
-      <Route path="/admin" element={<AdminLogin />} /> {/* New route for Admin Login */}
-      <Route path="/admin/dashboard" element={<AdminDashboard />} /> {/* New route for Admin Dashboard */}
+      <Route path="/admin" element={<AdminLogin />} />
+      <Route path="/admin/dashboard" element={<AdminDashboard />} />
+      <Route path="/update-password" element={<UpdatePassword />} /> {/* NEW: Route for password update */}
       {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
       <Route path="*" element={<NotFound />} />
     </Routes>

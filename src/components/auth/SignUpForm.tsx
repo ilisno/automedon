@@ -9,9 +9,10 @@ import { showError, showSuccess } from "@/utils/toast";
 interface SignUpFormProps {
   initialRole?: 'client' | 'convoyeur' | null;
   onSignUpSuccess: () => void;
+  onForgotPasswordClick: () => void; // NEW: Add prop for forgot password
 }
 
-const SignUpForm: React.FC<SignUpFormProps> = ({ initialRole, onSignUpSuccess }) => {
+const SignUpForm: React.FC<SignUpFormProps> = ({ initialRole, onSignUpSuccess, onForgotPasswordClick }) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [role, setRole] = useState<"client" | "convoyeur" | "">(initialRole || "");
@@ -90,6 +91,9 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ initialRole, onSignUpSuccess })
       </div>
       <Button type="submit" className="w-full px-8 py-2 text-lg" disabled={loading}>
         {loading ? "Inscription..." : "S'inscrire"}
+      </Button>
+      <Button type="button" variant="link" onClick={onForgotPasswordClick} className="w-full text-sm mt-2">
+        Mot de passe oublié ?
       </Button>
     </form>
   );

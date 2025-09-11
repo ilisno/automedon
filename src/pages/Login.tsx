@@ -1,20 +1,28 @@
-import { Auth } from "@supabase/auth-ui-react";
-import { ThemeSupa } from "@supabase/auth-ui-shared";
-import { supabase } from "@/integrations/supabase/client";
 import React, { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import SignUpForm from "@/components/auth/SignUpForm"; // Import the new custom signup form
-import { Button } from "@/components/ui/button"; // Import Button for tab switching
+import SignUpForm from "@/components/auth/SignUpForm";
+import SignInForm from "@/components/auth/SignInForm"; // NEW: Import custom sign-in form
+import ForgotPasswordDialog from "@/components/auth/ForgotPasswordDialog"; // NEW: Import forgot password dialog
+import { Button } from "@/components/ui/button";
 
 const Login = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const preselectedRole = searchParams.get('role') as 'client' | 'convoyeur' | null;
   const [viewMode, setViewMode] = useState<'signin' | 'signup'>(preselectedRole ? 'signup' : 'signin');
+  const [isForgotPasswordDialogOpen, setIsForgotPasswordDialogOpen] = useState(false); // NEW: State for forgot password dialog
 
   useEffect(() => {
+    // Check for session on initial load and redirect if authenticated
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) {
+        navigate("/");
+      }
+    });
+
+    // Listen for auth state changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       if (session) {
         navigate("/");
@@ -25,8 +33,19 @@ const Login = () => {
   }, [navigate]);
 
   const handleSignUpSuccess = () => {
-    // Optionally redirect to sign-in or show a message
     setViewMode('signin');
+  };
+
+  const handleSignInSuccess = () => {
+    navigate("/"); // Redirect to home or account page after successful sign-in
+  };
+
+  const handleOpenForgotPasswordDialog = () => {
+    setIsForgotPasswordDialogOpen(true);
+  };
+
+  const handleCloseForgotPasswordDialog = () => {
+    setIsForgotPasswordDialogOpen(false);
   };
 
   return (
@@ -54,56 +73,24 @@ const Login = () => {
           </div>
 
           {viewMode === 'signup' ? (
-            <SignUpForm initialRole={preselectedRole} onSignUpSuccess={handleSignUpSuccess} />
+            <SignUpForm
+              initialRole={preselectedRole}
+              onSignUpSuccess={handleSignUpSuccess}
+              onForgotPasswordClick={handleOpenForgotPasswordDialog} // Pass handler
+            />
           ) : (
-            <Auth
-              supabaseClient={supabase}
-              providers={[]}
-              appearance={{
-                theme: ThemeSupa,
-                variables: {
-                  default: {
-                    colors: {
-                      brand: 'hsl(var(--primary))',
-                      brandAccent: 'hsl(var(--primary-foreground))',
-                    },
-                  },
-                },
-              }}
-              theme="light"
-              view="sign_in" // Force sign_in view for the Auth component
-              localization={{
-                variables: {
-                  sign_in: {
-                    email_label: "Adresse e-mail",
-                    password_label: "Mot de passe",
-                    email_input_placeholder: "Votre adresse e-mail",
-                    password_input_placeholder: "Votre mot de passe",
-                    button_label: "Se connecter",
-                    social_provider_text: "Se connecter avec {{provider}}",
-                    // Removed link_text property entirely
-                  },
-                  // Removed sign_up localization as it's handled by custom form
-                  forgotten_password: {
-                    email_label: "Adresse e-mail",
-                    password_label: "Votre mot de passe",
-                    email_input_placeholder: "Votre adresse e-mail",
-                    button_label: "Envoyer les instructions de réinitialisation",
-                    link_text: "Mot de passe oublié ?",
-                  },
-                  update_password: {
-                    password_label: "Nouveau mot de passe",
-                    password_input_placeholder: "Votre nouveau mot de passe",
-                    button_label: "Mettre à jour le mot de passe",
-                  },
-                },
-              }}
-              // Removed extra_fields as role selection is now custom
+            <SignInForm
+              onSignInSuccess={handleSignInSuccess}
+              onForgotPasswordClick={handleOpenForgotPasswordDialog} // Pass handler
             />
           )}
         </div>
       </main>
       <Footer />
+      <ForgotPasswordDialog
+        isOpen={isForgotPasswordDialogOpen}
+        onClose={handleCloseForgotPasswordDialog}
+      />
     </div>
   );
 };
