@@ -12,6 +12,7 @@ const Account = () => {
   const [loading, setLoading] = useState(true);
   const [userRole, setUserRole] = useState<'client' | 'convoyeur' | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
+  const [isProfileComplete, setIsProfileComplete] = useState(false); // NEW state for profile completion
 
   useEffect(() => {
     const checkUserRole = async () => {
@@ -28,15 +29,15 @@ const Account = () => {
 
       const { data: profile, error: profileError } = await supabase
         .from('profiles')
-        .select('role')
+        .select('role, is_profile_complete') // Fetch is_profile_complete
         .eq('id', user.id)
         .single();
 
       if (profileError || !profile) {
         console.error("Error fetching profile for account page:", profileError);
         showError("Erreur lors du chargement de votre profil. Veuillez compléter vos informations.");
-        // Default to client if profile is missing or role is not set
-        setUserRole('client'); 
+        setUserRole('client'); // Default to client if profile is missing or role is not set
+        setIsProfileComplete(false); // Profile is definitely not complete
         setLoading(false);
         return;
       }
@@ -47,6 +48,7 @@ const Account = () => {
         showError("Votre rôle n'est pas défini. Veuillez compléter votre profil.");
         setUserRole('client'); // Default to client if role is unknown
       }
+      setIsProfileComplete(profile.is_profile_complete); // Set profile completion status
       setLoading(false);
     };
 
@@ -65,8 +67,8 @@ const Account = () => {
     <div className="min-h-screen flex flex-col bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100">
       <Header />
       <main className="flex-grow">
-        {userRole === 'client' && <ClientDashboard />}
-        {userRole === 'convoyeur' && <ConvoyeurDashboard />}
+        {userRole === 'client' && <ClientDashboard userId={userId!} isProfileComplete={isProfileComplete} />}
+        {userRole === 'convoyeur' && <ConvoyeurDashboard userId={userId!} isProfileComplete={isProfileComplete} />}
         {!userRole && (
           <div className="flex flex-col items-center justify-center p-4 text-center">
             <h1 className="text-4xl font-bold mb-6">Bienvenue sur votre compte</h1>

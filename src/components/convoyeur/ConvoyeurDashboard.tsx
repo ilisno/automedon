@@ -8,40 +8,27 @@ import ConvoyeurProfile from "./ConvoyeurProfile";
 import AvailableMissions from "./AvailableMissions";
 import MyMissions from "./MyMissions";
 import ConvoyeurTurnover from "./ConvoyeurTurnover";
-import { useMissions } from "@/context/MissionsContext"; // Import useMissions to get refetch
+import { useMissions } from "@/context/MissionsContext";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Info } from "lucide-react";
 
-const ConvoyeurDashboard = () => {
+interface ConvoyeurDashboardProps {
+  userId: string;
+  isProfileComplete: boolean;
+}
+
+const ConvoyeurDashboard: React.FC<ConvoyeurDashboardProps> = ({ userId, isProfileComplete }) => {
   const navigate = useNavigate();
-  const [userId, setUserId] = useState<string | null>(null);
-  const [loadingUser, setLoadingUser] = useState(true);
+  const [activeTab, setActiveTab] = useState(isProfileComplete ? "available-missions" : "profile"); // Set default tab based on profile completion
   const { useConvoyeurMissions } = useMissions();
-  const { missions: convoyeurMissions } = useConvoyeurMissions(userId); // Get missions to use for key
+  const { missions: convoyeurMissions } = useConvoyeurMissions(userId);
 
   useEffect(() => {
-    const fetchUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        setUserId(user.id);
-      } else {
-        showError("Vous devez être connecté pour accéder à cette page.");
-        navigate("/login");
-      }
-      setLoadingUser(false);
-    };
-    fetchUser();
-  }, [navigate]);
-
-  if (loadingUser) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-100 dark:bg-gray-900">
-        <p className="text-gray-700 dark:text-gray-300">Chargement de votre espace...</p>
-      </div>
-    );
-  }
-
-  if (!userId) {
-    return null; // Should redirect to login, but just in case
-  }
+    if (!userId) {
+      showError("Vous devez être connecté pour accéder à cette page.");
+      navigate("/login");
+    }
+  }, [userId, navigate]);
 
   return (
     <div className="flex flex-col items-center justify-center p-4 text-center">
@@ -50,12 +37,22 @@ const ConvoyeurDashboard = () => {
         Gérez vos missions, consultez votre chiffre d'affaires et mettez à jour votre profil.
       </p>
 
+      {!isProfileComplete && (
+        <Alert variant="destructive" className="mb-6 max-w-4xl">
+          <Info className="h-4 w-4" />
+          <AlertTitle>Profil incomplet !</AlertTitle>
+          <AlertDescription>
+            Veuillez compléter votre profil pour accéder à toutes les fonctionnalités.
+          </AlertDescription>
+        </Alert>
+      )}
+
       <ConvoyeurTurnover userId={userId} />
 
-      <Tabs defaultValue="available-missions" className="w-full max-w-4xl">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full max-w-4xl">
         <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="available-missions">Missions Disponibles</TabsTrigger>
-          <TabsTrigger value="my-missions">Mes Missions</TabsTrigger>
+          <TabsTrigger value="available-missions" disabled={!isProfileComplete}>Missions Disponibles</TabsTrigger>
+          <TabsTrigger value="my-missions" disabled={!isProfileComplete}>Mes Missions</TabsTrigger>
           <TabsTrigger value="profile">Mon Profil</TabsTrigger>
         </TabsList>
         <TabsContent value="available-missions" className="mt-6">
@@ -64,7 +61,7 @@ const ConvoyeurDashboard = () => {
         <TabsContent value="my-missions" className="mt-6">
           <MyMissions
             userId={userId}
-            key={convoyeurMissions?.length} // Force re-render when mission count changes
+            key={convoyeurMissions?.length}
           />
         </TabsContent>
         <TabsContent value="profile" className="mt-6">

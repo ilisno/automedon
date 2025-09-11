@@ -6,37 +6,24 @@ import { supabase } from "@/integrations/supabase/client";
 import { showError } from "@/utils/toast";
 import ClientProfile from "./ClientProfile";
 import ClientMissionsList from "./ClientMissionsList";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Info } from "lucide-react";
 
-const ClientDashboard = () => {
+interface ClientDashboardProps {
+  userId: string;
+  isProfileComplete: boolean;
+}
+
+const ClientDashboard: React.FC<ClientDashboardProps> = ({ userId, isProfileComplete }) => {
   const navigate = useNavigate();
-  const [userId, setUserId] = useState<string | null>(null);
-  const [loadingUser, setLoadingUser] = useState(true);
+  const [activeTab, setActiveTab] = useState(isProfileComplete ? "missions" : "profile"); // Set default tab based on profile completion
 
   useEffect(() => {
-    const fetchUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        setUserId(user.id);
-      } else {
-        showError("Vous devez être connecté pour accéder à cette page.");
-        navigate("/login");
-      }
-      setLoadingUser(false);
-    };
-    fetchUser();
-  }, [navigate]);
-
-  if (loadingUser) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-100 dark:bg-gray-900">
-        <p className="text-gray-700 dark:text-gray-300">Chargement de votre espace...</p>
-      </div>
-    );
-  }
-
-  if (!userId) {
-    return null; // Should redirect to login, but just in case
-  }
+    if (!userId) {
+      showError("Vous devez être connecté pour accéder à cette page.");
+      navigate("/login");
+    }
+  }, [userId, navigate]);
 
   return (
     <div className="flex flex-col items-center justify-center p-4 text-center">
@@ -45,16 +32,26 @@ const ClientDashboard = () => {
         Bienvenue dans votre espace dédié. Gérez vos missions et mettez à jour votre profil.
       </p>
 
-      <Tabs defaultValue="missions" className="w-full max-w-4xl">
+      {!isProfileComplete && (
+        <Alert variant="destructive" className="mb-6 max-w-4xl">
+          <Info className="h-4 w-4" />
+          <AlertTitle>Profil incomplet !</AlertTitle>
+          <AlertDescription>
+            Veuillez compléter votre profil pour accéder à toutes les fonctionnalités.
+          </AlertDescription>
+        </Alert>
+      )}
+
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full max-w-4xl">
         <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="create-mission">Créer une mission</TabsTrigger>
-          <TabsTrigger value="missions">Mes Missions</TabsTrigger>
+          <TabsTrigger value="create-mission" disabled={!isProfileComplete}>Créer une mission</TabsTrigger>
+          <TabsTrigger value="missions" disabled={!isProfileComplete}>Mes Missions</TabsTrigger>
           <TabsTrigger value="profile">Mon Profil</TabsTrigger>
         </TabsList>
         <TabsContent value="create-mission" className="mt-6">
           <div className="flex justify-center">
             <Link to="/create-mission">
-              <Button className="px-8 py-4 text-lg">Créer une nouvelle mission</Button>
+              <Button className="px-8 py-4 text-lg" disabled={!isProfileComplete}>Créer une nouvelle mission</Button>
             </Link>
           </div>
         </TabsContent>

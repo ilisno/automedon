@@ -33,13 +33,19 @@ const CreateMission = () => {
 
       const { data: profile, error: profileError } = await supabase
         .from('profiles')
-        .select('role')
+        .select('role, is_profile_complete') // Fetch is_profile_complete
         .eq('id', user.id)
         .single();
 
       if (profileError || !profile || profile.role !== 'client') {
         showError("Seuls les clients peuvent créer des missions.");
         navigate("/account"); // Redirect to account page if not a client
+        return;
+      }
+
+      if (!profile.is_profile_complete) { // NEW: Check profile completion
+        showError("Veuillez compléter votre profil avant de créer une mission.");
+        navigate("/account"); // Redirect to account page to force profile completion
         return;
       }
 
