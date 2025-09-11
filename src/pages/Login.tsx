@@ -2,12 +2,14 @@ import { Auth } from "@supabase/auth-ui-react";
 import { ThemeSupa } from "@supabase/auth-ui-shared";
 import { supabase } from "@/integrations/supabase/client";
 import { useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import Header from "@/components/Header"; // Import Header
-import Footer from "@/components/Footer"; // Import Footer
+import { useNavigate, useSearchParams } from "react-router-dom"; // Import useSearchParams
+import Header from "@/components/Header";
+import Footer from "@/components/Footer";
 
 const Login = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams(); // Hook to read URL query parameters
+  const preselectedRole = searchParams.get('role') as 'client' | 'convoyeur' | null; // Get 'role' parameter
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
@@ -86,6 +88,8 @@ const Login = () => {
                   { value: 'convoyeur', label: 'Convoyeur' },
                 ],
                 required: true,
+                // NEW: Set defaultValue based on preselectedRole from URL
+                defaultValue: preselectedRole || 'client', // Default to 'client' if no role is preselected
               },
             ]}
           />

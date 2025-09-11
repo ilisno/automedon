@@ -27,8 +27,13 @@ const Index = () => {
     return () => subscription.unsubscribe();
   }, []);
 
-  const handleNavigateToLogin = () => {
-    navigate("/login");
+  // Modified to accept a role parameter
+  const handleNavigateToLogin = (role?: 'client' | 'convoyeur') => {
+    if (role) {
+      navigate(`/login?role=${role}`);
+    } else {
+      navigate("/login");
+    }
   };
 
   const handleNavigateToAccount = () => {
@@ -59,13 +64,13 @@ const Index = () => {
             ) : (
               <>
                 <Button
-                  onClick={handleNavigateToLogin}
+                  onClick={() => handleNavigateToLogin('client')} // Pass 'client' role
                   className="px-8 py-4 text-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors duration-300 shadow-lg"
                 >
                   Je suis Client
                 </Button>
                 <Button
-                  onClick={handleNavigateToLogin}
+                  onClick={() => handleNavigateToLogin('convoyeur')} // Pass 'convoyeur' role
                   variant="outline"
                   className="px-8 py-4 text-lg border-primary text-primary hover:bg-primary/10 dark:border-primary-foreground dark:text-primary-foreground dark:hover:bg-primary-foreground/10 transition-colors duration-300 shadow-lg"
                 >
