@@ -7,29 +7,54 @@ import { supabase } from "@/integrations/supabase/client";
 import { showError, showSuccess } from "@/utils/toast";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import { Session } from "@supabase/supabase-js";
 
 const UpdatePassword = () => {
   const navigate = useNavigate();
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [session, setSession] = useState<any>(null);
+  const [loading, setLoading] = useState(true); // Initialiser loading à true
+  const [session, setSession] = useState<Session | null>(null);
 
   useEffect(() => {
-    // Check if there's an active session (e.g., from a password reset link)
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (!session) {
-        showError("Accès non autorisé. Veuillez utiliser le lien de réinitialisation de mot de passe.");
-        navigate("/login");
-      } else {
-        setSession(session);
+    let isMounted = true; // Flag pour éviter les mises à jour d'état sur un composant démonté
+
+    const handleSessionCheck = async () => {
+      const { data: { session: currentSession } } = await supabase.auth.getSession();
+      if (isMounted) {
+        setSession(currentSession);
+        setLoading(false); // L'état de la session est maintenant connu
+        if (!currentSession) {
+          showError("Accès non autorisé. Veuillez utiliser le lien de réinitialisation de mot de passe.");
+          navigate("/login");
+        }
+      }
+    };
+
+    // Écouter les changements d'état d'authentification (cela capturera la session du hash de l'URL)
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, currentSession) => {
+      if (isMounted) {
+        setSession(currentSession);
+        setLoading(false); // L'état de la session est maintenant connu
+        if (!currentSession) {
+          showError("Accès non autorisé. Veuillez utiliser le lien de réinitialisation de mot de passe.");
+          navigate("/login");
+        }
       }
     });
-  }, [navigate]);
+
+    // Effectuer une vérification immédiate de la session au montage du composant
+    handleSessionCheck();
+
+    return () => {
+      isMounted = false; // Nettoyage
+      subscription.unsubscribe();
+    };
+  }, [navigate]); // Dépendance à `navigate` uniquement
 
   const handleUpdatePassword = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
+    setLoading(true); // Définir loading à true pendant la mise à jour du mot de passe
 
     if (password !== confirmPassword) {
       showError("Les mots de passe ne correspondent pas.");
@@ -56,16 +81,22 @@ const UpdatePassword = () => {
       console.error("Unexpected error during password update:", err);
       showError("Une erreur inattendue est survenue.");
     } finally {
-      setLoading(false);
+      setLoading(false); // Réinitialiser loading après la tentative de mise à jour
     }
   };
 
-  if (!session && !loading) {
+  if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-100 dark:bg-gray-900">
         <p className="text-gray-700 dark:text-gray-300">Vérification de l'accès...</p>
       </div>
     );
+  }
+
+  // Si pas en chargement et pas de session, cela signifie que la vérification est terminée et qu'aucune session n'a été trouvée.
+  // La redirection devrait déjà avoir eu lieu.
+  if (!session) {
+    return null; // Ne pas rendre le formulaire si aucune session n'est présente
   }
 
   return (
