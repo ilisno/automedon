@@ -27,7 +27,7 @@ const ForgotPasswordDialog: React.FC<ForgotPasswordDialogProps> = ({ isOpen, onC
 
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/update-password`, // Redirect to a page where user can update password
+        redirectTo: `${window.location.origin}/update-password`, // C'est l'URL correcte pour rediriger l'utilisateur après avoir cliqué sur le lien dans l'e-mail.
       });
 
       if (error) {
