@@ -177,7 +177,7 @@ const ConvoyeurProfile: React.FC<ConvoyeurProfileProps> = ({ userId, onProfileCo
   }
 
   return (
-    <div className="w-full max-w-2xl bg-white dark:bg-gray-800 p-8 rounded-lg shadow-lg">
+    <div className="w-full max-w-2xl bg-white dark:bg-gray-800 p-8 rounded-lg shadow-lg mx-auto">
       <h2 className="text-2xl font-bold mb-6 text-center">Mon Profil</h2>
       <form onSubmit={handleProfileSubmit} className="space-y-6">
         <div className="flex flex-col items-center space-y-4 mb-6">
