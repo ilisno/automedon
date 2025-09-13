@@ -12,6 +12,9 @@ const Footer = () => {
           <Link to="/cgv" className="hover:underline">
             CGV
           </Link>
+          <Link to="/presentation" className="hover:underline">
+            Présentation
+          </Link>
           <Link to="/" className="hover:underline">
             Automedon
           </Link>
