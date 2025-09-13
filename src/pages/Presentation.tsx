@@ -6,7 +6,7 @@ import Footer from "@/components/Footer";
 
 const Presentation = () => {
   const handleDownload = () => {
-    const pdfFileName = "Automedon - presentation officielle 062025.pdf"; // Utilisation d'une variable pour plus de clarté
+    const pdfFileName = "automedon presentation officielle 062025.pdf"; // Nom de fichier corrigé
     const pdfUrl = `/${pdfFileName}`; // Chemin correct pour les fichiers dans le répertoire public
     
     console.log("Tentative de téléchargement du PDF depuis :", pdfUrl); // Log l'URL pour le débogage
