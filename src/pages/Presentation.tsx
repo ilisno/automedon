@@ -6,11 +6,14 @@ import Footer from "@/components/Footer";
 
 const Presentation = () => {
   const handleDownload = () => {
-    // Le fichier doit être placé dans le dossier public/
-    const pdfUrl = "/Automedon - presentation officielle 062025.pdf";
+    const pdfFileName = "Automedon - presentation officielle 062025.pdf"; // Utilisation d'une variable pour plus de clarté
+    const pdfUrl = `/${pdfFileName}`; // Chemin correct pour les fichiers dans le répertoire public
+    
+    console.log("Tentative de téléchargement du PDF depuis :", pdfUrl); // Log l'URL pour le débogage
+
     const link = document.createElement('a');
     link.href = pdfUrl;
-    link.setAttribute('download', 'Automedon - presentation officielle 062025.pdf');
+    link.setAttribute('download', pdfFileName); // Utilise le nom du fichier pour l'attribut de téléchargement
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
