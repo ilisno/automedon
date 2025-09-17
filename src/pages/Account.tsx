@@ -1,18 +1,19 @@
 import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom"; // Import Link
 import { supabase } from "@/integrations/supabase/client";
 import { showError } from "@/utils/toast";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import ClientDashboard from "@/components/client/ClientDashboard";
 import ConvoyeurDashboard from "@/components/convoyeur/ConvoyeurDashboard";
+import { Button } from "@/components/ui/button"; // Import Button
 
 const Account = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
-  const [userRole, setUserRole] = useState<'client' | 'convoyeur' | null>(null);
+  const [userRole, setUserRole] = useState<'client' | 'convoyeur' | 'admin' | null>(null); // Include 'admin' role
   const [userId, setUserId] = useState<string | null>(null);
-  const [isProfileComplete, setIsProfileComplete] = useState(false); // NEW state for profile completion
+  const [isProfileComplete, setIsProfileComplete] = useState(false);
 
   useEffect(() => {
     const checkUserRole = async () => {
@@ -29,7 +30,7 @@ const Account = () => {
 
       const { data: profile, error: profileError } = await supabase
         .from('profiles')
-        .select('role, is_profile_complete') // Fetch is_profile_complete
+        .select('role, is_profile_complete')
         .eq('id', user.id)
         .single();
 
@@ -37,18 +38,13 @@ const Account = () => {
         console.error("Error fetching profile for account page:", profileError);
         showError("Erreur lors du chargement de votre profil. Veuillez compléter vos informations.");
         setUserRole('client'); // Default to client if profile is missing or role is not set
-        setIsProfileComplete(false); // Profile is definitely not complete
+        setIsProfileComplete(false);
         setLoading(false);
         return;
       }
 
-      if (profile.role === 'client' || profile.role === 'convoyeur') {
-        setUserRole(profile.role);
-      } else {
-        showError("Votre rôle n'est pas défini. Veuillez compléter votre profil.");
-        setUserRole('client'); // Default to client if role is unknown
-      }
-      setIsProfileComplete(profile.is_profile_complete); // Set profile completion status
+      setUserRole(profile.role); // Set the actual role
+      setIsProfileComplete(profile.is_profile_complete);
       setLoading(false);
     };
 
@@ -69,7 +65,18 @@ const Account = () => {
       <main className="flex-grow">
         {userRole === 'client' && <ClientDashboard userId={userId!} isProfileComplete={isProfileComplete} onProfileCompleteChange={setIsProfileComplete} />}
         {userRole === 'convoyeur' && <ConvoyeurDashboard userId={userId!} isProfileComplete={isProfileComplete} onProfileCompleteChange={setIsProfileComplete} />}
-        {!userRole && (
+        {userRole === 'admin' && ( // NEW: Admin specific content
+          <div className="flex flex-col items-center justify-center p-4 text-center h-full">
+            <h1 className="text-4xl font-bold mb-6">Espace Administrateur</h1>
+            <p className="text-lg mb-8 text-center">
+              Vous êtes connecté en tant qu'administrateur. Accédez à votre tableau de bord.
+            </p>
+            <Link to="/admin/dashboard">
+              <Button className="px-8 py-4 text-lg">Accéder à l'espace Admin</Button>
+            </Link>
+          </div>
+        )}
+        {!userRole && ( // Fallback if role is not set or unknown
           <div className="flex flex-col items-center justify-center p-4 text-center">
             <h1 className="text-4xl font-bold mb-6">Bienvenue sur votre compte</h1>
             <p className="text-lg mb-8 text-center">
