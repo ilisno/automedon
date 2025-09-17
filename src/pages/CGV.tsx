@@ -173,6 +173,47 @@ const CGV = () => {
             en informera AUTOMEDON par téléphone au +33 6 50 78 84 87. L’annulation devra faire 
             l’objet d’une confirmation écrite immédiate.
           </p>
+          <p>
+            AUTOMEDON retiendra dans tous les cas, les frais d’annulation selon le barème suivant : - Annulation constatée plus de 4 jours avant le départ :  200,00 €  -  Annulation constatée entre 4 et 2 jours avant le départ : 50% du prix de la prestation.  - Annulation constatée la veille du départ :  75% du prix de la prestation - Annulation constatée le jour du départ :100% du prix de la prestation 
+          </p>
+          <p>
+            En cas de prise en charge rendue impossible du fait de l’état technique du véhicule, de 
+            son attelage, de son chargement ou de tout autre circonstance rendant sa conduite 
+            dangereuse ou impossible, le Convoyeur AUTOMEDON rendra compte de cette 
+            impossibilité à la centrale d’AUTOMEDON. Si aucune solution n’est apportée par le 
+            Donneur d’ordre afin de remédier rapidement au problème rencontré, la mission ne 
+            pourra être effectuée et le prix de la prestation restera acquis à AUTOMEDON. 
+          </p>
+          <p>
+            Des dispositions particulières pourront toutefois être convenues en cas de report 
+            demandé par le Donneur d’ordre à une date et à des nouvelles conditions – y compris 
+            financières – acceptées par AUTOMEDON. 
+          </p>
+          <h3 className="text-xl font-semibold mt-4 mb-2">1.6. Annulation pour cas de force majeure.</h3>
+          <p>
+            En cas de force majeure compromettant la libre circulation des biens et/ou des 
+            personnes (grève ou dysfonctionnement dans les transports, blocus routier, difficultés de 
+            ravitaillement en carburant, intempéries, inondations, épidémie…) et rendant de ce fait 
+            impossible l’accomplissement de la prestation dans les conditions initialement prévues, 
+            le Donneur d’ordre en sera immédiatement informé et les sommes versées seront 
+            intégralement remboursées. Le Donneur d’ordre pourra toutefois opter pour un report de 
+            la prestation à une date ultérieure qui resterait à définir entre le Donneur d’ordre et 
+            AUTOMEDON lorsque les conditions le permettront. 
+          </p>
+          <h2 className="text-2xl font-semibold mt-6 mb-2">2/ DISPOSITIONS PRATIQUES</h2>
+          <h3 className="text-xl font-semibold mt-4 mb-2">2. 1. Aspects documentaires :</h3>
+          <p>
+            Le Convoyeur AUTOMEDON effectuera un état descriptif précis du véhicule. Ce 
+            document sera validé à la prise en charge et à l’arrivée à destination par le Donneur 
+            d’ordre ou son représentant. 
+          </p>
+          <p>
+            Le véhicule ne devra contenir aucun objet de valeur ou objets dont le transport ou la 
+            détention est interdite ou règlementée. A la remise du véhicule, le Donneur d’ordre – ou 
+            son représentant – est invité à vérifier la parfaite conformité de l’état descriptif et le bon 
+            fonctionnement du véhicule. Aucune réclamation ne pourra être prise en considération 
+            après signature de ce document.
+          </p>
         </div>
         <Link to="/">
           <Button variant="outline" className="px-8 py-4 text-lg mt-8">Retour à l'accueil</Button>
