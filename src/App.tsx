@@ -29,12 +29,13 @@ const AppContent = () => {
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === 'SIGNED_OUT' || !session) {
-        // Redirect to login if not authenticated and not on login page, home page, admin pages, update password, or presentation page
+        // Redirect to login if not authenticated and not on login page, home page, admin pages, update password, presentation page, or CGV page
         if (window.location.pathname !== "/login" && 
             window.location.pathname !== "/" && 
             !window.location.pathname.startsWith("/admin") && 
             !window.location.pathname.startsWith("/update-password") &&
-            window.location.pathname !== "/presentation" // NEW: Allow access to presentation page
+            window.location.pathname !== "/presentation" &&
+            window.location.pathname !== "/cgv" // NEW: Allow access to CGV page
         ) {
           navigate("/login");
         }
