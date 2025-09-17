@@ -214,6 +214,55 @@ const CGV = () => {
             fonctionnement du véhicule. Aucune réclamation ne pourra être prise en considération 
             après signature de ce document.
           </p>
+          <p>
+            Une rubrique « observations » est réservée au Donneur d’ordre qui pourra faire part de ses 
+            commentaires ou remarques sur l’accomplissement de la prestation. 
+          </p>
+          <h3 className="text-xl font-semibold mt-4 mb-2">2. 2. Véhicules admissibles et conditions techniques :</h3>
+          <p>
+            La prestation « Convoyeur AUTOMEDON » est applicable pour la conduite de toute 
+            voiture particulière, véhicule utilitaire léger, fourgon, camping-car et leur attelage 
+            éventuel répondant aux conditions ci-dessous. Les véhicules peuvent être immatriculés 
+            en France ou à l’étranger sous réserve de dispositions administratives pouvant interdire 
+            la conduite du véhicule par un tiers. Le Donneur d’ordre devra être en possession du 
+            certificat d’immatriculation du véhicule et de son attelage éventuel (caravane ou 
+            remorque). 
+          </p>
+          <p>
+            Le véhicule doit être à jour de son contrôle technique et en parfait état de 
+            fonctionnement. Le Donneur d’ordre certifie que le véhicule (ou attelage) confié au 
+            Convoyeur AUTOMEDON ne présente pas de défaut(s) connu(s) de lui et qu’il peut ainsi 
+            être conduit dans des conditions optimales de sécurité et sans risque aggravé de panne 
+            ou d’accident. Toute inexactitude ou omission quant à l’état mécanique du véhicule 
+            entraînera la responsabilité du Donneur d’ordre en cas de sinistre consécutif. Le véhicule 
+            doit avoir fait l’objet d’un entretien périodique régulier selon les préconisations du 
+            constructeur. 
+          </p>
+          <p>
+            L’attention du Donneur d’ordre est attirée tout particulièrement sur l’état des 
+            pneumatiques (gonflage, niveau d’usure, déformation, hernies, coupures…) et le 
+            fonctionnement des feux et clignoteurs (y compris pour l’attelage éventuel) qui doivent 
+            être impérativement vérifiés avant le départ afin d’éviter des complications dans 
+            l’accomplissement de la mission ou son annulation. Sauf dispositions contraires 
+            l’attelage de la caravane ou de la remorque et/ou son chargement sont effectués par le 
+            Donneur d’ordre sous sa seule responsabilité. 
+          </p>
+          <p>
+            Le Convoyeur AUTOMEDON procèdera à la prise en charge à la vérification des niveaux et 
+            à un contrôle du bon fonctionnement du véhicule. 
+          </p>
+          <h3 className="text-xl font-semibold mt-4 mb-2">2.3. Itinéraires et étapes :</h3>
+          <p>
+            Le Convoyeur AUTOMEDON respectera le rendez-vous convenu avec le Donneur d’ordre 
+            lors de la commande. Le Convoyeur empruntera l’itinéraire convenu lors de la commande 
+            de la prestation. Il ne pourra être dérogé à cet itinéraire sauf en cas de force majeure dont 
+            le Convoyeur AUTOMEDON rendra préalablement compte à la centrale AUTOMEDON. 
+          </p>
+          <p>
+            Les conditions de circulation ou conditions météorologiques rencontrées peuvent 
+            entraîner des retards importants rendant exceptionnellement nécessaire pour des 
+            questions de sécurité une ou plusieurs étapes en cours de route non prévues lors de la
+          </p>
         </div>
         <Link to="/">
           <Button variant="outline" className="px-8 py-4 text-lg mt-8">Retour à l'accueil</Button>
