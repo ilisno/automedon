@@ -54,7 +54,68 @@ const CGV = () => {
           </p>
           <h2 className="text-2xl font-semibold mt-6 mb-2">1/ DISPOSITIONS ADMINISTRATIVES ET FINANCIÈRES</h2>
           <h3 className="text-xl font-semibold mt-4 mb-2">1.1. Demande de prestation et devis préalable.</h3>
-          {/* More content will go here as provided by the user */}
+          <p>
+            Pour toute demande de prestation « Convoyeur », AUTOMEDON établira un devis en 
+            euros sur la base des souhaits et éléments convenus avec le Donneur d’ordre. Le devis 
+            sera adressé au Donneur d’ordre par courrier électronique. 
+          </p>
+          <h3 className="text-xl font-semibold mt-4 mb-2">1.1 Demande de prestation</h3>
+          <p>
+            Le Donneur d'ordre fournit a AUTOMEDON, préalablement à la présentation du véhicule au fin 
+            de transport, sur le Site ou par tout autre procédé en permettant la mémorisation, les 
+            indications suivantes (les « Conditions Initiales ») : 
+          </p>
+          <p>
+            Son nom, prénom, adresse complète, ainsi que ses numéros de téléphone et télécopie le cas 
+            échant et son adresse électronique. 
+          </p>
+          <p>
+            Le nom, prénom, adresse complète, ainsi que les numéros de téléphone et télécopie le cas 
+            échant et l’adresse électronique de la personne chargée de la remise du véhicule au Convoyeur 
+            dans l’hypothèse où le Donneur d’ordre ne serait pas le remettant. 
+          </p>
+          <p>
+            Le nom, prénom, adresse complète, ainsi que les numéros de téléphone et télécopie le cas 
+            échant et l’adresse électronique du Destinataire dans l’hypothèse où le Destinataire ne serait 
+            pas le Donneur d’ordre. 
+          </p>
+          <p>
+            La plage de dates de livraison conformément au choix proposé sur le Site et lieu de livraison 
+            du Véhicule. 
+          </p>
+          <p>
+            Les heures limites de mise à disposition du Véhicule en vue du transport du Véhicule. 
+          </p>
+          <p>
+            Le genre, le type, l’immatriculation, le numéro de châssis le tout repris dans un récapitulatif 
+            de commande. 
+          </p>
+          <p>
+            La spécificité du Véhicule quand ce dernier requiert des dispositions particulières (véhicule 
+            GPL, GNV…). 
+          </p>
+          <p>
+            En outre le Donneur d'ordre informe le Transporteur des particularités non apparentes du 
+            Véhicules et de toutes données susceptibles d'avoir une incidence sur la bonne exécution du 
+            transport. 
+          </p>
+          <p>
+            Le Donneur d'ordre fournit à AUTOMEDON, en même temps que le Véhicule, les 
+            renseignements et les documents d'accompagnement nécessaires à la bonne exécution d'une 
+            opération de transport soumise à une réglementation particulière telle que douane, police, etc. 
+          </p>
+          <p>
+            Un document de transport est établi sur la base de ces indications. Il est complété, si besoin est, 
+            au fur et à mesure de l'opération de transport, un exemplaire du document de transport est 
+            remis au Destinataire au moment de la livraison. 
+          </p>
+          <p>
+            Le Donneur d'ordre supporte vis-à-vis de AUTOMEDON les conséquences d'une déclaration 
+            erronée, fausse ou incomplète sur les caractéristiques de l'envoi ainsi que d'une absence ou 
+            d'une insuffisance de déclaration ayant eu pour effet, entre autres, de dissimuler le caractère 
+            dangereux ou frauduleux du Véhicule. 
+          </p>
+          <h3 className="text-xl font-semibold mt-4 mb-2">1.2 Modifications des conditions initiales</h3>
         </div>
         <Link to="/">
           <Button variant="outline" className="px-8 py-4 text-lg mt-8">Retour à l'accueil</Button>
