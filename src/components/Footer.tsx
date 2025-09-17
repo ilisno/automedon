@@ -12,6 +12,9 @@ const Footer = () => {
           <Link to="/cgv" className="hover:underline">
             CGV
           </Link>
+          <Link to="/politique-de-confidentialite" className="hover:underline"> {/* NEW: Link to Politique de Confidentialite */}
+            Politique de Confidentialité
+          </Link>
           <Link to="/presentation" className="hover:underline">
             Présentation
           </Link>
