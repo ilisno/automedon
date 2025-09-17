@@ -3,10 +3,11 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import SignUpForm from "@/components/auth/SignUpForm";
-import SignInForm from "@/components/auth/SignInForm"; // Import the new custom sign-in form
-import ForgotPasswordDialog from "@/components/auth/ForgotPasswordDialog"; // Import the new forgot password dialog
+import SignInForm from "@/components/auth/SignInForm";
+import ForgotPasswordDialog from "@/components/auth/ForgotPasswordDialog";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
+import { Profile } from "@/context/MissionsContext"; // Import Profile type
 
 const Login = () => {
   const navigate = useNavigate();
@@ -18,15 +19,20 @@ const Login = () => {
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       if (session) {
-        navigate("/");
+        // If already signed in, redirect to account-redirect to handle role-based routing
+        navigate("/account-redirect");
       }
     });
 
     return () => subscription.unsubscribe();
   }, [navigate]);
 
-  const handleSignInSuccess = () => {
-    navigate("/account-redirect"); // Redirect to account after successful sign-in
+  const handleSignInSuccess = (userRole: Profile['role']) => {
+    if (userRole === 'admin') {
+      navigate("/admin/dashboard");
+    } else {
+      navigate("/account-redirect"); // Existing redirect for client/convoyeur
+    }
   };
 
   const handleSignUpSuccess = () => {

@@ -5,9 +5,10 @@ import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { showError, showSuccess } from "@/utils/toast";
 import { useNavigate } from "react-router-dom";
+import { Profile } from "@/context/MissionsContext"; // Import Profile type
 
 interface SignInFormProps {
-  onSignInSuccess: () => void;
+  onSignInSuccess: (userRole: Profile['role']) => void; // Modified to pass user role
   onForgotPasswordClick: () => void;
 }
 
@@ -29,8 +30,21 @@ const SignInForm: React.FC<SignInFormProps> = ({ onSignInSuccess, onForgotPasswo
       if (error) {
         showError(`Erreur de connexion: ${error.message}`);
       } else if (data.user) {
-        showSuccess("Connexion réussie !");
-        onSignInSuccess();
+        // Fetch user profile to get the role
+        const { data: profile, error: profileError } = await supabase
+          .from('profiles')
+          .select('role')
+          .eq('id', data.user.id)
+          .single();
+
+        if (profileError || !profile) {
+          console.error("Error fetching profile after sign-in:", profileError);
+          showError("Erreur lors de la récupération de votre profil. Veuillez réessayer.");
+          await supabase.auth.signOut(); // Sign out if profile cannot be fetched
+        } else {
+          showSuccess("Connexion réussie !");
+          onSignInSuccess(profile.role); // Pass the user's role
+        }
       }
     } catch (err) {
       console.error("Unexpected error during sign-in:", err);

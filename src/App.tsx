@@ -12,7 +12,7 @@ import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import Login from "./pages/Login";
 import CreateMission from "./pages/CreateMission";
-import AccountRedirect from "./pages/AccountRedirect";
+// import AccountRedirect from "./pages/AccountRedirect"; // Removed
 import Account from "./pages/Account";
 import Contact from "./pages/Contact";
 import CGV from "./pages/CGV";
@@ -20,7 +20,7 @@ import AdminLogin from "./pages/AdminLogin";
 import AdminDashboard from "./pages/AdminDashboard";
 import UpdatePassword from "./pages/UpdatePassword";
 import Presentation from "./pages/Presentation";
-import PolitiqueDeConfidentialite from "./pages/PolitiqueDeConfidentialite"; // NEW: Import the new page
+import PolitiqueDeConfidentialite from "./pages/PolitiqueDeConfidentialite";
 
 const queryClient = new QueryClient();
 
@@ -37,13 +37,13 @@ const AppContent = () => {
             !window.location.pathname.startsWith("/update-password") &&
             window.location.pathname !== "/presentation" &&
             window.location.pathname !== "/cgv" &&
-            window.location.pathname !== "/politique-de-confidentialite" // NEW: Allow access to Politique de Confidentialite page
+            window.location.pathname !== "/politique-de-confidentialite"
         ) {
           navigate("/login");
         }
       } else if (session && window.location.pathname === "/login") {
-        // Redirect to account if authenticated and on login page
-        navigate("/account");
+        // If authenticated and on login page, redirect to account-redirect to handle role-based routing
+        navigate("/account-redirect");
       }
     });
 
@@ -55,7 +55,7 @@ const AppContent = () => {
       <Route path="/" element={<Index />} />
       <Route path="/login" element={<Login />} />
       <Route path="/create-mission" element={<CreateMission />} />
-      <Route path="/account-redirect" element={<AccountRedirect />} />
+      {/* <Route path="/account-redirect" element={<AccountRedirect />} /> */} {/* Removed */}
       <Route path="/account" element={<Account />} />
       <Route path="/contact" element={<Contact />} />
       <Route path="/cgv" element={<CGV />} />
@@ -63,7 +63,7 @@ const AppContent = () => {
       <Route path="/admin/dashboard" element={<AdminDashboard />} />
       <Route path="/update-password" element={<UpdatePassword />} />
       <Route path="/presentation" element={<Presentation />} />
-      <Route path="/politique-de-confidentialite" element={<PolitiqueDeConfidentialite />} /> {/* NEW: Add the new route */}
+      <Route path="/politique-de-confidentialite" element={<PolitiqueDeConfidentialite />} />
       {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
       <Route path="*" element={<NotFound />} />
     </Routes>
