@@ -303,6 +303,52 @@ const CGV = () => {
             en cas de sinistre n’impliquant pas la responsabilité du Convoyeur AUTOMEDON. Il en 
             sera notamment ainsi dans les cas ci-dessous sans que la présente liste soit limitative :
           </p>
+          <p>
+            Bris de glace par projection,  crevaison, actes de vandalisme,  vol d’accessoire, vol du 
+            véhicule ou car-jacking, dégradation suite à agression, détérioration du véhicule en 
+            stationnement, panne ou accident résultant d’une défaillance mécanique,  …. 
+            En cas d’accident – avec ou sans tiers identifié – un constat amiable sera rédigé par le 
+            Convoyeur AUTOMEDON qui sera désigné « conducteur » du véhicule. Le constat amiable 
+            sera remis au Donneur d’ordre pour traitement par son assureur pour instruction du 
+            dossier « sinistre ». 
+          </p>
+          <h2 className="text-2xl font-semibold mt-6 mb-2">5/ PANNE EN COURS DE ROUTE</h2>
+          <p>
+            En cas de panne ou crevaison, le Convoyeur AUTOMEDON veillera à la sécurité du 
+            véhicule immobilisé et se chargera de prévenir les secours routiers afin d’obtenir un 
+            remorquage ou un dépannage sur place dans les plus brefs délais. Le Convoyeur 
+            AUTOMEDON et la centrale AUTOMEDON faciliteront la relation avec l’assistance du 
+            Donneur d’ordre afin que le véhicule puisse être dépanné dans les meilleurs délais. 
+            IMPORTANT : Il est rappelé que le stationnement et la circulation de personnes sur les 
+            bandes d’arrêt d’urgence des autoroutes ou voies rapides sont rigoureusement interdits. 
+          </p>
+          <h2 className="text-2xl font-semibold mt-6 mb-2">6/ RÉCLAMATIONS</h2>
+          <p>
+            Toute réclamation concernant l’exécution des prestations « Convoyeur AUTOMEDON » 
+            doit faire l’objet d’une mention portée sur les documents opérationnels signés par le 
+            Donneur d’ordre en cours de route ou à l’arrivée à destination (feuille de route ou état 
+            descriptif). 
+          </p>
+          <p>
+            La réclamation devra être confirmée dans les 48 heures suivant la fin de l’exécution de la 
+            prestation : Soit par courrier postal recommandé adressé à : 
+          </p>
+          <h2 className="text-2xl font-semibold mt-6 mb-2">7/ AUTOMEDON</h2>
+          <p>
+            URUK SAS 
+            79 RUE D'ORADOUR 51000 CHALONS-EN-CHAMPAGNE  
+          </p>
+          <p>
+            Le Donneur d’ordre précisera l’objet détaillé de sa réclamation et apportera toutes 
+            informations ou documents justifiant du bien-fondé de sa réclamation. 
+          </p>
+          <p>
+            Pour les missions l’attention du Donneur d’ordre est attirée sur le fait qu’aucune 
+            réclamation ne sera prise en considération après signature de l’état descriptif dont un 
+            exemplaire sera remis au réceptionnaire. La mention « sous réserve » portée sur l’état 
+            descriptif n’est pas acceptable. 
+          </p>
+          <h2 className="text-2xl font-semibold mt-6 mb-2">8/ ATTRIBUTION DE COMPÉTENCE</h2>
         </div>
         <Link to="/">
           <Button variant="outline" className="px-8 py-4 text-lg mt-8">Retour à l'accueil</Button>
