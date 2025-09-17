@@ -262,6 +262,46 @@ const CGV = () => {
             Les conditions de circulation ou conditions météorologiques rencontrées peuvent 
             entraîner des retards importants rendant exceptionnellement nécessaire pour des 
             questions de sécurité une ou plusieurs étapes en cours de route non prévues lors de la
+            commande. En ce cas, et pour toutes autres circonstances entraînant un retard non 
+            imputable au Convoyeur (panne, blocus routier…), 
+            Le Donneur d’ordre accepte expressément de supporter et de régler directement les frais 
+            d’étape(s) supplémentaire(s) – hôtel, repas, petit-déjeuner pour le Convoyeur. 
+            Les réservations d’hôtel seront effectuées par la centrale AUTOMEDON.  
+          </p>
+          <h3 className="text-xl font-semibold mt-4 mb-2">2.4. Frais de route :</h3>
+          <p>
+            Le Convoyeur AUTOMEDON fera l’avance des frais qui devront être remboursés par le 
+            Donneur d’ordre lors de la remise du véhicule. Le remboursement peut se faire en 
+            espèces contre reçu ou par chèque bancaire à l’ordre d’URUK SAS. Le Convoyeur 
+            AUTOMEDON remettra les justificatifs des frais engagés pour le compte du Donneur 
+            d’ordre. Dans le cas où une provision pour frais de route aura été demandée par 
+            AUTOMEDON, une régularisation financière (positive ou négative) sera effectuée lors de 
+            l’envoi de la facture. 
+          </p>
+          <h2 className="text-2xl font-semibold mt-6 mb-2">3/ CONFIDENTIALITÉ</h2>
+          <p>
+            Le personnel AUTOMEDON est tenu au secret professionnel le plus absolu et s’engage 
+            de ce fait à ne divulguer à des tiers aucune information concernant le Donneur d’ordre, 
+            sa famille, son environnement personnel ou professionnel et la raison pour laquelle il a 
+            été fait appel à AUTOMEDON. AUTOMEDON s’engage également à ne pas communiquer 
+            à des tiers les coordonnées des Donneurs d’ordre s à des fins de sollicitation ou de 
+            prospection commerciale ni pour tout autre motif. Les coordonnées du Donneur d’ordre 
+            seront enregistrées et conservées dans les fichiers informatiques AUTOMEDON qui 
+            s’engage à effacer tout enregistrement sur simple demande de sa part formulée par écrit. 
+          </p>
+          <h2 className="text-2xl font-semibold mt-6 mb-2">4/ ASSURANCES</h2>
+          <p>
+            La société URUK SAS, a souscrit des garanties d’assurances prévoyant l’indemnisation 
+            des dommages matériels et corporels pouvant survenir en cours de mission si la nature 
+            des dommages ou les circonstances du sinistre impliquent sa responsabilité, même 
+            partielle, ou celle de ses préposés. 
+          </p>
+          <p>
+            Il est toutefois expressément convenu et accepté par le Donneur d’ordre que son véhicule 
+            (et attelage éventuel) restera assuré par le titulaire de la carte grise pendant 
+            l’accomplissement de la mission. Le Donneur d’ordre s’engage à n’exercer aucun recours 
+            en cas de sinistre n’impliquant pas la responsabilité du Convoyeur AUTOMEDON. Il en 
+            sera notamment ainsi dans les cas ci-dessous sans que la présente liste soit limitative :
           </p>
         </div>
         <Link to="/">
