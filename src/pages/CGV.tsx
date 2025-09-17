@@ -116,6 +116,63 @@ const CGV = () => {
             dangereux ou frauduleux du Véhicule. 
           </p>
           <h3 className="text-xl font-semibold mt-4 mb-2">1.2 Modifications des conditions initiales</h3>
+          <p>
+            Toute nouvelle instruction du Donneur d'ordre ayant pour objet la modification des Conditions 
+            Initiales doit être donnée par écrit ou par tout autre procédé en permettant la mémorisation 
+            à AUTOMEDON. 
+          </p>
+          <p>
+            AUTOMEDON n'est pas tenu d'accepter ces nouvelles instructions si elles sont de nature à 
+            l'empêcher d'honorer des engagements de transport pris antérieurement. Il doit alors en aviser 
+            immédiatement le Donneur d'ordre par écrit ou par tout autre procédé en permettant la 
+            mémorisation. 
+          </p>
+          <p>
+            Lorsque les instructions entraînent une immobilisation du Véhicule et/ou de l'équipage, 
+            AUTOMEDON perçoit un complément de rémunération pour frais d'immobilisation facturé 
+            séparément. 
+          </p>
+          <p>
+            Ainsi, toute modification portée aux Conditions Initiales entraîne un réajustement du prix 
+            initial. 
+          </p>
+          <h3 className="text-xl font-semibold mt-4 mb-2">1.2. Commande et réservation du Convoyeur AUTOMEDON.</h3>
+          <p>
+            En cas d’accord sur les conditions proposées, le Donneur d’ordre validera le devis et 
+            procédera alors au paiement de la totalité : 
+          </p>
+          <h3 className="text-xl font-semibold mt-4 mb-2">1.3. Mode de paiement.</h3>
+          <p>
+            Les paiements sont acceptés par cartes de paiement sur le site AUTOMEDON, virement 
+            bancaire ou par chèque bancaire libellé à l’ordre d’URUK SAS. Aucun règlement en 
+            espèces ne peut être accepté. 
+          </p>
+          <h3 className="text-xl font-semibold mt-4 mb-2">1.4. Conditions de règlement.</h3>
+          <p>
+            Le paiement complet de la prestation est exigé une semaine avant la date de prise en 
+            charge (Sauf urgence). 
+          </p>
+          <p>
+            A défaut de paiement complet reçu au plus tard 7 jours avant la date de prise en charge 
+            prévue, AUTOMEDON est en droit d’annuler la commande. En cas de prestation 
+            commandée en urgence, des dispositions particulières pourront toutefois être 
+            convenues avec le Donneur d’ordre afin de rendre la prestation souhaitée. 
+          </p>
+          <p>
+            AUTOMEDON adressera au Donneur d’ordre par courrier électronique une facture de 
+            régularisation dans les 30 jours suivant l’accomplissement de la prestation. 
+          </p>
+          <h3 className="text-xl font-semibold mt-4 mb-2">1.5. Annulation de la part du Donneur d’ordre.</h3>
+          <p>
+            Le Donneur d’ordre est informé, qu’en application de l’article L. 121-21-8 du code de la 
+            consommation, les services de transport proposés sur le Site ne bénéficient pas de droit de 
+            rétractation.  
+          </p>
+          <p>
+            En cas d’annulation de la prestation pour quelle que cause que ce soit, le Donneur d’ordre 
+            en informera AUTOMEDON par téléphone au +33 6 50 78 84 87. L’annulation devra faire 
+            l’objet d’une confirmation écrite immédiate.
+          </p>
         </div>
         <Link to="/">
           <Button variant="outline" className="px-8 py-4 text-lg mt-8">Retour à l'accueil</Button>
