@@ -349,6 +349,26 @@ const CGV = () => {
             descriptif n’est pas acceptable. 
           </p>
           <h2 className="text-2xl font-semibold mt-6 mb-2">8/ ATTRIBUTION DE COMPÉTENCE</h2>
+          <p>
+            A défaut d’accord amiable que les parties s’engagent à rechercher préalablement, toute 
+            difficulté survenant dans l’interprétation ou l’exécution des présentes conditions 
+            générales sera soumises aux tribunaux de Chalon en champagne qui seront seuls 
+            compétents, les parties faisant élection de domicile à Chalon en champagne. 
+          </p>
+          <h2 className="text-2xl font-semibold mt-6 mb-2">9/ INFORMATIONS LÉGALES</h2>
+          <p>
+            AUTOMEDON est un service conçu et réalisé par : 
+          </p>
+          <p>
+            URUK SAS  
+            SAS, société par actions simplifiée au capital de 500 € SIRET : 97759264100012  
+            IBAN : FR76 3000 4001 4400 0101 9322 103 Banque : BNPPARB CHALONS EN CHAMP  
+            Siège social : 79 RUE D'ORADOUR 51000 CHALONS-EN-CHAMPAGNE   
+            Téléphone :  +33 6 50 78 84 87 
+            Assurance Flotte : HISCOX ASSURANCES 
+            Assurance RC Prestataire de Services : HISCOX ASSURANCES 
+            Site WEB : www.automedon.net
+          </p>
         </div>
         <Link to="/">
           <Button variant="outline" className="px-8 py-4 text-lg mt-8">Retour à l'accueil</Button>
