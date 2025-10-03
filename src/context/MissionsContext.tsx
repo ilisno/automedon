@@ -653,7 +653,7 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         }
         const { data, error } = await supabase
           .from('commandes')
-          .select('*, convoyeur_profile:convoyeur_id(first_name, last_name), client_profile:client_id(first_name, last_name, company_type, email, phone), departure_sheets(*), arrival_sheets(*)')
+          .select('*, convoyeur_profile:commandes_convoyeur_id_fkey(first_name, last_name), client_profile:commandes_client_id_fkey(first_name, last_name, company_type, email, phone), departure_sheets(*), arrival_sheets(*)')
           .eq('client_id', userId);
         
         if (error) {
@@ -705,7 +705,7 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       queryKey: ['availableMissions'],
       queryFn: async () => {
         // Only fetch missions where convoyeur_payout is not null AND is_paid is true
-        const { data, error } = await supabase.from('commandes').select('*, convoyeur_profile:convoyeur_id(first_name, last_name), client_profile:client_id(first_name, last_name, company_type, email, phone), departure_sheets(*), arrival_sheets(*)').eq('statut', 'Disponible').not('convoyeur_payout', 'is', null).eq('is_paid', true); // Corrected join syntax
+        const { data, error } = await supabase.from('commandes').select('*, convoyeur_profile:commandes_convoyeur_id_fkey(first_name, last_name), client_profile:commandes_client_id_fkey(first_name, last_name, company_type, email, phone), departure_sheets(*), arrival_sheets(*)').eq('statut', 'Disponible').not('convoyeur_payout', 'is', null).eq('is_paid', true);
         if (error) throw error;
         return data.map(m => ({
           id: m.id,
@@ -747,7 +747,7 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         if (!userId) return [];
         const { data: missionsData, error: missionsError } = await supabase
           .from('commandes')
-          .select('*, convoyeur_profile:convoyeur_id(first_name, last_name), client_profile:client_id(first_name, last_name, company_type, email, phone)') // Corrected join syntax
+          .select('*, convoyeur_profile:commandes_convoyeur_id_fkey(first_name, last_name), client_profile:commandes_client_id_fkey(first_name, last_name, company_type, email, phone)')
           .eq('convoyeur_id', userId)
           .in('statut', ['en cours', 'livrée'])
           .eq('is_paid', true); // NEW: Only show if paid
@@ -847,7 +847,7 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       queryKey: ['allMissions'],
       queryFn: async () => {
         // Join with profiles to get convoyeur's first_name and last_name
-        const { data, error } = await supabase.from('commandes').select('*, convoyeur_profile:convoyeur_id(first_name, last_name), client_profile:client_id(first_name, last_name, company_type, email, phone), departure_sheets(*), arrival_sheets(*)'); // Corrected join syntax
+        const { data, error } = await supabase.from('commandes').select('*, convoyeur_profile:commandes_convoyeur_id_fkey(first_name, last_name), client_profile:commandes_client_id_fkey(first_name, last_name, company_type, email, phone), departure_sheets(*), arrival_sheets(*)');
         if (error) throw error;
         return data.map(m => ({
           id: m.id,
