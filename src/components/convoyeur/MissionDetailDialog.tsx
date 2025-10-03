@@ -76,8 +76,8 @@ const MissionDetailDialog: React.FC<MissionDetailDialogProps> = ({
     if (!mission) return;
     setIsSubmitting(true);
     try {
-      await addMissionUpdate(mission.id, finalComment, finalPhotos); // Add final update before completing
-      await completeMission(mission.id); // Complete mission without passing comment/photos again
+      // Correction: Passer les états 'comment' et 'photos' directement à completeMission
+      await completeMission(mission.id, comment, photos); 
       showSuccess("Mission marquée comme livrée !");
       onClose(); // Close dialog after completion
     } catch (error) {
