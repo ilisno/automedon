@@ -650,7 +650,7 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         // Join with profiles to get convoyeur's first_name and last_name
         const { data, error } = await supabase
           .from('commandes')
-          .select('*, profiles!commandes_convoyeur_id_fkey(first_name, last_name), client_profile:profiles!commandes_client_id_fkey(first_name, last_name, company_type, email, phone), departure_sheets(*), arrival_sheets(*)') // Explicitly name the join for clarity
+          .select('*, convoyeur_profile:convoyeur_id(first_name, last_name), client_profile:client_id(first_name, last_name, company_type, email, phone), departure_sheets(*), arrival_sheets(*)') // Corrected join syntax
           .eq('client_id', userId); // Mis à jour pour client_id
         if (error) throw error;
         return data.map(m => ({
@@ -664,8 +664,8 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
           client_id: m.client_id, // Mis à jour pour client_id
           convoyeur_id: m.convoyeur_id,
           // Map joined profile data to new fields
-          convoyeur_first_name: m.profiles?.first_name || null,
-          convoyeur_last_name: m.profiles?.last_name || null,
+          convoyeur_first_name: m.convoyeur_profile?.first_name || null,
+          convoyeur_last_name: m.convoyeur_profile?.last_name || null,
           client_first_name: m.client_profile?.first_name || null,
           client_last_name: m.client_profile?.last_name || null,
           client_company: m.client_profile?.company_type || null,
@@ -693,7 +693,7 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       queryKey: ['availableMissions'],
       queryFn: async () => {
         // Only fetch missions where convoyeur_payout is not null AND is_paid is true
-        const { data, error } = await supabase.from('commandes').select('*, departure_sheets(*), arrival_sheets(*)').eq('statut', 'Disponible').not('convoyeur_payout', 'is', null).eq('is_paid', true);
+        const { data, error } = await supabase.from('commandes').select('*, convoyeur_profile:convoyeur_id(first_name, last_name), client_profile:client_id(first_name, last_name, company_type, email, phone), departure_sheets(*), arrival_sheets(*)').eq('statut', 'Disponible').not('convoyeur_payout', 'is', null).eq('is_paid', true); // Corrected join syntax
         if (error) throw error;
         return data.map(m => ({
           id: m.id,
@@ -705,6 +705,13 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
           statut: m.statut,
           client_id: m.client_id, // Mis à jour pour client_id
           convoyeur_id: m.convoyeur_id,
+          convoyeur_first_name: m.convoyeur_profile?.first_name || null,
+          convoyeur_last_name: m.convoyeur_profile?.last_name || null,
+          client_first_name: m.client_profile?.first_name || null,
+          client_last_name: m.client_profile?.last_name || null,
+          client_company: m.client_profile?.company_type || null,
+          client_email: m.client_profile?.email || null,
+          client_phone: m.client_profile?.phone || null,
           heureLimite: m.heureLimite,
           commentaires: m.commentaires,
           photos: m.photos,
@@ -728,7 +735,7 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         if (!userId) return [];
         const { data: missionsData, error: missionsError } = await supabase
           .from('commandes')
-          .select('*, profiles!commandes_convoyeur_id_fkey(first_name, last_name), client_profile:profiles!commandes_client_id_fkey(first_name, last_name, company_type, email, phone)') // Select profile data for convoyeur and client
+          .select('*, convoyeur_profile:convoyeur_id(first_name, last_name), client_profile:client_id(first_name, last_name, company_type, email, phone)') // Corrected join syntax
           .eq('convoyeur_id', userId)
           .in('statut', ['en cours', 'livrée'])
           .eq('is_paid', true); // NEW: Only show if paid
@@ -767,8 +774,8 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
             statut: m.statut,
             client_id: m.client_id, // Mis à jour pour client_id
             convoyeur_id: m.convoyeur_id,
-            convoyeur_first_name: m.profiles?.first_name || null, // Map joined profile data
-            convoyeur_last_name: m.profiles?.last_name || null, // Map joined profile data
+            convoyeur_first_name: m.convoyeur_profile?.first_name || null, // Map joined profile data
+            convoyeur_last_name: m.convoyeur_profile?.last_name || null, // Map joined profile data
             client_first_name: m.client_profile?.first_name || null,
             client_last_name: m.client_profile?.last_name || null,
             client_company: m.client_profile?.company_type || null,
@@ -828,7 +835,7 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       queryKey: ['allMissions'],
       queryFn: async () => {
         // Join with profiles to get convoyeur's first_name and last_name
-        const { data, error } = await supabase.from('commandes').select('*, profiles!commandes_convoyeur_id_fkey(first_name, last_name), client_profile:profiles!commandes_client_id_fkey(first_name, last_name, company_type, email, phone), departure_sheets(*), arrival_sheets(*)');
+        const { data, error } = await supabase.from('commandes').select('*, convoyeur_profile:convoyeur_id(first_name, last_name), client_profile:client_id(first_name, last_name, company_type, email, phone), departure_sheets(*), arrival_sheets(*)'); // Corrected join syntax
         if (error) throw error;
         return data.map(m => ({
           id: m.id,
@@ -841,8 +848,8 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
           client_id: m.client_id, // Mis à jour pour client_id
           convoyeur_id: m.convoyeur_id,
           // Map joined profile data to new fields
-          convoyeur_first_name: m.profiles?.first_name || null,
-          convoyeur_last_name: m.profiles?.last_name || null,
+          convoyeur_first_name: m.convoyeur_profile?.first_name || null,
+          convoyeur_last_name: m.convoyeur_profile?.last_name || null,
           client_first_name: m.client_profile?.first_name || null,
           client_last_name: m.client_profile?.last_name || null,
           client_company: m.client_profile?.company_type || null,
