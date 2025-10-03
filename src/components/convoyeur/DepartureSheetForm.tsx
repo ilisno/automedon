@@ -290,7 +290,7 @@ const DepartureSheetForm: React.FC<DepartureSheetFormProps> = ({ missionId, onSh
         <Label htmlFor="photos">Photos du véhicule au départ</Label>
         <Input id="photos" type="file" multiple accept="image/*" onChange={(e) => setPhotos(e.target.files)} className="mt-1" />
         <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-          Veuillez prendre des photos de tous les côtés du véhicule. {initialData && initialData.photos && initialData.photos.length > 0 && `(${initialData.photos.length} photos existantes)`}
+          Veuillez inclure les photos suivantes : Tableau de bord (présence voyants), Compteur (kilométrage), Face avant générale, Face arrière générale, Latéral droit, Latéral gauche, Sièges avants, Sièges arrières, Coffre ouvert. {initialData && initialData.photos && initialData.photos.length > 0 && `(${initialData.photos.length} photos existantes)`}
         </p>
       </div>
       <Button type="submit" className="w-full" disabled={isSubmitting}>

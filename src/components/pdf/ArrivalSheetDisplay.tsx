@@ -117,7 +117,7 @@ const ArrivalSheetDisplay: React.FC<ArrivalSheetDisplayProps> = ({ sheet, missio
 
       {sheet.photos && sheet.photos.length > 0 && (
         <div className="mb-6">
-          <p className="font-semibold mb-2">Photos à l'arrivée:</p>
+          <p className="font-semibold mb-2">Photos à l'arrivée (vues requises : Tableau de bord (présence voyants), Compteur (kilométrage), Face avant générale, Face arrière générale, Latéral droit, Latéral gauche, Sièges avants, Sièges arrières, Coffre ouvert):</p>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
             {sheet.photos.map((photoUrl, index) => (
               <img

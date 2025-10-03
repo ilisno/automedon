@@ -117,7 +117,7 @@ const DepartureSheetDisplay: React.FC<DepartureSheetDisplayProps> = ({ sheet, mi
 
       {sheet.photos && sheet.photos.length > 0 && (
         <div className="mb-6">
-          <p className="font-semibold mb-2">Photos au départ:</p>
+          <p className="font-semibold mb-2">Photos au départ (vues requises : Tableau de bord (présence voyants), Compteur (kilométrage), Face avant générale, Face arrière générale, Latéral droit, Latéral gauche, Sièges avants, Sièges arrières, Coffre ouvert):</p>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
             {sheet.photos.map((photoUrl, index) => (
               <img
