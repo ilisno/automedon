@@ -20,7 +20,8 @@ import AdminLogin from "./pages/AdminLogin";
 import AdminDashboard from "./pages/AdminDashboard";
 import UpdatePassword from "./pages/UpdatePassword";
 import Presentation from "./pages/Presentation";
-import PolitiqueDeConfidentialite from "./pages/PolitiqueDeConfidentialite"; // NEW: Import the new page
+import PolitiqueDeConfidentialite from "./pages/PolitiqueDeConfidentialite";
+import CGU from "./pages/CGU"; // NEW: Import the new CGU page
 
 const queryClient = new QueryClient();
 
@@ -30,14 +31,15 @@ const AppContent = () => {
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === 'SIGNED_OUT' || !session) {
-        // Redirect to login if not authenticated and not on login page, home page, admin pages, update password, presentation page, CGV page, or Politique de Confidentialite page
+        // Redirect to login if not authenticated and not on login page, home page, admin pages, update password, presentation page, CGV page, Politique de Confidentialite page, or CGU page
         if (window.location.pathname !== "/login" && 
             window.location.pathname !== "/" && 
             !window.location.pathname.startsWith("/admin") && 
             !window.location.pathname.startsWith("/update-password") &&
             window.location.pathname !== "/presentation" &&
             window.location.pathname !== "/cgv" &&
-            window.location.pathname !== "/politique-de-confidentialite" // NEW: Allow access to Politique de Confidentialite page
+            window.location.pathname !== "/politique-de-confidentialite" &&
+            window.location.pathname !== "/cgu" // NEW: Allow access to CGU page
         ) {
           navigate("/login");
         }
@@ -63,7 +65,8 @@ const AppContent = () => {
       <Route path="/admin/dashboard" element={<AdminDashboard />} />
       <Route path="/update-password" element={<UpdatePassword />} />
       <Route path="/presentation" element={<Presentation />} />
-      <Route path="/politique-de-confidentialite" element={<PolitiqueDeConfidentialite />} /> {/* NEW: Add the new route */}
+      <Route path="/politique-de-confidentialite" element={<PolitiqueDeConfidentialite />} />
+      <Route path="/cgu" element={<CGU />} /> {/* NEW: Add the new route */}
       {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
       <Route path="*" element={<NotFound />} />
     </Routes>
