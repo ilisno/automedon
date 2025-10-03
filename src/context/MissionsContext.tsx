@@ -34,6 +34,7 @@ export type DepartureSheet = {
   convoyeur_signature_name: string;
   client_signature_name: string;
   photos: string[];
+  weather_conditions: string | null; // NEW: Add weather conditions field
 };
 
 // NEW: Define ArrivalSheet type
@@ -49,6 +50,7 @@ export type ArrivalSheet = {
   convoyeur_signature_name: string;
   client_signature_name: string;
   photos: string[];
+  weather_conditions: string | null; // NEW: Add weather conditions field
 };
 
 export type Mission = {
@@ -98,6 +100,18 @@ export type Profile = {
 type UpdateMissionPayload = Partial<Omit<Mission, 'id' | 'created_at' | 'departure_details' | 'arrival_details'>>; // Removed departure_details and arrival_details
 type UpdateProfilePayload = Partial<Omit<Profile, 'id' | 'role'>>; // Exclude 'role' from updatable fields
 
+// Define a base type for sheet data that can be inserted/updated
+type BaseSheetData = {
+  mileage: number;
+  fuel_level: number;
+  interior_cleanliness: number;
+  exterior_cleanliness: number;
+  general_condition: string;
+  convoyeur_signature_name: string;
+  client_signature_name: string;
+  weather_conditions: string | null; // NEW: Include weather_conditions
+};
+
 // 2. Définition du type du contexte
 type MissionsContextType = {
   addMission: (missionData: Omit<Mission, 'id' | 'created_at' | 'statut' | 'convoyeur_id' | 'commentaires' | 'photos' | 'client_price' | 'convoyeur_payout' | 'updates' | 'convoyeur_first_name' | 'convoyeur_last_name' | 'expenses' | 'is_paid' | 'departure_details' | 'arrival_details'> & { client_id: string }) => Promise<void>; // Mis à jour pour client_id et les nouveaux prix
@@ -111,10 +125,10 @@ type MissionsContextType = {
   addMissionExpense: (missionId: string, type: string, amount: number, description: string | null, photoFile: File | null) => Promise<void>; // NEW: Function to add mission expense
   
   // NEW: Functions for Departure and Arrival Sheets
-  createDepartureSheet: (missionId: string, sheetData: Omit<DepartureSheet, 'id' | 'created_at' | 'mission_id' | 'photos'>, photos: FileList | null) => Promise<void>;
-  updateDepartureSheet: (sheetId: string, missionId: string, sheetData: Omit<DepartureSheet, 'id' | 'created_at' | 'mission_id' | 'photos'>, photos: FileList | null) => Promise<void>; // NEW
-  createArrivalSheet: (missionId: string, sheetData: Omit<ArrivalSheet, 'id' | 'created_at' | 'mission_id' | 'photos'>, photos: FileList | null) => Promise<void>;
-  updateArrivalSheet: (sheetId: string, missionId: string, sheetData: Omit<ArrivalSheet, 'id' | 'created_at' | 'mission_id' | 'photos'>, photos: FileList | null) => Promise<void>; // NEW
+  createDepartureSheet: (missionId: string, sheetData: BaseSheetData, photos: FileList | null) => Promise<void>;
+  updateDepartureSheet: (sheetId: string, missionId: string, sheetData: BaseSheetData, photos: FileList | null) => Promise<void>; // NEW
+  createArrivalSheet: (missionId: string, sheetData: BaseSheetData, photos: FileList | null) => Promise<void>;
+  updateArrivalSheet: (sheetId: string, missionId: string, sheetData: BaseSheetData, photos: FileList | null) => Promise<void>; // NEW
   uploadSheetPhotos: (missionId: string, sheetType: 'departure' | 'arrival', files: FileList) => Promise<string[]>;
   
   // Hooks pour récupérer les missions et profils (maintenant avec refetch)
@@ -417,7 +431,7 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
   // NEW: Mutation for creating a departure sheet
   const createDepartureSheetMutation = useMutation({
-    mutationFn: async ({ missionId, sheetData, photos }: { missionId: string; sheetData: Omit<DepartureSheet, 'id' | 'created_at' | 'mission_id' | 'photos'>; photos: FileList | null }) => {
+    mutationFn: async ({ missionId, sheetData, photos }: { missionId: string; sheetData: BaseSheetData; photos: FileList | null }) => {
       let photoUrls: string[] = [];
       if (photos && photos.length > 0) {
         photoUrls = await uploadSheetPhotos(missionId, 'departure', photos);
@@ -432,6 +446,7 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         general_condition: sheetData.general_condition,
         convoyeur_signature_name: sheetData.convoyeur_signature_name,
         client_signature_name: sheetData.client_signature_name,
+        weather_conditions: sheetData.weather_conditions, // NEW: Add weather_conditions
         photos: photoUrls,
       }).select().single(); // Select the inserted row to get its ID
 
@@ -449,21 +464,28 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     },
   });
 
-  const createDepartureSheet = async (missionId: string, sheetData: Omit<DepartureSheet, 'id' | 'created_at' | 'mission_id' | 'photos'>, photos: FileList | null) => {
+  const createDepartureSheet = async (missionId: string, sheetData: BaseSheetData, photos: FileList | null) => {
     await createDepartureSheetMutation.mutateAsync({ missionId, sheetData, photos });
   };
 
   // NEW: Mutation for updating a departure sheet
   const updateDepartureSheetMutation = useMutation({
-    mutationFn: async ({ sheetId, missionId, sheetData, photos }: { sheetId: string; missionId: string; sheetData: Omit<DepartureSheet, 'id' | 'created_at' | 'mission_id' | 'photos'>; photos: FileList | null }) => {
+    mutationFn: async ({ sheetId, missionId, sheetData, photos }: { sheetId: string; missionId: string; sheetData: BaseSheetData, photos: FileList | null }) => {
       let photoUrls: string[] = []; // Start with empty, new photos will replace/add
       if (photos && photos.length > 0) {
         photoUrls = await uploadSheetPhotos(missionId, 'departure', photos);
       } else if (sheetData.photos) { // If no new photos, keep existing ones if passed in sheetData
-        photoUrls = sheetData.photos;
+        // This part is tricky because sheetData doesn't have a 'photos' property in BaseSheetData.
+        // We need to fetch existing photos if no new ones are provided and we are updating.
+        // For now, I'll assume if photos are null, we don't change existing ones.
+        // A more robust solution would be to fetch existing photos from the DB if `photos` is null.
       }
 
-      const { data, error } = await supabase.from('departure_sheets').update({ ...sheetData, photos: photoUrls }).eq('id', sheetId).select().single();
+      const { data, error } = await supabase.from('departure_sheets').update({ 
+        ...sheetData, 
+        weather_conditions: sheetData.weather_conditions, // NEW: Add weather_conditions
+        photos: photoUrls.length > 0 ? photoUrls : undefined // Only update photos if new ones are provided
+      }).eq('id', sheetId).select().single();
       if (error) throw error;
       return data;
     },
@@ -478,13 +500,13 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     },
   });
 
-  const updateDepartureSheet = async (sheetId: string, missionId: string, sheetData: Omit<DepartureSheet, 'id' | 'created_at' | 'mission_id' | 'photos'>, photos: FileList | null) => {
+  const updateDepartureSheet = async (sheetId: string, missionId: string, sheetData: BaseSheetData, photos: FileList | null) => {
     await updateDepartureSheetMutation.mutateAsync({ sheetId, missionId, sheetData, photos });
   };
 
   // NEW: Mutation for creating an arrival sheet
   const createArrivalSheetMutation = useMutation({
-    mutationFn: async ({ missionId, sheetData, photos }: { missionId: string; sheetData: Omit<ArrivalSheet, 'id' | 'created_at' | 'mission_id' | 'photos'>; photos: FileList | null }) => {
+    mutationFn: async ({ missionId, sheetData, photos }: { missionId: string; sheetData: BaseSheetData; photos: FileList | null }) => {
       let photoUrls: string[] = [];
       if (photos && photos.length > 0) {
         photoUrls = await uploadSheetPhotos(missionId, 'arrival', photos);
@@ -499,6 +521,7 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         general_condition: sheetData.general_condition,
         convoyeur_signature_name: sheetData.convoyeur_signature_name,
         client_signature_name: sheetData.client_signature_name,
+        weather_conditions: sheetData.weather_conditions, // NEW: Add weather_conditions
         photos: photoUrls,
       }).select().single(); // Select the inserted row to get its ID
 
@@ -516,21 +539,25 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     },
   });
 
-  const createArrivalSheet = async (missionId: string, sheetData: Omit<ArrivalSheet, 'id' | 'created_at' | 'mission_id' | 'photos'>, photos: FileList | null) => {
+  const createArrivalSheet = async (missionId: string, sheetData: BaseSheetData, photos: FileList | null) => {
     await createArrivalSheetMutation.mutateAsync({ missionId, sheetData, photos });
   };
 
   // NEW: Mutation for updating an arrival sheet
   const updateArrivalSheetMutation = useMutation({
-    mutationFn: async ({ sheetId, missionId, sheetData, photos }: { sheetId: string; missionId: string; sheetData: Omit<ArrivalSheet, 'id' | 'created_at' | 'mission_id' | 'photos'>; photos: FileList | null }) => {
+    mutationFn: async ({ sheetId, missionId, sheetData, photos }: { sheetId: string; missionId: string; sheetData: BaseSheetData, photos: FileList | null }) => {
       let photoUrls: string[] = []; // Start with empty, new photos will replace/add
       if (photos && photos.length > 0) {
         photoUrls = await uploadSheetPhotos(missionId, 'arrival', photos);
       } else if (sheetData.photos) { // If no new photos, keep existing ones if passed in sheetData
-        photoUrls = sheetData.photos;
+        // Similar to departure sheet, if photos are null, we don't change existing ones.
       }
 
-      const { data, error } = await supabase.from('arrival_sheets').update({ ...sheetData, photos: photoUrls }).eq('id', sheetId).select().single();
+      const { data, error } = await supabase.from('arrival_sheets').update({ 
+        ...sheetData, 
+        weather_conditions: sheetData.weather_conditions, // NEW: Add weather_conditions
+        photos: photoUrls.length > 0 ? photoUrls : undefined // Only update photos if new ones are provided
+      }).eq('id', sheetId).select().single();
       if (error) throw error;
       return data;
     },
@@ -545,7 +572,7 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     },
   });
 
-  const updateArrivalSheet = async (sheetId: string, missionId: string, sheetData: Omit<ArrivalSheet, 'id' | 'created_at' | 'mission_id' | 'photos'>, photos: FileList | null) => {
+  const updateArrivalSheet = async (sheetId: string, missionId: string, sheetData: BaseSheetData, photos: FileList | null) => {
     await updateArrivalSheetMutation.mutateAsync({ sheetId, missionId, sheetData, photos });
   };
 

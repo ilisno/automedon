@@ -47,6 +47,10 @@ const ArrivalSheetDisplay: React.FC<ArrivalSheetDisplayProps> = ({ sheet, missio
             <td className="p-2 text-left whitespace-pre-wrap">{sheet.general_condition}</td>
           </tr>
           <tr className="border-b border-gray-200 dark:border-gray-700">
+            <td className="font-semibold p-2 text-left">Conditions Météo:</td> {/* NEW: Display weather conditions */}
+            <td className="p-2 text-left">{sheet.weather_conditions || 'N/A'}</td>
+          </tr>
+          <tr className="border-b border-gray-200 dark:border-gray-700">
             <td className="font-semibold p-2 text-left">Signature Convoyeur:</td>
             <td className="p-2 text-left">{sheet.convoyeur_signature_name}</td>
           </tr>

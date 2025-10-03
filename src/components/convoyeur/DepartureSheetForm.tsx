@@ -21,6 +21,7 @@ const DepartureSheetForm: React.FC<DepartureSheetFormProps> = ({ missionId, onSh
   const [generalCondition, setGeneralCondition] = useState<string>("");
   const [convoyeurSignatureName, setConvoyeurSignatureName] = useState<string>("");
   const [clientSignatureName, setClientSignatureName] = useState<string>("");
+  const [weatherConditions, setWeatherConditions] = useState<string>(""); // NEW: State for weather conditions
   const [photos, setPhotos] = useState<FileList | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -33,6 +34,7 @@ const DepartureSheetForm: React.FC<DepartureSheetFormProps> = ({ missionId, onSh
       setGeneralCondition(initialData.general_condition);
       setConvoyeurSignatureName(initialData.convoyeur_signature_name);
       setClientSignatureName(initialData.client_signature_name);
+      setWeatherConditions(initialData.weather_conditions || ""); // NEW: Set initial weather conditions
       // Photos are not pre-filled for security/complexity reasons, user re-uploads if needed
     } else {
       // Reset form if no initial data (for new sheet creation)
@@ -43,6 +45,7 @@ const DepartureSheetForm: React.FC<DepartureSheetFormProps> = ({ missionId, onSh
       setGeneralCondition("");
       setConvoyeurSignatureName("");
       setClientSignatureName("");
+      setWeatherConditions(""); // NEW: Reset weather conditions
       setPhotos(null);
     }
   }, [initialData]);
@@ -62,15 +65,16 @@ const DepartureSheetForm: React.FC<DepartureSheetFormProps> = ({ missionId, onSh
       isNaN(parsedExteriorCleanliness) || parsedExteriorCleanliness < 1 || parsedExteriorCleanliness > 8 ||
       !generalCondition.trim() ||
       !convoyeurSignatureName.trim() ||
-      !clientSignatureName.trim()
+      !clientSignatureName.trim() ||
+      !weatherConditions.trim() // NEW: Validate weather conditions
     ) {
-      showError("Veuillez remplir tous les champs obligatoires avec des valeurs valides (kilométrage > 0, notes entre 1 et 8).");
+      showError("Veuillez remplir tous les champs obligatoires avec des valeurs valides (kilométrage > 0, notes entre 1 et 8, conditions météo).");
       return;
     }
 
     setIsSubmitting(true);
     try {
-      const sheetData: Omit<DepartureSheet, 'id' | 'created_at' | 'mission_id' | 'photos'> = {
+      const sheetData = { // Changed type to implicit for easier handling of new field
         mileage: parsedMileage,
         fuel_level: parsedFuelLevel,
         interior_cleanliness: parsedInteriorCleanliness,
@@ -78,6 +82,7 @@ const DepartureSheetForm: React.FC<DepartureSheetFormProps> = ({ missionId, onSh
         general_condition: generalCondition.trim(),
         convoyeur_signature_name: convoyeurSignatureName.trim(),
         client_signature_name: clientSignatureName.trim(),
+        weather_conditions: weatherConditions.trim(), // NEW: Include weather conditions
       };
 
       if (initialData) {
@@ -143,6 +148,10 @@ const DepartureSheetForm: React.FC<DepartureSheetFormProps> = ({ missionId, onSh
       <div>
         <Label htmlFor="generalCondition">État général du véhicule (commentaires)</Label>
         <Textarea id="generalCondition" value={generalCondition} onChange={(e) => setGeneralCondition(e.target.value)} placeholder="Décrivez l'état général du véhicule (rayures, bosses, etc.)" required className="mt-1" />
+      </div>
+      <div>
+        <Label htmlFor="weatherConditions">Conditions Météo</Label> {/* NEW: Weather Conditions field */}
+        <Input id="weatherConditions" type="text" value={weatherConditions} onChange={(e) => setWeatherConditions(e.target.value)} placeholder="Ex: Ensoleillé, Pluie légère" required className="mt-1" />
       </div>
       <div>
         <Label htmlFor="convoyeurSignatureName">Nom du convoyeur (signature)</Label>
