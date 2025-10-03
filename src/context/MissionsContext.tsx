@@ -646,14 +646,24 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     const { data, isLoading, refetch } = useQuery<Mission[]>({
       queryKey: ['clientMissions', userId],
       queryFn: async () => {
-        if (!userId) return [];
-        // Join with profiles to get convoyeur's first_name and last_name
+        console.log("Fetching client missions for userId:", userId); // Log userId
+        if (!userId) {
+          console.log("No userId provided, returning empty array for client missions.");
+          return [];
+        }
         const { data, error } = await supabase
           .from('commandes')
-          .select('*, convoyeur_profile:convoyeur_id(first_name, last_name), client_profile:client_id(first_name, last_name, company_type, email, phone), departure_sheets(*), arrival_sheets(*)') // Corrected join syntax
-          .eq('client_id', userId); // Mis à jour pour client_id
-        if (error) throw error;
-        return data.map(m => ({
+          .select('*, convoyeur_profile:convoyeur_id(first_name, last_name), client_profile:client_id(first_name, last_name, company_type, email, phone), departure_sheets(*), arrival_sheets(*)')
+          .eq('client_id', userId);
+        
+        if (error) {
+          console.error("Supabase error fetching client missions:", error); // Log Supabase error
+          throw error;
+        }
+        
+        console.log("Raw data from Supabase for client missions:", data); // Log raw data
+        
+        const mappedMissions = data.map(m => ({
           id: m.id,
           created_at: m.created_at,
           immatriculation: m.immatriculation,
@@ -661,9 +671,8 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
           lieu_depart: m.lieu_depart,
           lieu_arrivee: m.lieu_arrivee,
           statut: m.statut,
-          client_id: m.client_id, // Mis à jour pour client_id
+          client_id: m.client_id,
           convoyeur_id: m.convoyeur_id,
-          // Map joined profile data to new fields
           convoyeur_first_name: m.convoyeur_profile?.first_name || null,
           convoyeur_last_name: m.convoyeur_profile?.last_name || null,
           client_first_name: m.client_profile?.first_name || null,
@@ -674,14 +683,17 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
           heureLimite: m.heureLimite,
           commentaires: m.commentaires,
           photos: m.photos,
-          client_price: m.client_price, // Include client_price
-          convoyeur_payout: m.convoyeur_payout, // Include convoyeur_payout
+          client_price: m.client_price,
+          convoyeur_payout: m.convoyeur_payout,
           updates: m.updates,
-          expenses: m.expenses, // Include expenses
-          is_paid: m.is_paid, // Include is_paid
-          departure_details: m.departure_sheets?.[0] || null, // NEW: Map departure sheet
-          arrival_details: m.arrival_sheets?.[0] || null, // NEW: Map arrival sheet
+          expenses: m.expenses,
+          is_paid: m.is_paid,
+          departure_details: m.departure_sheets?.[0] || null,
+          arrival_details: m.arrival_sheets?.[0] || null,
         }));
+        
+        console.log("Mapped client missions:", mappedMissions); // Log mapped data
+        return mappedMissions;
       },
       enabled: !!userId,
     });
