@@ -35,6 +35,19 @@ export type DepartureSheet = {
   client_signature_name: string;
   photos: string[];
   weather_conditions: string | null; // NEW: Add weather conditions field
+  pickup_location_type: string | null; // NEW
+  sd_card_cd_dvd: string | null; // NEW
+  antenna: string | null; // NEW
+  spare_tire_kit: string | null; // NEW
+  safety_kit: string | null; // NEW
+  number_of_keys: number | null; // NEW
+  front_floor_mats: string | null; // NEW
+  rear_floor_mats: string | null; // NEW
+  registration_card: string | null; // NEW
+  fuel_card: string | null; // NEW
+  critair_sticker: string | null; // NEW
+  user_manual: string | null; // NEW
+  delivery_report: string | null; // NEW
 };
 
 // NEW: Define ArrivalSheet type
@@ -51,6 +64,19 @@ export type ArrivalSheet = {
   client_signature_name: string;
   photos: string[];
   weather_conditions: string | null; // NEW: Add weather conditions field
+  pickup_location_type: string | null; // NEW
+  sd_card_cd_dvd: string | null; // NEW
+  antenna: string | null; // NEW
+  spare_tire_kit: string | null; // NEW
+  safety_kit: string | null; // NEW
+  number_of_keys: number | null; // NEW
+  front_floor_mats: string | null; // NEW
+  rear_floor_mats: string | null; // NEW
+  registration_card: string | null; // NEW
+  fuel_card: string | null; // NEW
+  critair_sticker: string | null; // NEW
+  user_manual: string | null; // NEW
+  delivery_report: string | null; // NEW
 };
 
 export type Mission = {
@@ -110,6 +136,19 @@ type BaseSheetData = {
   convoyeur_signature_name: string;
   client_signature_name: string;
   weather_conditions: string | null; // NEW: Include weather_conditions
+  pickup_location_type: string | null; // NEW
+  sd_card_cd_dvd: string | null; // NEW
+  antenna: string | null; // NEW
+  spare_tire_kit: string | null; // NEW
+  safety_kit: string | null; // NEW
+  number_of_keys: number | null; // NEW
+  front_floor_mats: string | null; // NEW
+  rear_floor_mats: string | null; // NEW
+  registration_card: string | null; // NEW
+  fuel_card: string | null; // NEW
+  critair_sticker: string | null; // NEW
+  user_manual: string | null; // NEW
+  delivery_report: string | null; // NEW
 };
 
 // 2. Définition du type du contexte
@@ -447,6 +486,19 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         convoyeur_signature_name: sheetData.convoyeur_signature_name,
         client_signature_name: sheetData.client_signature_name,
         weather_conditions: sheetData.weather_conditions, // NEW: Add weather_conditions
+        pickup_location_type: sheetData.pickup_location_type, // NEW
+        sd_card_cd_dvd: sheetData.sd_card_cd_dvd, // NEW
+        antenna: sheetData.antenna, // NEW
+        spare_tire_kit: sheetData.spare_tire_kit, // NEW
+        safety_kit: sheetData.safety_kit, // NEW
+        number_of_keys: sheetData.number_of_keys, // NEW
+        front_floor_mats: sheetData.front_floor_mats, // NEW
+        rear_floor_mats: sheetData.rear_floor_mats, // NEW
+        registration_card: sheetData.registration_card, // NEW
+        fuel_card: sheetData.fuel_card, // NEW
+        critair_sticker: sheetData.critair_sticker, // NEW
+        user_manual: sheetData.user_manual, // NEW
+        delivery_report: sheetData.delivery_report, // NEW
         photos: photoUrls,
       }).select().single(); // Select the inserted row to get its ID
 
@@ -484,6 +536,19 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       const { data, error } = await supabase.from('departure_sheets').update({ 
         ...sheetData, 
         weather_conditions: sheetData.weather_conditions, // NEW: Add weather_conditions
+        pickup_location_type: sheetData.pickup_location_type, // NEW
+        sd_card_cd_dvd: sheetData.sd_card_cd_dvd, // NEW
+        antenna: sheetData.antenna, // NEW
+        spare_tire_kit: sheetData.spare_tire_kit, // NEW
+        safety_kit: sheetData.safety_kit, // NEW
+        number_of_keys: sheetData.number_of_keys, // NEW
+        front_floor_mats: sheetData.front_floor_mats, // NEW
+        rear_floor_mats: sheetData.rear_floor_mats, // NEW
+        registration_card: sheetData.registration_card, // NEW
+        fuel_card: sheetData.fuel_card, // NEW
+        critair_sticker: sheetData.critair_sticker, // NEW
+        user_manual: sheetData.user_manual, // NEW
+        delivery_report: sheetData.delivery_report, // NEW
         photos: photoUrls.length > 0 ? photoUrls : undefined // Only update photos if new ones are provided
       }).eq('id', sheetId).select().single();
       if (error) throw error;
@@ -522,6 +587,19 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         convoyeur_signature_name: sheetData.convoyeur_signature_name,
         client_signature_name: sheetData.client_signature_name,
         weather_conditions: sheetData.weather_conditions, // NEW: Add weather_conditions
+        pickup_location_type: sheetData.pickup_location_type, // NEW
+        sd_card_cd_dvd: sheetData.sd_card_cd_dvd, // NEW
+        antenna: sheetData.antenna, // NEW
+        spare_tire_kit: sheetData.spare_tire_kit, // NEW
+        safety_kit: sheetData.safety_kit, // NEW
+        number_of_keys: sheetData.number_of_keys, // NEW
+        front_floor_mats: sheetData.front_floor_mats, // NEW
+        rear_floor_mats: sheetData.rear_floor_mats, // NEW
+        registration_card: sheetData.registration_card, // NEW
+        fuel_card: sheetData.fuel_card, // NEW
+        critair_sticker: sheetData.critair_sticker, // NEW
+        user_manual: sheetData.user_manual, // NEW
+        delivery_report: sheetData.delivery_report, // NEW
         photos: photoUrls,
       }).select().single(); // Select the inserted row to get its ID
 
@@ -556,6 +634,19 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       const { data, error } = await supabase.from('arrival_sheets').update({ 
         ...sheetData, 
         weather_conditions: sheetData.weather_conditions, // NEW: Add weather_conditions
+        pickup_location_type: sheetData.pickup_location_type, // NEW
+        sd_card_cd_dvd: sheetData.sd_card_cd_dvd, // NEW
+        antenna: sheetData.antenna, // NEW
+        spare_tire_kit: sheetData.spare_tire_kit, // NEW
+        safety_kit: sheetData.safety_kit, // NEW
+        number_of_keys: sheetData.number_of_keys, // NEW
+        front_floor_mats: sheetData.front_floor_mats, // NEW
+        rear_floor_mats: sheetData.rear_floor_mats, // NEW
+        registration_card: sheetData.registration_card, // NEW
+        fuel_card: sheetData.fuel_card, // NEW
+        critair_sticker: sheetData.critair_sticker, // NEW
+        user_manual: sheetData.user_manual, // NEW
+        delivery_report: sheetData.delivery_report, // NEW
         photos: photoUrls.length > 0 ? photoUrls : undefined // Only update photos if new ones are provided
       }).eq('id', sheetId).select().single();
       if (error) throw error;

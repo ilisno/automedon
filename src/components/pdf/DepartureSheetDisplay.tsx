@@ -47,9 +47,63 @@ const DepartureSheetDisplay: React.FC<DepartureSheetDisplayProps> = ({ sheet, mi
             <td className="p-2 text-left whitespace-pre-wrap">{sheet.general_condition}</td>
           </tr>
           <tr className="border-b border-gray-200 dark:border-gray-700">
-            <td className="font-semibold p-2 text-left">Conditions Météo:</td> {/* NEW: Display weather conditions */}
+            <td className="font-semibold p-2 text-left">Conditions Météo:</td>
             <td className="p-2 text-left">{sheet.weather_conditions || 'N/A'}</td>
           </tr>
+          {/* NEW FIELDS DISPLAY */}
+          <tr className="border-b border-gray-200 dark:border-gray-700">
+            <td className="font-semibold p-2 text-left">Lieu d'enlèvement:</td>
+            <td className="p-2 text-left">{sheet.pickup_location_type || 'N/A'}</td>
+          </tr>
+          <tr className="border-b border-gray-200 dark:border-gray-700">
+            <td className="font-semibold p-2 text-left">Carte SD ou CD/DVD:</td>
+            <td className="p-2 text-left">{sheet.sd_card_cd_dvd || 'N/A'}</td>
+          </tr>
+          <tr className="border-b border-gray-200 dark:border-gray-700">
+            <td className="font-semibold p-2 text-left">Antenne:</td>
+            <td className="p-2 text-left">{sheet.antenna || 'N/A'}</td>
+          </tr>
+          <tr className="border-b border-gray-200 dark:border-gray-700">
+            <td className="font-semibold p-2 text-left">Roue de secours / Kit anticrevaison:</td>
+            <td className="p-2 text-left">{sheet.spare_tire_kit || 'N/A'}</td>
+          </tr>
+          <tr className="border-b border-gray-200 dark:border-gray-700">
+            <td className="font-semibold p-2 text-left">Kit de sécurité (Triangle / Gilet):</td>
+            <td className="p-2 text-left">{sheet.safety_kit || 'N/A'}</td>
+          </tr>
+          <tr className="border-b border-gray-200 dark:border-gray-700">
+            <td className="font-semibold p-2 text-left">Nombre de clefs confiées:</td>
+            <td className="p-2 text-left">{sheet.number_of_keys !== null ? sheet.number_of_keys : 'N/A'}</td>
+          </tr>
+          <tr className="border-b border-gray-200 dark:border-gray-700">
+            <td className="font-semibold p-2 text-left">Tapis de sol avants:</td>
+            <td className="p-2 text-left">{sheet.front_floor_mats || 'N/A'}</td>
+          </tr>
+          <tr className="border-b border-gray-200 dark:border-gray-700">
+            <td className="font-semibold p-2 text-left">Tapis de sol arrières:</td>
+            <td className="p-2 text-left">{sheet.rear_floor_mats || 'N/A'}</td>
+          </tr>
+          <tr className="border-b border-gray-200 dark:border-gray-700">
+            <td className="font-semibold p-2 text-left">Carte grise (originale ou copie):</td>
+            <td className="p-2 text-left">{sheet.registration_card || 'N/A'}</td>
+          </tr>
+          <tr className="border-b border-gray-200 dark:border-gray-700">
+            <td className="font-semibold p-2 text-left">Carte carburant:</td>
+            <td className="p-2 text-left">{sheet.fuel_card || 'N/A'}</td>
+          </tr>
+          <tr className="border-b border-gray-200 dark:border-gray-700">
+            <td className="font-semibold p-2 text-left">Vignette crit'air:</td>
+            <td className="p-2 text-left">{sheet.critair_sticker || 'N/A'}</td>
+          </tr>
+          <tr className="border-b border-gray-200 dark:border-gray-700">
+            <td className="font-semibold p-2 text-left">Manuel d'utilisation du véhicule:</td>
+            <td className="p-2 text-left">{sheet.user_manual || 'N/A'}</td>
+          </tr>
+          <tr className="border-b border-gray-200 dark:border-gray-700">
+            <td className="font-semibold p-2 text-left">PV de livraison:</td>
+            <td className="p-2 text-left">{sheet.delivery_report || 'N/A'}</td>
+          </tr>
+          {/* END NEW FIELDS DISPLAY */}
           <tr className="border-b border-gray-200 dark:border-gray-700">
             <td className="font-semibold p-2 text-left">Signature Convoyeur:</td>
             <td className="p-2 text-left">{sheet.convoyeur_signature_name}</td>
