@@ -1,3 +1,4 @@
+' dans des accolades.">
 import React from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -222,16 +223,16 @@ const PolitiqueDeConfidentialite = () => {
           </p>
           <ul className="list-disc list-inside ml-4 space-y-1">
             <li><strong>Firefox :</strong> <a href="https://support.mozilla.org/fr/kb/cookies" target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">Lien Firefox</a><br />
-              Cliquez sur le bouton de menu et sélectionnez "Options". Sélectionnez le panneau "Vie privée". Paramétrez le menu "Règles de conservation" sur "Utiliser les paramètres personnalisés pour l'historique". Décochez la case "Accepter les cookies". Toutes les modifications que vous avez apportées seront automatiquement enregistrées.
+              {"Cliquez sur le bouton de menu et sélectionnez \"Options\". Sélectionnez le panneau \"Vie privée\". Paramétrez le menu \"Règles de conservation\" sur \"Utiliser les paramètres personnalisés pour l'historique\". Décochez la case \"Accepter les cookies\". Toutes les modifications que vous avez apportées seront automatiquement enregistrées."}
             </li>
             <li><strong>Internet Explorer :</strong> <a href="https://support.microsoft.com/en-us/products/windows" target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">Lien Internet Explorer</a><br />
-              Cliquez sur le bouton Outils, puis sur "Options Internet". Cliquez sur l’onglet "Confidentialité", puis sous "Paramètres", déplacez le curseur vers le haut pour bloquer tous les cookies ou vers le bas pour autoriser tous les cookies, puis cliquez sur OK.
+              {"Cliquez sur le bouton Outils, puis sur \"Options Internet\". Cliquez sur l’onglet \"Confidentialité\", puis sous \"Paramètres\", déplacez le curseur vers le haut pour bloquer tous les cookies ou vers le bas pour autoriser tous les cookies, puis cliquez sur OK."}
             </li>
             <li><strong>Google Chrome :</strong> <a href="https://support.google.com/chrome/answer/95647" target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">Lien Google Chrome</a><br />
-              Sélectionnez l'icône du menu Chrome. Sélectionnez "Paramètres". En bas de la page, sélectionnez "Afficher les paramètres avancés". Dans la section "Confidentialité », sélectionnez "Paramètres de contenu". Sélectionnez "Interdire à tous les sites de stocker des données". Sélectionnez OK.
+              {"Sélectionnez l'icône du menu Chrome. Sélectionnez \"Paramètres\". En bas de la page, sélectionnez \"Afficher les paramètres avancés\". Dans la section \"Confidentialité », sélectionnez \"Paramètres de contenu\". Sélectionnez \"Interdire à tous les sites de stocker des données\". Sélectionnez OK."}
             </li>
             <li><strong>Safari :</strong> <a href="https://www.apple.com/legal/privacy/fr-ww/cookies" target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">Lien Safari</a><br />
-              Cliquez sur "Réglages" > "Safari" > "Confidentialité" > "Cookies et données de site web".
+              {"Cliquez sur \"Réglages\" > \"Safari\" > \"Confidentialité\" > \"Cookies et données de site web\"."}
             </li>
           </ul>
         </div>
