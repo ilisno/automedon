@@ -231,7 +231,7 @@ const PolitiqueDeConfidentialite = () => {
               Sélectionnez l'icône du menu Chrome. Sélectionnez "Paramètres". En bas de la page, sélectionnez "Afficher les paramètres avancés". Dans la section "Confidentialité », sélectionnez "Paramètres de contenu". Sélectionnez "Interdire à tous les sites de stocker des données". Sélectionnez OK.
             </li>
             <li><strong>Safari :</strong> <a href="https://www.apple.com/legal/privacy/fr-ww/cookies" target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">https://www.apple.com/legal/privacy/fr-ww/cookies</a><br />
-              Cliquez sur "Réglages" &gt; "Safari" &gt; "Confidentialité" &gt; "Cookies et données de site web".
+              Cliquez sur "Réglages" > "Safari" > "Confidentialité" > "Cookies et données de site web".
             </li>
           </ul>
         </div>

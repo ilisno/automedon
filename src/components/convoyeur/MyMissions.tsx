@@ -163,7 +163,6 @@ const MyMissions: React.FC<MyMissionsProps> = ({
               missionId={selectedMission.id}
               onSheetCreated={handleSheetCreated}
               initialData={selectedMission.departure_details || undefined}
-              missionDetails={selectedMission} // Pass mission details
             />
           )}
         </DialogContent>
