@@ -1,4 +1,3 @@
-' dans le texte pour éviter les erreurs de parsing JSX.">
 import React from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
