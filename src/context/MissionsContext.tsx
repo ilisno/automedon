@@ -165,9 +165,9 @@ type MissionsContextType = {
   
   // NEW: Functions for Departure and Arrival Sheets
   createDepartureSheet: (missionId: string, sheetData: BaseSheetData, photos: FileList | null) => Promise<void>;
-  updateDepartureSheet: (sheetId: string, missionId: string, sheetData: BaseSheetData, photos: FileList | null) => Promise<void>; // NEW
+  updateDepartureSheet: (sheetId: string, missionId: string, sheetData: BaseSheetData, newPhotos: FileList | null) => Promise<void>; // NEW
   createArrivalSheet: (missionId: string, sheetData: BaseSheetData, photos: FileList | null) => Promise<void>;
-  updateArrivalSheet: (sheetId: string, missionId: string, sheetData: BaseSheetData, photos: FileList | null) => Promise<void>; // NEW
+  updateArrivalSheet: (sheetId: string, missionId: string, sheetData: BaseSheetData, newPhotos: FileList | null) => Promise<void>; // NEW
   uploadSheetPhotos: (missionId: string, sheetType: 'departure' | 'arrival', files: FileList) => Promise<string[]>;
   
   // Hooks pour récupérer les missions et profils (maintenant avec refetch)
@@ -522,34 +522,33 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
   // NEW: Mutation for updating a departure sheet
   const updateDepartureSheetMutation = useMutation({
-    mutationFn: async ({ sheetId, missionId, sheetData, photos }: { sheetId: string; missionId: string; sheetData: BaseSheetData, photos: FileList | null }) => {
-      let photoUrls: string[] = []; // Start with empty, new photos will replace/add
-      if (photos && photos.length > 0) {
-        photoUrls = await uploadSheetPhotos(missionId, 'departure', photos);
-      } else if (sheetData.photos) { // If no new photos, keep existing ones if passed in sheetData
-        // This part is tricky because sheetData doesn't have a 'photos' property in BaseSheetData.
-        // We need to fetch existing photos if no new ones are provided and we are updating.
-        // For now, I'll assume if photos are null, we don't change existing ones.
-        // A more robust solution would be to fetch existing photos from the DB if `photos` is null.
+    mutationFn: async ({ sheetId, missionId, sheetData, newPhotos }: { sheetId: string; missionId: string; sheetData: BaseSheetData, newPhotos: FileList | null }) => {
+      // 1. Fetch current sheet to get existing photos
+      const { data: currentSheet, error: fetchError } = await supabase
+        .from('departure_sheets')
+        .select('photos')
+        .eq('id', sheetId)
+        .single();
+
+      if (fetchError) {
+        console.error("Error fetching current departure sheet for photo merge:", fetchError);
+        throw fetchError;
       }
 
-      const { data, error } = await supabase.from('departure_sheets').update({ 
-        ...sheetData, 
-        weather_conditions: sheetData.weather_conditions, // NEW: Add weather_conditions
-        pickup_location_type: sheetData.pickup_location_type, // NEW
-        sd_card_cd_dvd: sheetData.sd_card_cd_dvd, // NEW
-        antenna: sheetData.antenna, // NEW
-        spare_tire_kit: sheetData.spare_tire_kit, // NEW
-        safety_kit: sheetData.safety_kit, // NEW
-        number_of_keys: sheetData.number_of_keys, // NEW
-        front_floor_mats: sheetData.front_floor_mats, // NEW
-        rear_floor_mats: sheetData.rear_floor_mats, // NEW
-        registration_card: sheetData.registration_card, // NEW
-        fuel_card: sheetData.fuel_card, // NEW
-        critair_sticker: sheetData.critair_sticker, // NEW
-        user_manual: sheetData.user_manual, // NEW
-        delivery_report: sheetData.delivery_report, // NEW
-        photos: photoUrls.length > 0 ? photoUrls : undefined // Only update photos if new ones are provided
+      let existingPhotoUrls: string[] = currentSheet?.photos || [];
+      let uploadedNewPhotoUrls: string[] = [];
+
+      // 2. If new photos are provided, upload them
+      if (newPhotos && newPhotos.length > 0) {
+        uploadedNewPhotoUrls = await uploadSheetPhotos(missionId, 'departure', newPhotos);
+      }
+
+      // 3. Combine existing photos with newly uploaded ones
+      const combinedPhotoUrls = [...existingPhotoUrls, ...uploadedNewPhotoUrls];
+
+      const { data, error } = await supabase.from('departure_sheets').update({
+        ...sheetData,
+        photos: combinedPhotoUrls, // Update with combined photos
       }).eq('id', sheetId).select().single();
       if (error) throw error;
       return data;
@@ -565,8 +564,8 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     },
   });
 
-  const updateDepartureSheet = async (sheetId: string, missionId: string, sheetData: BaseSheetData, photos: FileList | null) => {
-    await updateDepartureSheetMutation.mutateAsync({ sheetId, missionId, sheetData, photos });
+  const updateDepartureSheet = async (sheetId: string, missionId: string, sheetData: BaseSheetData, newPhotos: FileList | null) => {
+    await updateDepartureSheetMutation.mutateAsync({ sheetId, missionId, sheetData, newPhotos });
   };
 
   // NEW: Mutation for creating an arrival sheet
@@ -623,31 +622,33 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
   // NEW: Mutation for updating an arrival sheet
   const updateArrivalSheetMutation = useMutation({
-    mutationFn: async ({ sheetId, missionId, sheetData, photos }: { sheetId: string; missionId: string; sheetData: BaseSheetData, photos: FileList | null }) => {
-      let photoUrls: string[] = []; // Start with empty, new photos will replace/add
-      if (photos && photos.length > 0) {
-        photoUrls = await uploadSheetPhotos(missionId, 'arrival', photos);
-      } else if (sheetData.photos) { // If no new photos, keep existing ones if passed in sheetData
-        // Similar to departure sheet, if photos are null, we don't change existing ones.
+    mutationFn: async ({ sheetId, missionId, sheetData, newPhotos }: { sheetId: string; missionId: string; sheetData: BaseSheetData, newPhotos: FileList | null }) => {
+      // 1. Fetch current sheet to get existing photos
+      const { data: currentSheet, error: fetchError } = await supabase
+        .from('arrival_sheets')
+        .select('photos')
+        .eq('id', sheetId)
+        .single();
+
+      if (fetchError) {
+        console.error("Error fetching current arrival sheet for photo merge:", fetchError);
+        throw fetchError;
       }
 
-      const { data, error } = await supabase.from('arrival_sheets').update({ 
-        ...sheetData, 
-        weather_conditions: sheetData.weather_conditions, // NEW: Add weather_conditions
-        pickup_location_type: sheetData.pickup_location_type, // NEW
-        sd_card_cd_dvd: sheetData.sd_card_cd_dvd, // NEW
-        antenna: sheetData.antenna, // NEW
-        spare_tire_kit: sheetData.spare_tire_kit, // NEW
-        safety_kit: sheetData.safety_kit, // NEW
-        number_of_keys: sheetData.number_of_keys, // NEW
-        front_floor_mats: sheetData.front_floor_mats, // NEW
-        rear_floor_mats: sheetData.rear_floor_mats, // NEW
-        registration_card: sheetData.registration_card, // NEW
-        fuel_card: sheetData.fuel_card, // NEW
-        critair_sticker: sheetData.critair_sticker, // NEW
-        user_manual: sheetData.user_manual, // NEW
-        delivery_report: sheetData.delivery_report, // NEW
-        photos: photoUrls.length > 0 ? photoUrls : undefined // Only update photos if new ones are provided
+      let existingPhotoUrls: string[] = currentSheet?.photos || [];
+      let uploadedNewPhotoUrls: string[] = [];
+
+      // 2. If new photos are provided, upload them
+      if (newPhotos && newPhotos.length > 0) {
+        uploadedNewPhotoUrls = await uploadSheetPhotos(missionId, 'arrival', newPhotos);
+      }
+
+      // 3. Combine existing photos with newly uploaded ones
+      const combinedPhotoUrls = [...existingPhotoUrls, ...uploadedNewPhotoUrls];
+
+      const { data, error } = await supabase.from('arrival_sheets').update({
+        ...sheetData,
+        photos: combinedPhotoUrls, // Update with combined photos
       }).eq('id', sheetId).select().single();
       if (error) throw error;
       return data;
@@ -663,8 +664,8 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     },
   });
 
-  const updateArrivalSheet = async (sheetId: string, missionId: string, sheetData: BaseSheetData, photos: FileList | null) => {
-    await updateArrivalSheetMutation.mutateAsync({ sheetId, missionId, sheetData, photos });
+  const updateArrivalSheet = async (sheetId: string, missionId: string, sheetData: BaseSheetData, newPhotos: FileList | null) => {
+    await updateArrivalSheetMutation.mutateAsync({ sheetId, missionId, sheetData, newPhotos });
   };
 
   // Hooks pour récupérer les missions

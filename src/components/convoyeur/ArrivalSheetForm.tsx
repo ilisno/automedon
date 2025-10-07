@@ -38,6 +38,7 @@ const ArrivalSheetForm: React.FC<ArrivalSheetFormProps> = ({ missionId, onSheetC
   const [deliveryReport, setDeliveryReport] = useState<string>("");
 
   const [photos, setPhotos] = useState<FileList | null>(null);
+  const [existingPhotosUrls, setExistingPhotosUrls] = useState<string[]>([]); // NEW state for existing photos
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
@@ -64,6 +65,7 @@ const ArrivalSheetForm: React.FC<ArrivalSheetFormProps> = ({ missionId, onSheetC
       setCritairSticker(initialData.critair_sticker || "");
       setUserManual(initialData.user_manual || "");
       setDeliveryReport(initialData.delivery_report || "");
+      setExistingPhotosUrls(initialData.photos || []); // NEW: Set existing photos
       // Photos are not pre-filled for security/complexity reasons, user re-uploads if needed
     } else {
       // Reset form if no initial data (for new sheet creation)
@@ -90,6 +92,7 @@ const ArrivalSheetForm: React.FC<ArrivalSheetFormProps> = ({ missionId, onSheetC
       setUserManual("");
       setDeliveryReport("");
       setPhotos(null);
+      setExistingPhotosUrls([]); // NEW: Reset existing photos
     }
   }, [initialData]);
 
@@ -290,9 +293,20 @@ const ArrivalSheetForm: React.FC<ArrivalSheetFormProps> = ({ missionId, onSheetC
         <Label htmlFor="photos">Photos du véhicule à l'arrivée</Label>
         <Input id="photos" type="file" multiple accept="image/*" onChange={(e) => setPhotos(e.target.files)} className="mt-1" />
         <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-          Veuillez inclure les photos suivantes : Tableau de bord (présence voyants), Compteur (kilométrage), Face avant générale, Face arrière générale, Latéral droit, Latéral gauche, Sièges avants, Sièges arrières, Coffre ouvert. {initialData && initialData.photos && initialData.photos.length > 0 && `(${initialData.photos.length} photos existantes)`}
+          Veuillez inclure les photos suivantes : Tableau de bord (présence voyants), Compteur (kilométrage), Face avant générale, Face arrière générale, Latéral droit, Latéral gauche, Sièges avants, Sièges arrières, Coffre ouvert.
+          {existingPhotosUrls.length > 0 && ` (${existingPhotosUrls.length} photos existantes. Les nouvelles photos seront ajoutées.)`}
         </p>
       </div>
+      {existingPhotosUrls.length > 0 && (
+        <div className="mb-4">
+          <Label>Photos existantes:</Label>
+          <div className="grid grid-cols-3 gap-2 mt-2">
+            {existingPhotosUrls.map((url, index) => (
+              <img key={index} src={url} alt={`Existing photo ${index + 1}`} className="w-full h-24 object-cover rounded-md" />
+            ))}
+          </div>
+        </div>
+      )}
       <Button type="submit" className="w-full" disabled={isSubmitting}>
         {isSubmitting ? "Envoi en cours..." : (initialData ? "Mettre à jour la Fiche" : "Enregistrer la Fiche d'Arrivée")}
       </Button>
