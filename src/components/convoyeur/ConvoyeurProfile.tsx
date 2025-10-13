@@ -6,11 +6,14 @@ import { Textarea } from "@/components/ui/textarea";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { format } from "date-fns";
-import { CalendarIcon, UserCircle2 } from "lucide-react";
+import { CalendarIcon, UserCircle2, Check, ChevronsUpDown, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { showSuccess, showError } from "@/utils/toast";
 import { useMissions } from "@/context/MissionsContext";
+import { Badge } from "@/components/ui/badge";
+import { Command, CommandInput, CommandEmpty, CommandGroup, CommandItem } from "@/components/ui/command";
+import { Checkbox } from "@/components/ui/checkbox";
 
 type Profile = {
   id: string;
@@ -35,6 +38,39 @@ interface ConvoyeurProfileProps {
   onProfileCompleteChange: (isComplete: boolean) => void; // NEW: Callback to update parent
 }
 
+const LANGUAGES_OPTIONS = [
+  { value: "fr", label: "Français" },
+  { value: "en", label: "Anglais" },
+  { value: "es", label: "Espagnol" },
+  { value: "de", label: "Allemand" },
+  { value: "it", label: "Italien" },
+  { value: "pt", label: "Portugais" },
+  { value: "nl", label: "Néerlandais" },
+  { value: "ar", label: "Arabe" },
+  { value: "zh", label: "Chinois (Mandarin)" },
+  { value: "ru", label: "Russe" },
+  { value: "ja", label: "Japonais" },
+  { value: "ko", label: "Coréen" },
+  { value: "sv", label: "Suédois" },
+    { value: "da", label: "Danois" },
+  { value: "no", label: "Norvégien" },
+  { value: "fi", label: "Finnois" },
+  { value: "pl", label: "Polonais" },
+  { value: "tr", label: "Turc" },
+  { value: "el", label: "Grec" },
+  { value: "he", label: "Hébreu" },
+  { value: "hi", label: "Hindi" },
+  { value: "th", label: "Thaï" },
+  { value: "vi", label: "Vietnamien" },
+  { value: "id", label: "Indonésien" },
+  { value: "ms", label: "Malais" },
+  { value: "cs", label: "Tchèque" },
+  { value: "hu", label: "Hongrois" },
+  { value: "ro", label: "Roumain" },
+  { value: "bg", label: "Bulgare" },
+  { value: "uk", label: "Ukrainien" },
+];
+
 const ConvoyeurProfile: React.FC<ConvoyeurProfileProps> = ({ userId, onProfileCompleteChange }) => {
   const { updateProfile, uploadProfilePhoto } = useMissions();
   const [loading, setLoading] = useState(true);
@@ -44,7 +80,7 @@ const ConvoyeurProfile: React.FC<ConvoyeurProfileProps> = ({ userId, onProfileCo
   const [role, setRole] = useState<'client' | 'convoyeur' | 'admin' | ''>("");
   const [phone, setPhone] = useState("");
   const [dateOfBirth, setDateOfBirth] = useState<Date | undefined>(undefined);
-  const [languages, setLanguages] = useState("");
+  const [selectedLanguages, setSelectedLanguages] = useState<string[]>([]); // Changed to array
   const [address, setAddress] = useState("");
   const [postalCode, setPostalCode] = useState("");
   const [city, setCity] = useState("");
@@ -54,6 +90,7 @@ const ConvoyeurProfile: React.FC<ConvoyeurProfileProps> = ({ userId, onProfileCo
   const [isProfileComplete, setIsProfileComplete] = useState(false); // Local state for completion
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
+  const [openLanguageSelect, setOpenLanguageSelect] = useState(false); // State for popover
 
   useEffect(() => {
     const fetchUserProfile = async () => {
@@ -82,7 +119,7 @@ const ConvoyeurProfile: React.FC<ConvoyeurProfileProps> = ({ userId, onProfileCo
         setRole(data.role || "");
         setPhone(data.phone || "");
         setDateOfBirth(data.date_of_birth ? new Date(data.date_of_birth) : undefined);
-        setLanguages(data.languages ? data.languages.join(", ") : "");
+        setSelectedLanguages(data.languages || []); // Set array directly
         setAddress(data.address || "");
         setPostalCode(data.postal_code || "");
         setCity(data.city || "");
@@ -99,7 +136,7 @@ const ConvoyeurProfile: React.FC<ConvoyeurProfileProps> = ({ userId, onProfileCo
   }, [userId, onProfileCompleteChange]);
 
   const checkConvoyeurProfileCompletion = (
-    fName: string, lName: string, p: string, dob: Date | undefined, langs: string,
+    fName: string, lName: string, p: string, dob: Date | undefined, langs: string[], // Now an array
     addr: string, pCode: string, c: string, dln: string, lid: Date | undefined, lic: string,
     currentAvatarUrl: string | null
   ) => {
@@ -108,7 +145,7 @@ const ConvoyeurProfile: React.FC<ConvoyeurProfileProps> = ({ userId, onProfileCo
       lName.trim() !== "" &&
       p.trim() !== "" &&
       dob !== undefined &&
-      langs.trim() !== "" &&
+      langs.length > 0 && // Check if at least one language is selected
       addr.trim() !== "" &&
       pCode.trim() !== "" &&
       c.trim() !== "" &&
@@ -138,7 +175,7 @@ const ConvoyeurProfile: React.FC<ConvoyeurProfileProps> = ({ userId, onProfileCo
     }
 
     const isConvoyeurProfileNowComplete = checkConvoyeurProfileCompletion(
-      firstName, lastName, phone, dateOfBirth, languages,
+      firstName, lastName, phone, dateOfBirth, selectedLanguages, // Pass selectedLanguages array
       address, postalCode, city, driverLicenseNumber, licenseIssueDate, licenseIssueCity,
       newAvatarUrl
     );
@@ -148,7 +185,7 @@ const ConvoyeurProfile: React.FC<ConvoyeurProfileProps> = ({ userId, onProfileCo
       last_name: lastName.trim(),
       phone: phone.trim() || null,
       date_of_birth: dateOfBirth ? format(dateOfBirth, "yyyy-MM-dd") : null,
-      languages: languages ? languages.split(",").map(lang => lang.trim()) : null,
+      languages: selectedLanguages.length > 0 ? selectedLanguages : null, // Send array or null
       address: address.trim() || null,
       postal_code: postalCode.trim() || null,
       city: city.trim() || null,
@@ -246,9 +283,75 @@ const ConvoyeurProfile: React.FC<ConvoyeurProfileProps> = ({ userId, onProfileCo
             </PopoverContent>
           </Popover>
         </div>
-        <div>
-          <Label htmlFor="languages">Langues parlées (séparées par des virgules)</Label>
-          <Input id="languages" type="text" value={languages} onChange={(e) => setLanguages(e.target.value)} placeholder="Ex: Français, Anglais" className="mt-1" />
+        <div className="relative">
+          <Label htmlFor="languages">Langues parlées</Label>
+          <Popover open={openLanguageSelect} onOpenChange={setOpenLanguageSelect}>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                role="combobox"
+                aria-expanded={openLanguageSelect}
+                className="w-full justify-between mt-1 h-auto min-h-[40px] flex-wrap"
+              >
+                {selectedLanguages.length > 0 ? (
+                  <div className="flex flex-wrap gap-1">
+                    {selectedLanguages.map((langValue) => {
+                      const language = LANGUAGES_OPTIONS.find((l) => l.value === langValue);
+                      return language ? (
+                        <Badge key={langValue} variant="secondary" className="flex items-center">
+                          {language.label}
+                          <X
+                            className="ml-1 h-3 w-3 cursor-pointer"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setSelectedLanguages((prev) => prev.filter((item) => item !== langValue));
+                            }}
+                          />
+                        </Badge>
+                      ) : null;
+                    })}
+                  </div>
+                ) : (
+                  <span className="text-muted-foreground">Sélectionnez les langues...</span>
+                )}
+                <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
+              <Command>
+                <CommandInput placeholder="Rechercher une langue..." />
+                <CommandEmpty>Aucune langue trouvée.</CommandEmpty>
+                <CommandGroup>
+                  {LANGUAGES_OPTIONS.map((language) => (
+                    <CommandItem
+                      key={language.value}
+                      value={language.label}
+                      onSelect={() => {
+                        setSelectedLanguages((prev) =>
+                          prev.includes(language.value)
+                            ? prev.filter((item) => item !== language.value)
+                            : [...prev, language.value]
+                        );
+                      }}
+                      className="flex items-center justify-between"
+                    >
+                      {language.label}
+                      <Checkbox
+                        checked={selectedLanguages.includes(language.value)}
+                        onCheckedChange={(checked) => {
+                          setSelectedLanguages((prev) =>
+                            checked
+                              ? [...prev, language.value]
+                              : prev.filter((item) => item !== language.value)
+                          );
+                        }}
+                      />
+                    </CommandItem>
+                  ))}
+                </CommandGroup>
+              </Command>
+            </PopoverContent>
+          </Popover>
         </div>
         <div>
           <Label htmlFor="address">Adresse</Label>
