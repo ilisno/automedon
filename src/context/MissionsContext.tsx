@@ -757,7 +757,7 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
           .from('commandes')
           .select('*, departure_sheets(*), arrival_sheets(*)')
           .eq('statut', 'Disponible')
-          .or('and(is_hors_grille.eq.false,not.convoyeur_payout.is.null,is_paid.eq.true),and(is_hors_grille.eq.true,not.client_price.is.null,client_price_approved.eq.true)');
+          .or('and(is_hors_grille.eq.false,convoyeur_payout.not.is.null,is_paid.eq.true),and(is_hors_grille.eq.true,client_price.not.is.null,client_price_approved.eq.true)');
         
         if (error) throw error;
         return data.map(m => ({
