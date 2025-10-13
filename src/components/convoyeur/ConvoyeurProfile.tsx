@@ -303,7 +303,7 @@ const ConvoyeurProfile: React.FC<ConvoyeurProfileProps> = ({ userId, onProfileCo
                           <X
                             className="ml-1 h-3 w-3 cursor-pointer"
                             onClick={(e) => {
-                              e.stopPropagation();
+                              e.stopPropagation(); // Prevent closing popover when removing badge
                               setSelectedLanguages((prev) => prev.filter((item) => item !== langValue));
                             }}
                           />
@@ -338,13 +338,7 @@ const ConvoyeurProfile: React.FC<ConvoyeurProfileProps> = ({ userId, onProfileCo
                       {language.label}
                       <Checkbox
                         checked={selectedLanguages.includes(language.value)}
-                        onCheckedChange={(checked) => {
-                          setSelectedLanguages((prev) =>
-                            checked
-                              ? [...prev, language.value]
-                              : prev.filter((item) => item !== language.value)
-                          );
-                        }}
+                        // Removed onCheckedChange to let CommandItem's onSelect handle the toggle
                       />
                     </CommandItem>
                   ))}
