@@ -33,21 +33,28 @@ export const generateSheetPdf = async (
   yPos += lineHeight * 2;
 
   doc.setFontSize(10);
+  const labelWidth = 55; // Fixed width for labels
+  const valueXPos = margin + labelWidth;
+  const valueMaxWidth = doc.internal.pageSize.getWidth() - valueXPos - margin;
+
   const addField = (label: string, value: string | number | null | undefined) => {
-    if (yPos + lineHeight * 3 > maxPageHeight) { // Check if label, value, and extra line fit
+    const textValue = value !== null && value !== undefined ? String(value) : 'N/A';
+    const splitValue = doc.splitTextToSize(textValue, valueMaxWidth);
+    const numLines = splitValue.length;
+
+    if (yPos + lineHeight * (numLines + 1) > maxPageHeight) { // Check if label, value, and extra line fit
       doc.addPage();
       yPos = margin;
     }
+
     doc.setFont('helvetica', 'bold');
     doc.text(`${label}:`, margin, yPos);
-    yPos += lineHeight; // Move to next line for value
 
     doc.setFont('helvetica', 'normal');
-    const textValue = value !== null && value !== undefined ? String(value) : 'N/A';
-    const splitText = doc.splitTextToSize(textValue, 180 - margin); // Adjust width for value
-    doc.text(splitText, margin + 5, yPos); // Indent value slightly
-    yPos += lineHeight * (splitText.length > 1 ? splitText.length : 1);
-    yPos += lineHeight; // Add an extra line for spacing
+    doc.text(splitValue, valueXPos, yPos); // Start value at fixed position
+
+    yPos += lineHeight * numLines; // Advance yPos by number of lines for value
+    yPos += lineHeight; // Add an extra line for spacing between fields
   };
 
   addField('Date de création', new Date(sheet.created_at).toLocaleString());
@@ -85,50 +92,97 @@ export const generateSheetPdf = async (
     doc.setFont('helvetica', 'normal');
     yPos += lineHeight;
 
-    const imgWidth = 80; // Width of image in mm
-    const imgHeight = 60; // Height of image in mm
+    const maxImgWidthPdf = doc.internal.pageSize.getWidth() - 2 * margin; // Max width for image on PDF page
+    const maxImgHeightPdf = 60; // Max height for image on PDF page (in mm)
     let xOffset = margin;
+    let currentLineMaxHeight = 0; // To track the tallest image in the current row
 
     for (const photoUrl of sheet.photos) {
       try {
-        const response = await fetch(photoUrl);
-        const blob = await response.blob();
-        const reader = new FileReader();
-        await new Promise<void>((resolve) => {
-          reader.onload = () => {
-            const imgData = reader.result as string;
-            if (yPos + imgHeight + lineHeight > maxPageHeight) { // Check if image fits on current page
+        const img = new Image();
+        img.src = photoUrl;
+        await new Promise<void>((resolve, reject) => {
+          img.onload = () => {
+            const naturalWidth = img.naturalWidth;
+            const naturalHeight = img.naturalHeight;
+            const aspectRatio = naturalWidth / naturalHeight;
+
+            let finalImgWidth = maxImgWidthPdf;
+            let finalImgHeight = maxImgWidthPdf / aspectRatio;
+
+            if (finalImgHeight > maxImgHeightPdf) {
+              finalImgHeight = maxImgHeightPdf;
+              finalImgWidth = maxImgHeightPdf * aspectRatio;
+            }
+
+            // Ensure image doesn't exceed page width if it's very wide and short
+            if (finalImgWidth > maxImgWidthPdf) {
+                finalImgWidth = maxImgWidthPdf;
+                finalImgHeight = maxImgWidthPdf / aspectRatio;
+            }
+
+            // Check if image fits on current page vertically
+            if (yPos + finalImgHeight + lineHeight > maxPageHeight) {
               doc.addPage();
               yPos = margin;
               xOffset = margin; // Reset xOffset for new page
+              currentLineMaxHeight = 0; // Reset max height for new page
             }
 
-            doc.addImage(imgData, 'JPEG', xOffset, yPos, imgWidth, imgHeight);
-            xOffset += imgWidth + margin; // Move to next position for image
-            if (xOffset + imgWidth > doc.internal.pageSize.getWidth() - margin) { // If next image won't fit horizontally
-              xOffset = margin; // Reset xOffset
-              yPos += imgHeight + lineHeight; // Move to next row
+            // Check if image fits horizontally on current line
+            if (xOffset + finalImgWidth + margin > doc.internal.pageSize.getWidth()) {
+              xOffset = margin; // Move to next row
+              yPos += currentLineMaxHeight + lineHeight; // Advance yPos by the tallest image in the previous row
+              currentLineMaxHeight = 0; // Reset for new row
             }
+
+            doc.addImage(img.src, 'JPEG', xOffset, yPos, finalImgWidth, finalImgHeight);
+            xOffset += finalImgWidth + margin; // Move to next position for image
+            currentLineMaxHeight = Math.max(currentLineMaxHeight, finalImgHeight); // Update max height for current row
             resolve();
           };
-          reader.readAsDataURL(blob);
+          img.onerror = (e) => {
+            console.error(`Failed to load image from ${photoUrl}:`, e);
+            // Add placeholder text for failed image
+            if (yPos + lineHeight > maxPageHeight) {
+              doc.addPage();
+              yPos = margin;
+              xOffset = margin;
+            }
+            doc.setFont('helvetica', 'italic');
+            doc.setTextColor(255, 0, 0); // Red color for error
+            doc.text(`(Image non chargée: ${photoUrl.substring(0, 50)}...)`, xOffset, yPos);
+            doc.setTextColor(0, 0, 0); // Reset color
+            doc.setFont('helvetica', 'normal');
+            xOffset += 100; // Advance xOffset for placeholder
+            if (xOffset + margin > doc.internal.pageSize.getWidth()) {
+                xOffset = margin;
+                yPos += lineHeight;
+            }
+            resolve(); // Still resolve to continue PDF generation
+          };
         });
       } catch (error) {
-        console.error(`Failed to load image from ${photoUrl}:`, error);
+        console.error(`Unexpected error processing image from ${photoUrl}:`, error);
         if (yPos + lineHeight > maxPageHeight) {
           doc.addPage();
           yPos = margin;
+          xOffset = margin;
         }
         doc.setFont('helvetica', 'italic');
-        doc.setTextColor(255, 0, 0); // Red color for error
-        doc.text(`(Image non chargée: ${photoUrl.substring(0, 50)}...)`, xOffset, yPos);
-        doc.setTextColor(0, 0, 0); // Reset color
+        doc.setTextColor(255, 0, 0);
+        doc.text(`(Erreur traitement image: ${photoUrl.substring(0, 50)}...)`, xOffset, yPos);
+        doc.setTextColor(0, 0, 0);
         doc.setFont('helvetica', 'normal');
-        yPos += lineHeight;
+        xOffset += 100;
+        if (xOffset + margin > doc.internal.pageSize.getWidth()) {
+            xOffset = margin;
+            yPos += lineHeight;
+        }
       }
     }
-    if (xOffset !== margin) { // If last row wasn't full, advance yPos
-      yPos += imgHeight + lineHeight;
+    if (currentLineMaxHeight > 0) { // If there were images in the last row
+      yPos += currentLineMaxHeight + lineHeight; // Advance yPos by the tallest image in the last row
     }
   }
 
