@@ -155,7 +155,7 @@ type BaseSheetData = {
 
 // 2. Définition du type du contexte
 type MissionsContextType = {
-  addMission: (missionData: Omit<Mission, 'id' | 'created_at' | 'statut' | 'convoyeur_id' | 'commentaires' | 'photos' | 'client_price' | 'convoyeur_payout' | 'updates' | 'convoyeur_first_name' | 'convoyeur_last_name' | 'expenses' | 'is_paid' | 'is_hors_grille' | 'client_price_approved' | 'departure_details' | 'arrival_details'> & { client_id: string }) => Promise<void>; // Mis à jour pour client_id et les nouveaux prix
+  addMission: (missionData: Omit<Mission, 'id' | 'created_at' | 'statut' | 'convoyeur_id' | 'commentaires' | 'photos' | 'client_price' | 'convoyeur_payout' | 'updates' | 'convoyeur_first_name' | 'convoyeur_last_name' | 'expenses' | 'is_paid' | 'is_hors_grille' | 'client_price_approved' | 'departure_details' | 'arrival_details'> & { client_id: string }) => Promise<void>; // Mis à jour pour client_id
   updateMission: (id: string, payload: UpdateMissionPayload) => Promise<void>; // Generic update function
   updateProfile: (id: string, payload: UpdateProfilePayload) => Promise<void>; // NEW: Generic update function for profiles
   takeMission: (missionId: string, convoyeurId: string) => Promise<void>;
@@ -559,8 +559,8 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         .from('departure_sheets')
         .select('photos')
         .eq('id', sheetId)
-        .single();
-
+        .maybeSingle(); // Changed to maybeSingle()
+      
       if (fetchError) {
         console.error("Error fetching current departure sheet for photo merge:", fetchError);
         throw fetchError;
@@ -659,7 +659,7 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         .from('arrival_sheets')
         .select('photos')
         .eq('id', sheetId)
-        .single();
+        .maybeSingle(); // Changed to maybeSingle()
 
       if (fetchError) {
         console.error("Error fetching current arrival sheet for photo merge:", fetchError);
@@ -808,7 +808,7 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
             .from('departure_sheets')
             .select('*')
             .eq('mission_id', m.id)
-            .single();
+            .maybeSingle(); // Changed to maybeSingle()
           if (depError && depError.code !== 'PGRST116') { // PGRST116 means no rows found
             console.error(`useConvoyeurMissions: Error fetching individual departure sheet for mission ${m.id}:`, depError);
           }
@@ -818,7 +818,7 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
             .from('arrival_sheets')
             .select('*')
             .eq('mission_id', m.id)
-            .single();
+            .maybeSingle(); // Changed to maybeSingle()
           if (arrError && arrError.code !== 'PGRST116') { // PGRST116 means no rows found
             console.error(`useConvoyeurMissions: Error fetching individual arrival sheet for mission ${m.id}:`, arrError);
           }
@@ -964,7 +964,7 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
           .from('departure_sheets')
           .select('*')
           .eq('mission_id', missionId)
-          .single();
+          .maybeSingle(); // Changed to maybeSingle()
         if (error && error.code !== 'PGRST116') { // PGRST116 means no rows found
           console.error(`useDepartureSheet: Error fetching sheet for mission ${missionId}:`, error);
           throw error;
@@ -990,7 +990,7 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
           .from('arrival_sheets')
           .select('*')
           .eq('mission_id', missionId)
-          .single();
+          .maybeSingle(); // Changed to maybeSingle()
         if (error && error.code !== 'PGRST116') { // PGRST116 means no rows found
           console.error(`useArrivalSheet: Error fetching sheet for mission ${missionId}:`, error);
           throw error;
