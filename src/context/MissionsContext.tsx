@@ -100,6 +100,7 @@ export type Mission = {
   expenses?: Expense[] | null; // NEW: Add expenses array
   is_paid: boolean; // NEW: Add is_paid status
   is_hors_grille: boolean; // NEW: Add is_hors_grille status
+  client_price_approved?: boolean | null; // NEW: Client approval for price
   departure_details?: DepartureSheet | null; // NEW: Link departure sheet
   arrival_details?: ArrivalSheet | null; // NEW: Link arrival sheet
 };
@@ -154,7 +155,7 @@ type BaseSheetData = {
 
 // 2. Définition du type du contexte
 type MissionsContextType = {
-  addMission: (missionData: Omit<Mission, 'id' | 'created_at' | 'statut' | 'convoyeur_id' | 'commentaires' | 'photos' | 'client_price' | 'convoyeur_payout' | 'updates' | 'convoyeur_first_name' | 'convoyeur_last_name' | 'expenses' | 'is_paid' | 'is_hors_grille' | 'departure_details' | 'arrival_details'> & { client_id: string }) => Promise<void>; // Mis à jour pour client_id et les nouveaux prix
+  addMission: (missionData: Omit<Mission, 'id' | 'created_at' | 'statut' | 'convoyeur_id' | 'commentaires' | 'photos' | 'client_price' | 'convoyeur_payout' | 'updates' | 'convoyeur_first_name' | 'convoyeur_last_name' | 'expenses' | 'is_paid' | 'is_hors_grille' | 'client_price_approved' | 'departure_details' | 'arrival_details'> & { client_id: string }) => Promise<void>; // Mis à jour pour client_id et les nouveaux prix
   updateMission: (id: string, payload: UpdateMissionPayload) => Promise<void>; // Generic update function
   updateProfile: (id: string, payload: UpdateProfilePayload) => Promise<void>; // NEW: Generic update function for profiles
   takeMission: (missionId: string, convoyeurId: string) => Promise<void>;
@@ -163,6 +164,7 @@ type MissionsContextType = {
   uploadMissionPhotos: (missionId: string, files: FileList) => Promise<string[]>;
   uploadProfilePhoto: (userId: string, file: File) => Promise<string>; // NEW: Function to upload profile photo
   addMissionExpense: (missionId: string, type: string, amount: number, description: string | null, photoFile: File | null) => Promise<void>; // NEW: Function to add mission expense
+  approveClientPrice: (missionId: string) => Promise<void>; // NEW: Function to approve client price
   
   // NEW: Functions for Departure and Arrival Sheets
   createDepartureSheet: (missionId: string, sheetData: BaseSheetData, photos: FileList | null) => Promise<void>;
@@ -192,7 +194,7 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
   // Mutation for adding a mission
   const addMissionMutation = useMutation({
-    mutationFn: async (missionData: Omit<Mission, 'id' | 'created_at' | 'statut' | 'convoyeur_id' | 'commentaires' | 'photos' | 'client_price' | 'convoyeur_payout' | 'updates' | 'convoyeur_first_name' | 'convoyeur_last_name' | 'expenses' | 'is_paid' | 'is_hors_grille' | 'departure_details' | 'arrival_details'> & { client_id: string }) => { // Mis à jour pour client_id
+    mutationFn: async (missionData: Omit<Mission, 'id' | 'created_at' | 'statut' | 'convoyeur_id' | 'commentaires' | 'photos' | 'client_price' | 'convoyeur_payout' | 'updates' | 'convoyeur_first_name' | 'convoyeur_last_name' | 'expenses' | 'is_paid' | 'is_hors_grille' | 'client_price_approved' | 'departure_details' | 'arrival_details'> & { client_id: string }) => { // Mis à jour pour client_id
       const { data, error } = await supabase.from('commandes').insert({
         immatriculation: missionData.immatriculation,
         modele: missionData.modele,
@@ -207,6 +209,7 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         expenses: [], // Initialize expenses as an empty array
         is_paid: false, // NEW: Initialize is_paid to false
         is_hors_grille: false, // NEW: Initialize is_hors_grille to false
+        client_price_approved: false, // NEW: Initialize client_price_approved to false
         // Removed departure_details and arrival_details from insert
       });
       if (error) throw error;
@@ -223,7 +226,7 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     },
   });
 
-  const addMission = async (missionData: Omit<Mission, 'id' | 'created_at' | 'statut' | 'convoyeur_id' | 'commentaires' | 'photos' | 'client_price' | 'convoyeur_payout' | 'updates' | 'convoyeur_first_name' | 'convoyeur_last_name' | 'expenses' | 'is_paid' | 'is_hors_grille' | 'departure_details' | 'arrival_details'> & { client_id: string }) => { // Mis à jour pour client_id
+  const addMission = async (missionData: Omit<Mission, 'id' | 'created_at' | 'statut' | 'convoyeur_id' | 'commentaires' | 'photos' | 'client_price' | 'convoyeur_payout' | 'updates' | 'convoyeur_first_name' | 'convoyeur_last_name' | 'expenses' | 'is_paid' | 'is_hors_grille' | 'client_price_approved' | 'departure_details' | 'arrival_details'> & { client_id: string }) => { // Mis à jour pour client_id
     await addMissionMutation.mutateAsync(missionData);
   };
 
@@ -470,6 +473,32 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     await updateMission(missionId, { statut: 'livrée' });
   };
 
+  // NEW: Mutation for approving client price
+  const approveClientPriceMutation = useMutation({
+    mutationFn: async (missionId: string) => {
+      const { data, error } = await supabase
+        .from('commandes')
+        .update({ client_price_approved: true })
+        .eq('id', missionId);
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['clientMissions'] });
+      queryClient.invalidateQueries({ queryKey: ['availableMissions'] });
+      queryClient.invalidateQueries({ queryKey: ['allMissions'] });
+      showSuccess("Prix de la mission approuvé avec succès !");
+    },
+    onError: (error) => {
+      console.error("Error approving client price:", error);
+      showError("Erreur lors de l'approbation du prix de la mission.");
+    },
+  });
+
+  const approveClientPrice = async (missionId: string) => {
+    await approveClientPriceMutation.mutateAsync(missionId);
+  };
+
   // NEW: Mutation for creating a departure sheet
   const createDepartureSheetMutation = useMutation({
     mutationFn: async ({ missionId, sheetData, photos }: { missionId: string; sheetData: BaseSheetData; photos: FileList | null }) => {
@@ -704,6 +733,7 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
           expenses: m.expenses, // Include expenses
           is_paid: m.is_paid, // Include is_paid
           is_hors_grille: m.is_hors_grille, // NEW: Include is_hors_grille
+          client_price_approved: m.client_price_approved, // NEW: Include client_price_approved
           departure_details: m.departure_sheets?.[0] || null, // NEW: Map departure sheet
           arrival_details: m.arrival_sheets?.[0] || null, // NEW: Map arrival sheet
         }));
@@ -722,12 +752,12 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         // 2. EITHER:
         //    a) Not 'hors grille' AND convoyeur_payout is set AND is_paid is true
         //    OR
-        //    b) Is 'hors grille' AND client_price is set (validated by client)
+        //    b) Is 'hors grille' AND client_price is set (validated by client) AND client_price_approved is true
         const { data, error } = await supabase
           .from('commandes')
           .select('*, departure_sheets(*), arrival_sheets(*)')
           .eq('statut', 'Disponible')
-          .or('and(is_hors_grille.eq.false,not.convoyeur_payout.is.null,is_paid.eq.true),and(is_hors_grille.eq.true,not.client_price.is.null)');
+          .or('and(is_hors_grille.eq.false,not.convoyeur_payout.is.null,is_paid.eq.true),and(is_hors_grille.eq.true,not.client_price.is.null,client_price_approved.eq.true)');
         
         if (error) throw error;
         return data.map(m => ({
@@ -749,6 +779,7 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
           expenses: m.expenses, // Include expenses
           is_paid: m.is_paid, // Include is_paid
           is_hors_grille: m.is_hors_grille, // NEW: Include is_hors_grille
+          client_price_approved: m.client_price_approved, // NEW: Include client_price_approved
           departure_details: m.departure_sheets?.[0] || null, // NEW: Map departure sheet
           arrival_details: m.arrival_sheets?.[0] || null, // NEW: Map arrival sheet
         }));
@@ -814,6 +845,7 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
             expenses: m.expenses, // Include expenses
             is_paid: m.is_paid, // Include is_paid
             is_hors_grille: m.is_hors_grille, // NEW: Include is_hors_grille
+            client_price_approved: m.client_price_approved, // NEW: Include client_price_approved
             departure_details: departureSheet || null, // Use the individually fetched sheet
             arrival_details: arrivalSheet || null, // Use the individually fetched sheet
           };
@@ -884,6 +916,7 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
           expenses: m.expenses, // Include expenses
           is_paid: m.is_paid, // Include is_paid
           is_hors_grille: m.is_hors_grille, // NEW: Include is_hors_grille
+          client_price_approved: m.client_price_approved, // NEW: Include client_price_approved
           departure_details: m.departure_sheets?.[0] || null, // NEW: Map departure sheet
           arrival_details: m.arrival_sheets?.[0] || null, // NEW: Map arrival sheet
         }));
@@ -981,6 +1014,7 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     uploadMissionPhotos,
     uploadProfilePhoto, // NEW
     addMissionExpense, // NEW
+    approveClientPrice, // NEW
     createDepartureSheet, // NEW
     updateDepartureSheet, // NEW
     createArrivalSheet, // NEW
@@ -1005,6 +1039,7 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     uploadMissionPhotos,
     uploadProfilePhoto,
     addMissionExpense, // NEW
+    approveClientPrice, // NEW
     createDepartureSheet, // NEW
     updateDepartureSheet, // NEW
     createArrivalSheet, // NEW

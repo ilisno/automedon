@@ -3,14 +3,15 @@ import { useMissions, Mission } from "@/context/MissionsContext";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button"; // Import Button
 import ClientMissionDetailDialog from "./ClientMissionDetailDialog"; // Import the new dialog
+import { showError } from "@/utils/toast";
 
 interface ClientMissionsListProps {
   userId: string;
 }
 
 const ClientMissionsList: React.FC<ClientMissionsListProps> = ({ userId }) => {
-  const { useClientMissions } = useMissions();
-  const { missions: clientMissions, isLoading: isLoadingMissions } = useClientMissions(userId);
+  const { useClientMissions, approveClientPrice } = useMissions();
+  const { missions: clientMissions, isLoading: isLoadingMissions, refetch: refetchClientMissions } = useClientMissions(userId);
 
   const [isDetailDialogOpen, setIsDetailDialogOpen] = useState(false);
   const [selectedMission, setSelectedMission] = useState<Mission | null>(null);
@@ -23,6 +24,16 @@ const ClientMissionsList: React.FC<ClientMissionsListProps> = ({ userId }) => {
   const handleCloseDetailDialog = () => {
     setSelectedMission(null);
     setIsDetailDialogOpen(false);
+  };
+
+  const handleApprovePrice = async (missionId: string) => {
+    try {
+      await approveClientPrice(missionId);
+      refetchClientMissions(); // Refetch missions to update UI
+    } catch (error) {
+      console.error("Error approving client price:", error);
+      showError("Erreur lors de l'approbation du prix.");
+    }
   };
 
   if (isLoadingMissions) {
@@ -55,6 +66,19 @@ const ClientMissionsList: React.FC<ClientMissionsListProps> = ({ userId }) => {
                 {mission.convoyeur_id && <p><strong>Convoyeur:</strong> {mission.convoyeur_first_name} {mission.convoyeur_last_name}</p>}
                 {mission.client_price && <p className="text-sm text-gray-700 dark:text-gray-300"><strong>Prix Client:</strong> {mission.client_price.toFixed(2)} €</p>}
                 {mission.commentaires && <p className="text-sm text-gray-700 dark:text-gray-300"><strong>Commentaires:</strong> {mission.commentaires}</p>}
+                
+                {/* NEW: Client price validation for 'hors grille' missions */}
+                {mission.is_hors_grille && mission.client_price && !mission.client_price_approved && mission.statut === 'Disponible' && (
+                  <div className="mt-4 p-3 border border-yellow-500 bg-yellow-50 dark:bg-yellow-900/20 rounded-md">
+                    <p className="font-semibold text-yellow-800 dark:text-yellow-200 mb-2">
+                      Prix proposé pour cette mission hors grille: {mission.client_price.toFixed(2)} €
+                    </p>
+                    <Button onClick={() => handleApprovePrice(mission.id)} className="w-full bg-green-600 hover:bg-green-700 text-white">
+                      Accepter le prix
+                    </Button>
+                  </div>
+                )}
+
                 <Button onClick={() => handleOpenDetailDialog(mission)} className="w-full mt-4">
                   Voir les détails
                 </Button>
