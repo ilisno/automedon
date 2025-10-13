@@ -33,28 +33,27 @@ export const generateSheetPdf = async (
   yPos += lineHeight * 2;
 
   doc.setFontSize(10);
-  const labelWidth = 55; // Fixed width for labels
-  const valueXPos = margin + labelWidth;
-  const valueMaxWidth = doc.internal.pageSize.getWidth() - valueXPos - margin;
+  const valueIndent = 5; // Indentation for the value text
 
   const addField = (label: string, value: string | number | null | undefined) => {
     const textValue = value !== null && value !== undefined ? String(value) : 'N/A';
-    const splitValue = doc.splitTextToSize(textValue, valueMaxWidth);
+    const splitValue = doc.splitTextToSize(textValue, doc.internal.pageSize.getWidth() - 2 * margin - valueIndent);
     const numLines = splitValue.length;
 
-    if (yPos + lineHeight * (numLines + 1) > maxPageHeight) { // Check if label, value, and extra line fit
+    // Check if label, value (potentially multi-line), and the extra spacing line fit
+    if (yPos + lineHeight * (1 + numLines + 1) > maxPageHeight) { 
       doc.addPage();
       yPos = margin;
     }
 
     doc.setFont('helvetica', 'bold');
     doc.text(`${label}:`, margin, yPos);
+    yPos += lineHeight; // Move to the next line for the value
 
     doc.setFont('helvetica', 'normal');
-    doc.text(splitValue, valueXPos, yPos); // Start value at fixed position
-
-    yPos += lineHeight * numLines; // Advance yPos by number of lines for value
-    yPos += lineHeight; // Add an extra line for spacing between fields
+    doc.text(splitValue, margin + valueIndent, yPos); // Print value, indented
+    yPos += lineHeight * numLines; // Advance yPos by the number of lines the value took
+    yPos += lineHeight; // Add an extra line for spacing before the next field
   };
 
   addField('Date de création', new Date(sheet.created_at).toLocaleString());
