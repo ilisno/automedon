@@ -14,7 +14,7 @@ import { useMissions } from "@/context/MissionsContext";
 import { Badge } from "@/components/ui/badge";
 import { Command, CommandInput, CommandEmpty, CommandGroup, CommandItem } from "@/components/ui/command";
 import { Checkbox } from "@/components/ui/checkbox";
-import { ScrollArea } from "@/components/ui/scroll-area"; // NEW: Import ScrollArea
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 type Profile = {
   id: string;
@@ -36,7 +36,7 @@ type Profile = {
 
 interface ConvoyeurProfileProps {
   userId: string;
-  onProfileCompleteChange: (isComplete: boolean) => void; // NEW: Callback to update parent
+  onProfileCompleteChange: (isComplete: boolean) => void;
 }
 
 const LANGUAGES_OPTIONS = [
@@ -91,209 +91,6 @@ const LANGUAGES_OPTIONS = [
   { value: "zu", label: "Zoulou" },
   { value: "xh", label: "Xhosa" },
   { value: "af", label: "Afrikaans" },
-  { value: "ga", label: "Irlandais" },
-  { value: "cy", label: "Gallois" },
-  { value: "gd", label: "Gaélique écossais" },
-  { value: "eu", label: "Basque" },
-  { value: "ca", label: "Catalan" },
-  { value: "gl", label: "Galicien" },
-  { value: "sq", label: "Albanais" },
-  { value: "sr", label: "Serbe" },
-  { value: "hr", label: "Croate" },
-  { value: "bs", label: "Bosnien" },
-  { value: "mk", label: "Macédonien" },
-  { value: "sl", label: "Slovène" },
-  { value: "sk", label: "Slovaque" },
-  { value: "lt", label: "Lituanien" },
-  { value: "lv", label: "Letton" },
-  { value: "et", label: "Estonien" },
-  { value: "is", label: "Islandais" },
-  { value: "hu", label: "Hongrois" },
-  { value: "ka", label: "Géorgien" },
-  { value: "hy", label: "Arménien" },
-  { value: "az", label: "Azéri" },
-  { value: "uz", label: "Ouzbek" },
-  { value: "kk", label: "Kazakh" },
-  { value: "ky", label: "Kirghize" },
-  { value: "tg", label: "Tadjik" },
-  { value: "tk", label: "Turkmène" },
-  { value: "mn", label: "Mongol" },
-  { value: "ne", label: "Népalais" },
-  { value: "si", label: "Cingalais" },
-  { value: "lo", label: "Laotien" },
-  { value: "my", label: "Birman" },
-  { value: "th", label: "Thaï" },
-  { value: "km", label: "Khmer" },
-  { value: "fil", label: "Filipino" },
-  { value: "jv", label: "Javanais" },
-  { value: "su", label: "Soundanais" },
-  { value: "mg", label: "Malgache" },
-  { value: "ht", label: "Créole haïtien" },
-  { value: "eo", label: "Espéranto" },
-  { value: "la", label: "Latin" },
-  { value: "yi", label: "Yiddish" },
-  { value: "oc", label: "Occitan" },
-  { value: "wa", label: "Wallon" },
-  { value: "fy", label: "Frison occidental" },
-  { value: "lb", label: "Luxembourgeois" },
-  { value: "mt", label: "Maltais" },
-  { value: "fo", label: "Féroïen" },
-  { value: "kl", label: "Groenlandais" },
-  { value: "sm", label: "Samoan" },
-  { value: "to", label: "Tongien" },
-  { value: "mi", label: "Maori" },
-  { value: "haw", label: "Hawaïen" },
-  { value: "fj", label: "Fidjien" },
-  { value: "ty", label: "Tahitien" },
-  { value: "dv", label: "Maldivien" },
-  { value: "dz", label: "Dzongkha" },
-  { value: "sg", label: "Sango" },
-  { value: "sn", label: "Shona" },
-  { value: "st", label: "Sotho du Sud" },
-  { value: "ts", label: "Tsonga" },
-  { value: "tn", label: "Tswana" },
-  { value: "ve", label: "Venda" },
-  { value: "wo", label: "Wolof" },
-  { value: "ig", label: "Igbo" },
-  { value: "om", label: "Oromo" },
-  { value: "so", label: "Somali" },
-  { value: "ti", label: "Tigrigna" },
-  { value: "ug", label: "Ouïghour" },
-  { value: "bo", label: "Tibétain" },
-  { value: "dz", label: "Dzongkha" },
-  { value: "iu", label: "Inuktitut" },
-  { value: "ik", label: "Inupiak" },
-  { value: "nv", label: "Navajo" },
-  { value: "ch", label: "Chamorro" },
-  { value: "tl", label: "Tagalog" },
-  { value: "ceb", label: "Cebuano" },
-  { value: "ilo", label: "Ilocano" },
-  { value: "war", label: "Waray-Waray" },
-  { value: "bcl", label: "Bicol" },
-  { value: "pam", label: "Pampangan" },
-  { value: "pag", label: "Pangasinan" },
-  { value: "mrw", label: "Maranao" },
-  { value: "mag", label: "Maguindanao" },
-  { value: "tsg", label: "Tausug" },
-  { value: "mdh", label: "Maguindanaon" },
-  { value: "krj", label: "Kinaray-a" },
-  { value: "hil", label: "Hiligaynon" },
-  { value: "ceb", label: "Cebuano" },
-  { value: "bik", label: "Bikol" },
-  { value: "ur", label: "Ourdou" },
-  { value: "ps", label: "Pachto" },
-  { value: "sd", label: "Sindhi" },
-  { value: "ku", label: "Kurde" },
-  { value: "tg", label: "Tadjik" },
-  { value: "uz", label: "Ouzbek" },
-  { value: "kk", label: "Kazakh" },
-  { value: "ky", label: "Kirghize" },
-  { value: "mn", label: "Mongol" },
-  { value: "dv", label: "Maldivien" },
-  { value: "ne", label: "Népalais" },
-  { value: "si", label: "Cingalais" },
-  { value: "dz", label: "Dzongkha" },
-  { value: "my", label: "Birman" },
-  { value: "km", label: "Khmer" },
-  { value: "lo", label: "Laotien" },
-  { value: "th", label: "Thaï" },
-  { value: "vi", label: "Vietnamien" },
-  { value: "id", label: "Indonésien" },
-  { value: "ms", label: "Malais" },
-  { value: "jv", label: "Javanais" },
-  { value: "su", label: "Soundanais" },
-  { value: "fil", label: "Filipino" },
-  { value: "ceb", label: "Cebuano" },
-  { value: "ilo", label: "Ilocano" },
-  { value: "war", label: "Waray-Waray" },
-  { value: "bcl", label: "Bicol" },
-  { value: "pam", label: "Pampangan" },
-  { value: "pag", label: "Pangasinan" },
-  { value: "mrw", label: "Maranao" },
-  { value: "mag", label: "Maguindanao" },
-  { value: "tsg", label: "Tausug" },
-  { value: "mdh", label: "Maguindanaon" },
-  { value: "krj", label: "Kinaray-a" },
-  { value: "hil", label: "Hiligaynon" },
-  { value: "ceb", label: "Cebuano" },
-  { value: "bik", label: "Bikol" },
-  { value: "am", label: "Amharique" },
-  { value: "ti", label: "Tigrigna" },
-  { value: "om", label: "Oromo" },
-  { value: "so", label: "Somali" },
-  { value: "ha", label: "Haoussa" },
-  { value: "yo", label: "Yoruba" },
-  { value: "ig", label: "Igbo" },
-  { value: "sw", label: "Swahili" },
-  { value: "zu", label: "Zoulou" },
-  { value: "xh", label: "Xhosa" },
-  { value: "af", label: "Afrikaans" },
-  { value: "st", label: "Sotho du Sud" },
-  { value: "ts", label: "Tsonga" },
-  { value: "tn", label: "Tswana" },
-  { value: "ve", label: "Venda" },
-  { value: "wo", label: "Wolof" },
-  { value: "ff", label: "Peul" },
-  { value: "ln", label: "Lingala" },
-  { value: "kg", label: "Kikongo" },
-  { value: "rw", label: "Kinyarwanda" },
-  { value: "rn", label: "Kirundi" },
-  { value: "sg", label: "Sango" },
-  { value: "sn", label: "Shona" },
-  { value: "ny", label: "Nyanja" },
-  { value: "mg", label: "Malgache" },
-  { value: "ht", label: "Créole haïtien" },
-  { value: "eo", label: "Espéranto" },
-  { value: "la", label: "Latin" },
-  { value: "yi", label: "Yiddish" },
-  { value: "oc", label: "Occitan" },
-  { value: "wa", label: "Wallon" },
-  { value: "fy", label: "Frison occidental" },
-  { value: "lb", label: "Luxembourgeois" },
-  { value: "mt", label: "Maltais" },
-  { value: "fo", label: "Féroïen" },
-  { value: "kl", label: "Groenlandais" },
-  { value: "sm", label: "Samoan" },
-  { value: "to", label: "Tongien" },
-  { value: "mi", label: "Maori" },
-  { value: "haw", label: "Hawaïen" },
-  { value: "fj", label: "Fidjien" },
-  { value: "ty", label: "Tahitien" },
-  { value: "dv", label: "Maldivien" },
-  { value: "dz", label: "Dzongkha" },
-  { value: "sg", label: "Sango" },
-  { value: "sn", label: "Shona" },
-  { value: "st", label: "Sotho du Sud" },
-  { value: "ts", label: "Tsonga" },
-  { value: "tn", label: "Tswana" },
-  { value: "ve", label: "Venda" },
-  { value: "wo", label: "Wolof" },
-  { value: "ig", label: "Igbo" },
-  { value: "om", label: "Oromo" },
-  { value: "so", label: "Somali" },
-  { value: "ti", label: "Tigrigna" },
-  { value: "ug", label: "Ouïghour" },
-  { value: "bo", label: "Tibétain" },
-  { value: "dz", label: "Dzongkha" },
-  { value: "iu", label: "Inuktitut" },
-  { value: "ik", label: "Inupiak" },
-  { value: "nv", label: "Navajo" },
-  { value: "ch", label: "Chamorro" },
-  { value: "tl", label: "Tagalog" },
-  { value: "ceb", label: "Cebuano" },
-  { value: "ilo", label: "Ilocano" },
-  { value: "war", label: "Waray-Waray" },
-  { value: "bcl", label: "Bicol" },
-  { value: "pam", label: "Pampangan" },
-  { value: "pag", label: "Pangasinan" },
-  { value: "mrw", label: "Maranao" },
-  { value: "mag", label: "Maguindanao" },
-  { value: "tsg", label: "Tausug" },
-  { value: "mdh", label: "Maguindanaon" },
-  { value: "krj", label: "Kinaray-a" },
-  { value: "hil", label: "Hiligaynon" },
-  { value: "ceb", label: "Cebuano" },
-  { value: "bik", label: "Bikol" },
 ];
 
 const ConvoyeurProfile: React.FC<ConvoyeurProfileProps> = ({ userId, onProfileCompleteChange }) => {
@@ -519,7 +316,21 @@ const ConvoyeurProfile: React.FC<ConvoyeurProfileProps> = ({ userId, onProfileCo
                 className="w-full justify-between mt-1 h-auto min-h-[40px] flex-wrap"
               >
                 {selectedLanguages.length > 0 ? (
-                  <div className="flex flex-wrap gap-1">
+                  <span className="text-foreground">
+                    {selectedLanguages.length} langue(s) sélectionnée(s)
+                  </span>
+                ) : (
+                  <span className="text-muted-foreground">Sélectionnez les langues...</span>
+                )}
+                <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
+              <Command>
+                <CommandInput placeholder="Rechercher une langue..." />
+                <CommandEmpty>Aucune langue trouvée.</CommandEmpty>
+                {selectedLanguages.length > 0 && (
+                  <div className="flex flex-wrap gap-1 p-2 border-b">
                     {selectedLanguages.map((langValue) => {
                       const language = LANGUAGES_OPTIONS.find((l) => l.value === langValue);
                       return language ? (
@@ -536,17 +347,8 @@ const ConvoyeurProfile: React.FC<ConvoyeurProfileProps> = ({ userId, onProfileCo
                       ) : null;
                     })}
                   </div>
-                ) : (
-                  <span className="text-muted-foreground">Sélectionnez les langues...</span>
                 )}
-                <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
-              <Command>
-                <CommandInput placeholder="Rechercher une langue..." />
-                <CommandEmpty>Aucune langue trouvée.</CommandEmpty>
-                <ScrollArea className="h-[200px]"> {/* NEW: Make scrollable */}
+                <ScrollArea className="h-[200px]">
                   <CommandGroup>
                     {LANGUAGES_OPTIONS.map((language) => (
                       <CommandItem
