@@ -1,5 +1,4 @@
 import React from "react";
-import ReactDOM from 'react-dom/client';
 import {
   Dialog,
   DialogContent,
@@ -10,7 +9,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Mission, MissionUpdate, Expense, useMissions } from "@/context/MissionsContext";
 import { format } from "date-fns";
-import { generatePdf } from "@/utils/pdfGenerator";
+import { generateSheetPdf } from "@/utils/sheetPdfGenerator"; // Import the new PDF generator
 import DepartureSheetDisplay from "@/components/pdf/DepartureSheetDisplay";
 import ArrivalSheetDisplay from "@/components/pdf/ArrivalSheetDisplay";
 
@@ -34,58 +33,32 @@ const ClientMissionDetailDialog: React.FC<ClientMissionDetailDialogProps> = ({
 
   const handleDownloadDeparturePdf = async () => {
     if (!mission || !departureSheet) return;
-    const tempDiv = document.createElement('div');
-    tempDiv.style.position = 'absolute';
-    tempDiv.style.left = '-9999px';
-    document.body.appendChild(tempDiv);
-    
-    const root = ReactDOM.createRoot(tempDiv);
-    root.render(
-      <DepartureSheetDisplay 
-        sheet={departureSheet} 
-        missionDetails={{ 
-          immatriculation: mission.immatriculation, 
-          modele: mission.modele, 
-          lieu_depart: mission.lieu_depart, 
-          lieu_arrivee: mission.lieu_arrivee 
-        }} 
-      />
+    await generateSheetPdf(
+      departureSheet,
+      {
+        immatriculation: mission.immatriculation,
+        modele: mission.modele,
+        lieu_depart: mission.lieu_depart,
+        lieu_arrivee: mission.lieu_arrivee,
+      },
+      'departure',
+      `fiche_depart_${mission.immatriculation}.pdf`
     );
-
-    await new Promise(resolve => setTimeout(resolve, 100));
-
-    await generatePdf(tempDiv.children[0].id, `fiche_depart_${mission.immatriculation}.pdf`);
-    
-    root.unmount();
-    document.body.removeChild(tempDiv);
   };
 
   const handleDownloadArrivalPdf = async () => {
     if (!mission || !arrivalSheet) return;
-    const tempDiv = document.createElement('div');
-    tempDiv.style.position = 'absolute';
-    tempDiv.style.left = '-9999px';
-    document.body.appendChild(tempDiv);
-    
-    const root = ReactDOM.createRoot(tempDiv);
-    root.render(
-      <ArrivalSheetDisplay 
-        sheet={arrivalSheet} 
-        missionDetails={{ 
-          immatriculation: mission.immatriculation, 
-          modele: mission.modele, 
-          lieu_depart: mission.lieu_depart, 
-          lieu_arrivee: mission.lieu_arrivee 
-        }} 
-      />
+    await generateSheetPdf(
+      arrivalSheet,
+      {
+        immatriculation: mission.immatriculation,
+        modele: mission.modele,
+        lieu_depart: mission.lieu_depart,
+        lieu_arrivee: mission.lieu_arrivee,
+      },
+      'arrival',
+      `fiche_arrivee_${mission.immatriculation}.pdf`
     );
-
-    await new Promise(resolve => setTimeout(resolve, 100));
-
-    await generatePdf(tempDiv.children[0].id, `fiche_arrivee_${mission.immatriculation}.pdf`);
-    
-    root.unmount();
-    document.body.removeChild(tempDiv);
   };
 
   if (!mission) return null;
