@@ -229,8 +229,8 @@ const ArrivalSheetForm: React.FC<ArrivalSheetFormProps> = ({ missionId, onSheetC
       </div>
       {/* NEW FIELDS */}
       <div>
-        <Label htmlFor="pickupLocationType">Lieu d'enlèvement</Label>
-        <Input id="pickupLocationType" type="text" value={pickupLocationType} onChange={(e) => setPickupLocationType(e.target.value)} placeholder="Ex: Domicile, Concession" required className="mt-1" />
+        <Label htmlFor="pickupLocationType">Lieu de livraison</Label>
+        <Input id="pickupLocationType" type="text" value={pickupLocationType} onChange={(e) => setPickupLocationType(e.target.value)} placeholder="Ex: Domicile, Concession, Point de livraison" required className="mt-1" />
       </div>
       <div>
         <Label htmlFor="sdCardCdDvd">Carte SD ou CD/DVD</Label>
@@ -261,7 +261,7 @@ const ArrivalSheetForm: React.FC<ArrivalSheetFormProps> = ({ missionId, onSheetC
         <Input id="rearFloorMats" type="text" value={rearFloorMats} onChange={(e) => setRearFloorMats(e.target.value)} placeholder="Ex: Présents, Absents" required className="mt-1" />
       </div>
       <div>
-        <Label htmlFor="registrationCard">Carte grise (originale ou copie)</Label>
+        <Label htmlFor="registrationCard">Certificat d'immatriculation (carte grise) (originale ou copie)</Label>
         <Input id="registrationCard" type="text" value={registrationCard} onChange={(e) => setRegistrationCard(e.target.value)} placeholder="Ex: Originale, Copie" required className="mt-1" />
       </div>
       <div>

@@ -84,7 +84,7 @@ const DepartureSheetDisplay: React.FC<DepartureSheetDisplayProps> = ({ sheet, mi
             <td className="p-2 text-left">{sheet.rear_floor_mats || 'N/A'}</td>
           </tr>
           <tr className="border-b border-gray-200 dark:border-gray-700">
-            <td className="font-semibold p-2 text-left">Carte grise (originale ou copie):</td>
+            <td className="font-semibold p-2 text-left">Certificat d'immatriculation (carte grise) (originale ou copie):</td>
             <td className="p-2 text-left">{sheet.registration_card || 'N/A'}</td>
           </tr>
           <tr className="border-b border-gray-200 dark:border-gray-700">

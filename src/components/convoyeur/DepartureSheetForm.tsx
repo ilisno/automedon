@@ -261,7 +261,7 @@ const DepartureSheetForm: React.FC<DepartureSheetFormProps> = ({ missionId, onSh
         <Input id="rearFloorMats" type="text" value={rearFloorMats} onChange={(e) => setRearFloorMats(e.target.value)} placeholder="Ex: Présents, Absents" required className="mt-1" />
       </div>
       <div>
-        <Label htmlFor="registrationCard">Carte grise (originale ou copie)</Label>
+        <Label htmlFor="registrationCard">Certificat d'immatriculation (carte grise) (originale ou copie)</Label>
         <Input id="registrationCard" type="text" value={registrationCard} onChange={(e) => setRegistrationCard(e.target.value)} placeholder="Ex: Originale, Copie" required className="mt-1" />
       </div>
       <div>
