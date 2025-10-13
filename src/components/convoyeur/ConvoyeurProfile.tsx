@@ -5,7 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { format } from "date-fns";
+import { format, parse, isValid } from "date-fns"; // Import parse and isValid
 import { CalendarIcon, UserCircle2, Check, ChevronsUpDown, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
@@ -101,7 +101,7 @@ const ConvoyeurProfile: React.FC<ConvoyeurProfileProps> = ({ userId, onProfileCo
   const [lastName, setLastName] = useState("");
   const [role, setRole] = useState<'client' | 'convoyeur' | 'admin' | ''>("");
   const [phone, setPhone] = useState("");
-  const [dateOfBirth, setDateOfBirth] = useState<Date | undefined>(undefined);
+  const [dateOfBirth, setDateOfBirth] = useState<string>(""); // Changed to string for manual input
   const [selectedLanguages, setSelectedLanguages] = useState<string[]>([]);
   const [address, setAddress] = useState("");
   const [postalCode, setPostalCode] = useState("");
@@ -140,7 +140,8 @@ const ConvoyeurProfile: React.FC<ConvoyeurProfileProps> = ({ userId, onProfileCo
         setLastName(data.last_name || "");
         setRole(data.role || "");
         setPhone(data.phone || "");
-        setDateOfBirth(data.date_of_birth ? new Date(data.date_of_birth) : undefined);
+        // Format date_of_birth from 'yyyy-MM-dd' to 'dd/MM/yyyy' for display
+        setDateOfBirth(data.date_of_birth ? format(new Date(data.date_of_birth), "dd/MM/yyyy") : "");
         setSelectedLanguages(data.languages || []);
         setAddress(data.address || "");
         setPostalCode(data.postal_code || "");
@@ -158,15 +159,20 @@ const ConvoyeurProfile: React.FC<ConvoyeurProfileProps> = ({ userId, onProfileCo
   }, [userId, onProfileCompleteChange]);
 
   const checkConvoyeurProfileCompletion = (
-    fName: string, lName: string, p: string, dob: Date | undefined, langs: string[],
+    fName: string, lName: string, p: string, dobString: string, langs: string[],
     addr: string, pCode: string, c: string, dln: string, lid: Date | undefined, lic: string,
     currentAvatarUrl: string | null
   ) => {
+    const parsedDob = dobString ? parse(dobString, 'dd/MM/yyyy', new Date()) : undefined;
+    const isDobValid = parsedDob && isValid(parsedDob);
+
     return (
       fName.trim() !== "" &&
       lName.trim() !== "" &&
       p.trim() !== "" &&
-      dob !== undefined &&
+      dobString.trim() !== "" && // Check if string is not empty
+      /^\d{2}\/\d{2}\/\d{4}$/.test(dobString) && // Check format
+      isDobValid && // Check validity
       langs.length > 0 &&
       addr.trim() !== "" &&
       pCode.trim() !== "" &&
@@ -181,6 +187,16 @@ const ConvoyeurProfile: React.FC<ConvoyeurProfileProps> = ({ userId, onProfileCo
   const handleProfileSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+
+    // Validate dateOfBirth format and validity
+    const parsedDateOfBirth = dateOfBirth ? parse(dateOfBirth, 'dd/MM/yyyy', new Date()) : undefined;
+    const isValidDateOfBirth = parsedDateOfBirth && isValid(parsedDateOfBirth);
+
+    if (dateOfBirth.trim() !== "" && (!/^\d{2}\/\d{2}\/\d{4}$/.test(dateOfBirth) || !isValidDateOfBirth)) {
+      showError("Veuillez entrer une date de naissance valide au format JJ/MM/AAAA.");
+      setLoading(false);
+      return;
+    }
 
     let newAvatarUrl = avatarUrl;
     if (avatarFile) {
@@ -206,7 +222,7 @@ const ConvoyeurProfile: React.FC<ConvoyeurProfileProps> = ({ userId, onProfileCo
       first_name: firstName.trim(),
       last_name: lastName.trim(),
       phone: phone.trim() || null,
-      date_of_birth: dateOfBirth ? format(dateOfBirth, "yyyy-MM-dd") : null,
+      date_of_birth: isValidDateOfBirth ? format(parsedDateOfBirth!, "yyyy-MM-dd") : null, // Format for Supabase
       languages: selectedLanguages.length > 0 ? selectedLanguages : null,
       address: address.trim() || null,
       postal_code: postalCode.trim() || null,
@@ -286,24 +302,16 @@ const ConvoyeurProfile: React.FC<ConvoyeurProfileProps> = ({ userId, onProfileCo
           <Input id="phone" type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} className="mt-1" />
         </div>
         <div>
-          <Label htmlFor="dateOfBirth">Date de naissance</Label>
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button
-                variant={"outline"}
-                className={cn(
-                  "w-full justify-start text-left font-normal mt-1",
-                  !dateOfBirth && "text-muted-foreground"
-                )}
-              >
-                <CalendarIcon className="mr-2 h-4 w-4" />
-                {dateOfBirth ? format(dateOfBirth, "PPP") : <span>Sélectionnez une date</span>}
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0">
-              <Calendar mode="single" selected={dateOfBirth} onSelect={setDateOfBirth} initialFocus />
-            </PopoverContent>
-          </Popover>
+          <Label htmlFor="dateOfBirth">Date de naissance (JJ/MM/AAAA)</Label>
+          <Input
+            id="dateOfBirth"
+            type="text"
+            value={dateOfBirth}
+            onChange={(e) => setDateOfBirth(e.target.value)}
+            placeholder="JJ/MM/AAAA"
+            required
+            className="mt-1"
+          />
         </div>
         <div className="relative">
           <Label htmlFor="languages">Langues parlées</Label>
