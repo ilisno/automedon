@@ -35,8 +35,9 @@ const AdminMissions: React.FC = () => {
       showError("Les prix doivent être des nombres positifs.");
       return;
     }
-    // Automatically set is_paid to true when prices are saved
-    await updateMission(missionId, { client_price: currentClientPrice, convoyeur_payout: currentConvoyeurPayout, is_paid: true });
+    // IMPORTANT: Removed automatic setting of is_paid to true.
+    // is_paid is now a separate, manual admin action.
+    await updateMission(missionId, { client_price: currentClientPrice, convoyeur_payout: currentConvoyeurPayout });
     setEditingMissionId(null);
     setCurrentClientPrice(0);
     setCurrentConvoyeurPayout(0);
@@ -44,6 +45,11 @@ const AdminMissions: React.FC = () => {
 
   const handleTogglePaidStatus = async (mission: Mission) => {
     await updateMission(mission.id, { is_paid: !mission.is_paid });
+  };
+
+  // NEW: Handler for toggling 'Hors Grille' status
+  const handleToggleHorsGrilleStatus = async (mission: Mission) => {
+    await updateMission(mission.id, { is_hors_grille: !mission.is_hors_grille });
   };
 
   // NEW: Handlers for the detail dialog
@@ -83,6 +89,7 @@ const AdminMissions: React.FC = () => {
                 <TableHead>Prix Client (€)</TableHead>
                 <TableHead>Rémunération Convoyeur (€)</TableHead>
                 <TableHead>Payée</TableHead>
+                <TableHead>Hors Grille</TableHead> {/* NEW: Table header */}
                 <TableHead>Actions</TableHead>
               </TableRow>
             </TableHeader>
@@ -129,6 +136,13 @@ const AdminMissions: React.FC = () => {
                       checked={mission.is_paid}
                       onCheckedChange={() => handleTogglePaidStatus(mission)}
                       aria-label="Mission payée"
+                    />
+                  </TableCell>
+                  <TableCell>
+                    <Checkbox
+                      checked={mission.is_hors_grille}
+                      onCheckedChange={() => handleToggleHorsGrilleStatus(mission)}
+                      aria-label="Mission hors grille"
                     />
                   </TableCell>
                   <TableCell className="flex flex-col space-y-2">

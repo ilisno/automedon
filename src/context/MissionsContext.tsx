@@ -99,6 +99,7 @@ export type Mission = {
   updates?: MissionUpdate[] | null; // New field for step-by-step updates
   expenses?: Expense[] | null; // NEW: Add expenses array
   is_paid: boolean; // NEW: Add is_paid status
+  is_hors_grille: boolean; // NEW: Add is_hors_grille status
   departure_details?: DepartureSheet | null; // NEW: Link departure sheet
   arrival_details?: ArrivalSheet | null; // NEW: Link arrival sheet
 };
@@ -153,7 +154,7 @@ type BaseSheetData = {
 
 // 2. Définition du type du contexte
 type MissionsContextType = {
-  addMission: (missionData: Omit<Mission, 'id' | 'created_at' | 'statut' | 'convoyeur_id' | 'commentaires' | 'photos' | 'client_price' | 'convoyeur_payout' | 'updates' | 'convoyeur_first_name' | 'convoyeur_last_name' | 'expenses' | 'is_paid' | 'departure_details' | 'arrival_details'> & { client_id: string }) => Promise<void>; // Mis à jour pour client_id et les nouveaux prix
+  addMission: (missionData: Omit<Mission, 'id' | 'created_at' | 'statut' | 'convoyeur_id' | 'commentaires' | 'photos' | 'client_price' | 'convoyeur_payout' | 'updates' | 'convoyeur_first_name' | 'convoyeur_last_name' | 'expenses' | 'is_paid' | 'is_hors_grille' | 'departure_details' | 'arrival_details'> & { client_id: string }) => Promise<void>; // Mis à jour pour client_id et les nouveaux prix
   updateMission: (id: string, payload: UpdateMissionPayload) => Promise<void>; // Generic update function
   updateProfile: (id: string, payload: UpdateProfilePayload) => Promise<void>; // NEW: Generic update function for profiles
   takeMission: (missionId: string, convoyeurId: string) => Promise<void>;
@@ -191,7 +192,7 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
   // Mutation for adding a mission
   const addMissionMutation = useMutation({
-    mutationFn: async (missionData: Omit<Mission, 'id' | 'created_at' | 'statut' | 'convoyeur_id' | 'commentaires' | 'photos' | 'client_price' | 'convoyeur_payout' | 'updates' | 'convoyeur_first_name' | 'convoyeur_last_name' | 'expenses' | 'is_paid' | 'departure_details' | 'arrival_details'> & { client_id: string }) => { // Mis à jour pour client_id
+    mutationFn: async (missionData: Omit<Mission, 'id' | 'created_at' | 'statut' | 'convoyeur_id' | 'commentaires' | 'photos' | 'client_price' | 'convoyeur_payout' | 'updates' | 'convoyeur_first_name' | 'convoyeur_last_name' | 'expenses' | 'is_paid' | 'is_hors_grille' | 'departure_details' | 'arrival_details'> & { client_id: string }) => { // Mis à jour pour client_id
       const { data, error } = await supabase.from('commandes').insert({
         immatriculation: missionData.immatriculation,
         modele: missionData.modele,
@@ -205,6 +206,7 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         updates: [], // Initialize updates as an empty array
         expenses: [], // Initialize expenses as an empty array
         is_paid: false, // NEW: Initialize is_paid to false
+        is_hors_grille: false, // NEW: Initialize is_hors_grille to false
         // Removed departure_details and arrival_details from insert
       });
       if (error) throw error;
@@ -221,7 +223,7 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     },
   });
 
-  const addMission = async (missionData: Omit<Mission, 'id' | 'created_at' | 'statut' | 'convoyeur_id' | 'commentaires' | 'photos' | 'client_price' | 'convoyeur_payout' | 'updates' | 'convoyeur_first_name' | 'convoyeur_last_name' | 'expenses' | 'is_paid' | 'departure_details' | 'arrival_details'> & { client_id: string }) => { // Mis à jour pour client_id
+  const addMission = async (missionData: Omit<Mission, 'id' | 'created_at' | 'statut' | 'convoyeur_id' | 'commentaires' | 'photos' | 'client_price' | 'convoyeur_payout' | 'updates' | 'convoyeur_first_name' | 'convoyeur_last_name' | 'expenses' | 'is_paid' | 'is_hors_grille' | 'departure_details' | 'arrival_details'> & { client_id: string }) => { // Mis à jour pour client_id
     await addMissionMutation.mutateAsync(missionData);
   };
 
@@ -701,6 +703,7 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
           updates: m.updates,
           expenses: m.expenses, // Include expenses
           is_paid: m.is_paid, // Include is_paid
+          is_hors_grille: m.is_hors_grille, // NEW: Include is_hors_grille
           departure_details: m.departure_sheets?.[0] || null, // NEW: Map departure sheet
           arrival_details: m.arrival_sheets?.[0] || null, // NEW: Map arrival sheet
         }));
@@ -714,8 +717,18 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     const { data, isLoading, refetch } = useQuery<Mission[]>({
       queryKey: ['availableMissions'],
       queryFn: async () => {
-        // Only fetch missions where convoyeur_payout is not null AND is_paid is true
-        const { data, error } = await supabase.from('commandes').select('*, departure_sheets(*), arrival_sheets(*)').eq('statut', 'Disponible').not('convoyeur_payout', 'is', null).eq('is_paid', true);
+        // Logic for available missions:
+        // 1. Status must be 'Disponible'
+        // 2. EITHER:
+        //    a) Not 'hors grille' AND convoyeur_payout is set AND is_paid is true
+        //    OR
+        //    b) Is 'hors grille' AND client_price is set (validated by client)
+        const { data, error } = await supabase
+          .from('commandes')
+          .select('*, departure_sheets(*), arrival_sheets(*)')
+          .eq('statut', 'Disponible')
+          .or('and(is_hors_grille.eq.false,not.convoyeur_payout.is.null,is_paid.eq.true),and(is_hors_grille.eq.true,not.client_price.is.null)');
+        
         if (error) throw error;
         return data.map(m => ({
           id: m.id,
@@ -735,6 +748,7 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
           updates: m.updates,
           expenses: m.expenses, // Include expenses
           is_paid: m.is_paid, // Include is_paid
+          is_hors_grille: m.is_hors_grille, // NEW: Include is_hors_grille
           departure_details: m.departure_sheets?.[0] || null, // NEW: Map departure sheet
           arrival_details: m.arrival_sheets?.[0] || null, // NEW: Map arrival sheet
         }));
@@ -799,6 +813,7 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
             updates: m.updates,
             expenses: m.expenses, // Include expenses
             is_paid: m.is_paid, // Include is_paid
+            is_hors_grille: m.is_hors_grille, // NEW: Include is_hors_grille
             departure_details: departureSheet || null, // Use the individually fetched sheet
             arrival_details: arrivalSheet || null, // Use the individually fetched sheet
           };
@@ -868,6 +883,7 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
           updates: m.updates,
           expenses: m.expenses, // Include expenses
           is_paid: m.is_paid, // Include is_paid
+          is_hors_grille: m.is_hors_grille, // NEW: Include is_hors_grille
           departure_details: m.departure_sheets?.[0] || null, // NEW: Map departure sheet
           arrival_details: m.arrival_sheets?.[0] || null, // NEW: Map arrival sheet
         }));
