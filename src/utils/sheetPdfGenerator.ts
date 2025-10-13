@@ -23,7 +23,7 @@ export const generateSheetPdf = async (
   const maxPageHeight = 280; // Max height for content on a page
 
   doc.setFontSize(18);
-  doc.text(`Fiche d'${sheetType === 'departure' ? 'Départ' : 'Arrivée'}`, 105, yPos, { align: 'center' });
+  doc.text(`Fiche ${sheetType === 'departure' ? 'Départ' : 'Arrivée'}`, 105, yPos, { align: 'center' });
   yPos += lineHeight * 2;
 
   doc.setFontSize(12);
@@ -34,17 +34,20 @@ export const generateSheetPdf = async (
 
   doc.setFontSize(10);
   const addField = (label: string, value: string | number | null | undefined) => {
-    if (yPos + lineHeight > maxPageHeight) {
+    if (yPos + lineHeight * 3 > maxPageHeight) { // Check if label, value, and extra line fit
       doc.addPage();
       yPos = margin;
     }
     doc.setFont('helvetica', 'bold');
     doc.text(`${label}:`, margin, yPos);
+    yPos += lineHeight; // Move to next line for value
+
     doc.setFont('helvetica', 'normal');
     const textValue = value !== null && value !== undefined ? String(value) : 'N/A';
     const splitText = doc.splitTextToSize(textValue, 180 - margin); // Adjust width for value
-    doc.text(splitText, margin + 60, yPos); // Align value
+    doc.text(splitText, margin + 5, yPos); // Indent value slightly
     yPos += lineHeight * (splitText.length > 1 ? splitText.length : 1);
+    yPos += lineHeight; // Add an extra line for spacing
   };
 
   addField('Date de création', new Date(sheet.created_at).toLocaleString());
@@ -78,7 +81,7 @@ export const generateSheetPdf = async (
       yPos = margin;
     }
     doc.setFont('helvetica', 'bold');
-    doc.text(`Photos à l'${sheetType === 'departure' ? 'départ' : 'arrivée'}:`, margin, yPos);
+    doc.text(`Photos ${sheetType === 'departure' ? 'Départ' : 'Arrivée'}:`, margin, yPos);
     doc.setFont('helvetica', 'normal');
     yPos += lineHeight;
 
