@@ -13,48 +13,57 @@ const UpdatePassword = () => {
   const navigate = useNavigate();
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [loading, setLoading] = useState(true); // Initialiser loading à true
+  const [loading, setLoading] = useState(true);
   const [session, setSession] = useState<Session | null>(null);
 
   useEffect(() => {
-    let isMounted = true; // Flag pour éviter les mises à jour d'état sur un composant démonté
+    let isMounted = true;
 
     const handleSessionCheck = async () => {
-      const { data: { session: currentSession } } = await supabase.auth.getSession();
+      console.log("UpdatePassword: Checking session on mount...");
+      const { data: { session: currentSession }, error } = await supabase.auth.getSession();
+      if (error) {
+        console.error("UpdatePassword: Error getting session on mount:", error);
+      }
       if (isMounted) {
         setSession(currentSession);
-        setLoading(false); // L'état de la session est maintenant connu
+        setLoading(false);
         if (!currentSession) {
+          console.log("UpdatePassword: No session found on mount, redirecting to login.");
           showError("Accès non autorisé. Veuillez utiliser le lien de réinitialisation de mot de passe.");
           navigate("/login");
+        } else {
+          console.log("UpdatePassword: Session found on mount:", currentSession);
         }
       }
     };
 
-    // Écouter les changements d'état d'authentification (cela capturera la session du hash de l'URL)
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, currentSession) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, currentSession) => {
+      console.log("UpdatePassword: Auth state changed event:", event, "session:", currentSession);
       if (isMounted) {
         setSession(currentSession);
-        setLoading(false); // L'état de la session est maintenant connu
+        setLoading(false);
         if (!currentSession) {
+          console.log("UpdatePassword: No session found on auth state change, redirecting to login.");
           showError("Accès non autorisé. Veuillez utiliser le lien de réinitialisation de mot de passe.");
           navigate("/login");
+        } else {
+          console.log("UpdatePassword: Session found on auth state change:", currentSession);
         }
       }
     });
 
-    // Effectuer une vérification immédiate de la session au montage du composant
     handleSessionCheck();
 
     return () => {
-      isMounted = false; // Nettoyage
+      isMounted = false;
       subscription.unsubscribe();
     };
-  }, [navigate]); // Dépendance à `navigate` uniquement
+  }, [navigate]);
 
   const handleUpdatePassword = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true); // Définir loading à true pendant la mise à jour du mot de passe
+    setLoading(true);
 
     if (password !== confirmPassword) {
       showError("Les mots de passe ne correspondent pas.");
@@ -81,7 +90,7 @@ const UpdatePassword = () => {
       console.error("Unexpected error during password update:", err);
       showError("Une erreur inattendue est survenue.");
     } finally {
-      setLoading(false); // Réinitialiser loading après la tentative de mise à jour
+      setLoading(false);
     }
   };
 
@@ -93,10 +102,8 @@ const UpdatePassword = () => {
     );
   }
 
-  // Si pas en chargement et pas de session, cela signifie que la vérification est terminée et qu'aucune session n'a été trouvée.
-  // La redirection devrait déjà avoir eu lieu.
   if (!session) {
-    return null; // Ne pas rendre le formulaire si aucune session n'est présente
+    return null;
   }
 
   return (
