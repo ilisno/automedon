@@ -1,9 +1,11 @@
 import React, { useState } from "react";
 import { useMissions, Mission } from "@/context/MissionsContext";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Button } from "@/components/ui/button"; // Import Button
-import ClientMissionDetailDialog from "./ClientMissionDetailDialog"; // Import the new dialog
+import { Button } from "@/components/ui/button";
+import ClientMissionDetailDialog from "./ClientMissionDetailDialog";
 import { showError } from "@/utils/toast";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"; // Import Avatar components
+import { User } from "lucide-react"; // Import User icon
 
 interface ClientMissionsListProps {
   userId: string;
@@ -63,7 +65,19 @@ const ClientMissionsList: React.FC<ClientMissionsListProps> = ({ userId }) => {
                   'text-green-600 dark:text-green-400'
                 }`}>{mission.statut}</span></p>
                 <p><strong>Date limite:</strong> {new Date(mission.heureLimite).toLocaleString()}</p>
-                {mission.convoyeur_id && <p><strong>Convoyeur:</strong> {mission.convoyeur_first_name} {mission.convoyeur_last_name}</p>}
+                {mission.convoyeur_id && (
+                  <div className="flex items-center space-x-2 mt-2">
+                    <Avatar className="h-8 w-8">
+                      <AvatarImage src={mission.convoyeur_avatar_url || undefined} alt={`${mission.convoyeur_first_name} ${mission.convoyeur_last_name}`} />
+                      <AvatarFallback>
+                        <User className="h-5 w-5" />
+                      </AvatarFallback>
+                    </Avatar>
+                    <p className="font-medium">
+                      {mission.convoyeur_first_name} {mission.convoyeur_last_name}
+                    </p>
+                  </div>
+                )}
                 {mission.client_price && <p className="text-sm text-gray-700 dark:text-gray-300"><strong>Prix Client:</strong> {mission.client_price.toFixed(2)} €</p>}
                 {mission.commentaires && <p className="text-sm text-gray-700 dark:text-gray-300"><strong>Commentaires:</strong> {mission.commentaires}</p>}
                 

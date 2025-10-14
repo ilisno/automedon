@@ -91,6 +91,7 @@ export type Mission = {
   convoyeur_id: string | null;
   convoyeur_first_name?: string | null; // Nouveau champ pour le prénom du convoyeur
   convoyeur_last_name?: string | null;  // Nouveau champ pour le nom du convoyeur
+  convoyeur_avatar_url?: string | null; // NEW: Add convoyeur_avatar_url
   heureLimite: string; // ISO string, from DB heure_limite
   commentaires?: string | null; // This will become deprecated, replaced by updates
   photos?: string[] | null; // This will become deprecated, replaced by updates
@@ -155,7 +156,7 @@ type BaseSheetData = {
 
 // 2. Définition du type du contexte
 type MissionsContextType = {
-  addMission: (missionData: Omit<Mission, 'id' | 'created_at' | 'statut' | 'convoyeur_id' | 'commentaires' | 'photos' | 'client_price' | 'convoyeur_payout' | 'updates' | 'convoyeur_first_name' | 'convoyeur_last_name' | 'expenses' | 'is_paid' | 'is_hors_grille' | 'client_price_approved' | 'departure_details' | 'arrival_details'> & { client_id: string }) => Promise<void>; // Mis à jour pour client_id
+  addMission: (missionData: Omit<Mission, 'id' | 'created_at' | 'statut' | 'convoyeur_id' | 'commentaires' | 'photos' | 'client_price' | 'convoyeur_payout' | 'updates' | 'convoyeur_first_name' | 'convoyeur_last_name' | 'expenses' | 'is_paid' | 'is_hors_grille' | 'client_price_approved' | 'departure_details' | 'arrival_details' | 'convoyeur_avatar_url'> & { client_id: string }) => Promise<void>; // Mis à jour pour client_id
   updateMission: (id: string, payload: UpdateMissionPayload) => Promise<void>; // Generic update function
   updateProfile: (id: string, payload: UpdateProfilePayload) => Promise<void>; // NEW: Generic update function for profiles
   takeMission: (missionId: string, convoyeurId: string) => Promise<void>;
@@ -194,7 +195,7 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
   // Mutation for adding a mission
   const addMissionMutation = useMutation({
-    mutationFn: async (missionData: Omit<Mission, 'id' | 'created_at' | 'statut' | 'convoyeur_id' | 'commentaires' | 'photos' | 'client_price' | 'convoyeur_payout' | 'updates' | 'convoyeur_first_name' | 'convoyeur_last_name' | 'expenses' | 'is_paid' | 'is_hors_grille' | 'client_price_approved' | 'departure_details' | 'arrival_details'> & { client_id: string }) => { // Mis à jour pour client_id
+    mutationFn: async (missionData: Omit<Mission, 'id' | 'created_at' | 'statut' | 'convoyeur_id' | 'commentaires' | 'photos' | 'client_price' | 'convoyeur_payout' | 'updates' | 'convoyeur_first_name' | 'convoyeur_last_name' | 'expenses' | 'is_paid' | 'is_hors_grille' | 'client_price_approved' | 'departure_details' | 'arrival_details' | 'convoyeur_avatar_url'> & { client_id: string }) => { // Mis à jour pour client_id
       const { data, error } = await supabase.from('commandes').insert({
         immatriculation: missionData.immatriculation,
         modele: missionData.modele,
@@ -226,7 +227,7 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     },
   });
 
-  const addMission = async (missionData: Omit<Mission, 'id' | 'created_at' | 'statut' | 'convoyeur_id' | 'commentaires' | 'photos' | 'client_price' | 'convoyeur_payout' | 'updates' | 'convoyeur_first_name' | 'convoyeur_last_name' | 'expenses' | 'is_paid' | 'is_hors_grille' | 'client_price_approved' | 'departure_details' | 'arrival_details'> & { client_id: string }) => { // Mis à jour pour client_id
+  const addMission = async (missionData: Omit<Mission, 'id' | 'created_at' | 'statut' | 'convoyeur_id' | 'commentaires' | 'photos' | 'client_price' | 'convoyeur_payout' | 'updates' | 'convoyeur_first_name' | 'convoyeur_last_name' | 'expenses' | 'is_paid' | 'is_hors_grille' | 'client_price_approved' | 'departure_details' | 'arrival_details' | 'convoyeur_avatar_url'> & { client_id: string }) => { // Mis à jour pour client_id
     await addMissionMutation.mutateAsync(missionData);
   };
 
@@ -273,6 +274,8 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       queryClient.invalidateQueries({ queryKey: ['convoyeurs'] }); // Invalidate convoyeurs for admin view
       queryClient.invalidateQueries({ queryKey: ['clients'] }); // Invalidate clients for admin view
       queryClient.invalidateQueries({ queryKey: ['profiles'] }); // Invalidate specific profile query if needed
+      queryClient.invalidateQueries({ queryKey: ['clientMissions'] }); // Invalidate client missions to show updated convoyeur info
+      queryClient.invalidateQueries({ queryKey: ['convoyeurMissions'] }); // Invalidate convoyeur missions to show updated convoyeur info
       showSuccess("Profil mis à jour avec succès !");
     },
     onError: (error) => {
@@ -708,7 +711,7 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         // Join with profiles to get convoyeur's first_name and last_name
         const { data, error } = await supabase
           .from('commandes')
-          .select('*, profiles!commandes_convoyeur_id_fkey(first_name, last_name), departure_sheets(*), arrival_sheets(*)') // Explicitly name the join for clarity
+          .select('*, profiles!commandes_convoyeur_id_fkey(first_name, last_name, avatar_url), departure_sheets(*), arrival_sheets(*)') // Explicitly name the join for clarity
           .eq('client_id', userId); // Mis à jour pour client_id
         if (error) throw error;
         return data.map(m => ({
@@ -724,6 +727,7 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
           // Map joined profile data to new fields
           convoyeur_first_name: m.profiles?.first_name || null,
           convoyeur_last_name: m.profiles?.last_name || null,
+          convoyeur_avatar_url: m.profiles?.avatar_url || null, // NEW: Map avatar_url
           heureLimite: m.heureLimite,
           commentaires: m.commentaires,
           photos: m.photos,
@@ -795,7 +799,7 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         if (!userId) return [];
         const { data: missionsData, error: missionsError } = await supabase
           .from('commandes')
-          .select('*, profiles!commandes_convoyeur_id_fkey(first_name, last_name)') // Select profile data for convoyeur
+          .select('*, profiles!commandes_convoyeur_id_fkey(first_name, last_name, avatar_url)') // Select profile data for convoyeur
           .eq('convoyeur_id', userId)
           .in('statut', ['en cours', 'livrée'])
           .eq('is_paid', true); // NEW: Only show if paid
@@ -836,6 +840,7 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
             convoyeur_id: m.convoyeur_id,
             convoyeur_first_name: m.profiles?.first_name || null, // Map joined profile data
             convoyeur_last_name: m.profiles?.last_name || null, // Map joined profile data
+            convoyeur_avatar_url: m.profiles?.avatar_url || null, // NEW: Map avatar_url
             heureLimite: m.heureLimite,
             commentaires: m.commentaires,
             photos: m.photos,
@@ -892,7 +897,7 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       queryKey: ['allMissions'],
       queryFn: async () => {
         // Join with profiles to get convoyeur's first_name and last_name
-        const { data, error } = await supabase.from('commandes').select('*, profiles!commandes_convoyeur_id_fkey(first_name, last_name), departure_sheets(*), arrival_sheets(*)');
+        const { data, error } = await supabase.from('commandes').select('*, profiles!commandes_convoyeur_id_fkey(first_name, last_name, avatar_url), departure_sheets(*), arrival_sheets(*)');
         if (error) throw error;
         return data.map(m => ({
           id: m.id,
@@ -907,6 +912,7 @@ export const MissionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
           // Map joined profile data to new fields
           convoyeur_first_name: m.profiles?.first_name || null,
           convoyeur_last_name: m.profiles?.last_name || null,
+          convoyeur_avatar_url: m.profiles?.avatar_url || null, // NEW: Map avatar_url
           heureLimite: m.heureLimite,
           commentaires: m.commentaires,
           photos: m.photos,
