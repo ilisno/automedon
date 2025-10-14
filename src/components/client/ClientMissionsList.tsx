@@ -66,16 +66,19 @@ const ClientMissionsList: React.FC<ClientMissionsListProps> = ({ userId }) => {
                 }`}>{mission.statut}</span></p>
                 <p><strong>Date limite:</strong> {new Date(mission.heureLimite).toLocaleString()}</p>
                 {mission.convoyeur_id && (
-                  <div className="flex items-center space-x-2 mt-2">
-                    <Avatar className="h-8 w-8">
-                      <AvatarImage src={mission.convoyeur_avatar_url || undefined} alt={`${mission.convoyeur_first_name} ${mission.convoyeur_last_name}`} />
-                      <AvatarFallback>
-                        <User className="h-5 w-5" />
-                      </AvatarFallback>
-                    </Avatar>
-                    <p className="font-medium">
-                      {mission.convoyeur_first_name} {mission.convoyeur_last_name}
-                    </p>
+                  <div className="flex flex-col items-center space-y-2 mt-2"> {/* Centered column layout */}
+                    <p className="font-semibold">Convoyeur:</p> {/* Added label */}
+                    <div className="flex items-center space-x-2"> {/* Row for avatar and name */}
+                      <Avatar className="h-8 w-8">
+                        <AvatarImage src={mission.convoyeur_avatar_url || undefined} alt={`${mission.convoyeur_first_name} ${mission.convoyeur_last_name}`} />
+                        <AvatarFallback>
+                          <User className="h-5 w-5" />
+                        </AvatarFallback>
+                      </Avatar>
+                      <p className="font-medium">
+                        {mission.convoyeur_first_name} {mission.convoyeur_last_name}
+                      </p>
+                    </div>
                   </div>
                 )}
                 {mission.client_price && <p className="text-sm text-gray-700 dark:text-gray-300"><strong>Prix Client:</strong> {mission.client_price.toFixed(2)} €</p>}
