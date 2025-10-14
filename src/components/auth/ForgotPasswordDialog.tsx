@@ -27,7 +27,7 @@ const ForgotPasswordDialog: React.FC<ForgotPasswordDialogProps> = ({ isOpen, onC
 
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: 'http://localhost:32100/update-password', // URL hardcodée comme demandé
+        redirectTo: `${import.meta.env.VITE_APP_URL}/update-password`, // Utilisation de la variable d'environnement
       });
 
       if (error) {
