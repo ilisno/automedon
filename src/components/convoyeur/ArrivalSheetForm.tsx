@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"; // Import Select components
 import { useMissions, ArrivalSheet } from "@/context/MissionsContext";
 import { showError, showSuccess } from "@/utils/toast";
 
@@ -22,7 +23,7 @@ const ArrivalSheetForm: React.FC<ArrivalSheetFormProps> = ({ missionId, onSheetC
   const [convoyeurSignatureName, setConvoyeurSignatureName] = useState<string>("");
   const [clientSignatureName, setClientSignatureName] = useState<string>("");
   const [weatherConditions, setWeatherConditions] = useState<string>("");
-  // NEW STATES FOR NEW FIELDS
+  // NEW STATES FOR NEW FIELDS (now using string for Select values)
   const [pickupLocationType, setPickupLocationType] = useState<string>("");
   const [sdCardCdDvd, setSdCardCdDvd] = useState<string>("");
   const [antenna, setAntenna] = useState<string>("");
@@ -38,7 +39,7 @@ const ArrivalSheetForm: React.FC<ArrivalSheetFormProps> = ({ missionId, onSheetC
   const [deliveryReport, setDeliveryReport] = useState<string>("");
 
   const [photos, setPhotos] = useState<FileList | null>(null);
-  const [existingPhotosUrls, setExistingPhotosUrls] = useState<string[]>([]); // NEW state for existing photos
+  const [existingPhotosUrls, setExistingPhotosUrls] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
@@ -65,8 +66,7 @@ const ArrivalSheetForm: React.FC<ArrivalSheetFormProps> = ({ missionId, onSheetC
       setCritairSticker(initialData.critair_sticker || "");
       setUserManual(initialData.user_manual || "");
       setDeliveryReport(initialData.delivery_report || "");
-      setExistingPhotosUrls(initialData.photos || []); // NEW: Set existing photos
-      // Photos are not pre-filled for security/complexity reasons, user re-uploads if needed
+      setExistingPhotosUrls(initialData.photos || []);
     } else {
       // Reset form if no initial data (for new sheet creation)
       setMileage("");
@@ -92,7 +92,7 @@ const ArrivalSheetForm: React.FC<ArrivalSheetFormProps> = ({ missionId, onSheetC
       setUserManual("");
       setDeliveryReport("");
       setPhotos(null);
-      setExistingPhotosUrls([]); // NEW: Reset existing photos
+      setExistingPhotosUrls([]);
     }
   }, [initialData]);
 
@@ -103,7 +103,7 @@ const ArrivalSheetForm: React.FC<ArrivalSheetFormProps> = ({ missionId, onSheetC
     const parsedFuelLevel = parseInt(fuelLevel);
     const parsedInteriorCleanliness = parseInt(interiorCleanliness);
     const parsedExteriorCleanliness = parseInt(exteriorCleanliness);
-    const parsedNumberOfKeys = parseInt(numberOfKeys); // NEW: Parse number of keys
+    const parsedNumberOfKeys = parseInt(numberOfKeys);
 
     if (
       isNaN(parsedMileage) || parsedMileage <= 0 ||
@@ -114,12 +114,12 @@ const ArrivalSheetForm: React.FC<ArrivalSheetFormProps> = ({ missionId, onSheetC
       !convoyeurSignatureName.trim() ||
       !clientSignatureName.trim() ||
       !weatherConditions.trim() ||
-      !pickupLocationType.trim() || // NEW: Validate new fields
+      !pickupLocationType.trim() ||
       !sdCardCdDvd.trim() ||
       !antenna.trim() ||
       !spareTireKit.trim() ||
       !safetyKit.trim() ||
-      isNaN(parsedNumberOfKeys) || parsedNumberOfKeys < 0 || // Validate number of keys
+      isNaN(parsedNumberOfKeys) || parsedNumberOfKeys < 0 ||
       !frontFloorMats.trim() ||
       !rearFloorMats.trim() ||
       !registrationCard.trim() ||
@@ -182,42 +182,42 @@ const ArrivalSheetForm: React.FC<ArrivalSheetFormProps> = ({ missionId, onSheetC
       </div>
       <div>
         <Label htmlFor="fuelLevel">Niveau de carburant (1-8)</Label>
-        <Input 
-          id="fuelLevel" 
-          type="number" 
-          min="1" 
-          max="8" 
-          value={fuelLevel} 
-          onChange={(e) => setFuelLevel(e.target.value)} 
-          required 
-          className="mt-1" 
-        />
+        <Select value={fuelLevel} onValueChange={setFuelLevel} required>
+          <SelectTrigger id="fuelLevel" className="mt-1">
+            <SelectValue placeholder="Sélectionnez un niveau" />
+          </SelectTrigger>
+          <SelectContent>
+            {[1, 2, 3, 4, 5, 6, 7, 8].map(num => (
+              <SelectItem key={num} value={String(num)}>{num}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
       <div>
         <Label htmlFor="interiorCleanliness">Propreté intérieure (1-8)</Label>
-        <Input 
-          id="interiorCleanliness" 
-          type="number" 
-          min="1" 
-          max="8" 
-          value={interiorCleanliness} 
-          onChange={(e) => setInteriorCleanliness(e.target.value)} 
-          required 
-          className="mt-1" 
-        />
+        <Select value={interiorCleanliness} onValueChange={setInteriorCleanliness} required>
+          <SelectTrigger id="interiorCleanliness" className="mt-1">
+            <SelectValue placeholder="Sélectionnez un niveau" />
+          </SelectTrigger>
+          <SelectContent>
+            {[1, 2, 3, 4, 5, 6, 7, 8].map(num => (
+              <SelectItem key={num} value={String(num)}>{num}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
       <div>
         <Label htmlFor="exteriorCleanliness">Propreté extérieure (1-8)</Label>
-        <Input 
-          id="exteriorCleanliness" 
-          type="number" 
-          min="1" 
-          max="8" 
-          value={exteriorCleanliness} 
-          onChange={(e) => setExteriorCleanliness(e.target.value)} 
-          required 
-          className="mt-1" 
-        />
+        <Select value={exteriorCleanliness} onValueChange={setExteriorCleanliness} required>
+          <SelectTrigger id="exteriorCleanliness" className="mt-1">
+            <SelectValue placeholder="Sélectionnez un niveau" />
+          </SelectTrigger>
+          <SelectContent>
+            {[1, 2, 3, 4, 5, 6, 7, 8].map(num => (
+              <SelectItem key={num} value={String(num)}>{num}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
       <div>
         <Label htmlFor="generalCondition">État général du véhicule (commentaires)</Label>
@@ -234,19 +234,52 @@ const ArrivalSheetForm: React.FC<ArrivalSheetFormProps> = ({ missionId, onSheetC
       </div>
       <div>
         <Label htmlFor="sdCardCdDvd">Carte SD ou CD/DVD</Label>
-        <Input id="sdCardCdDvd" type="text" value={sdCardCdDvd} onChange={(e) => setSdCardCdDvd(e.target.value)} placeholder="Ex: Présent, Absent" required className="mt-1" />
+        <Select value={sdCardCdDvd} onValueChange={setSdCardCdDvd} required>
+          <SelectTrigger id="sdCardCdDvd" className="mt-1">
+            <SelectValue placeholder="Sélectionnez l'état" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="Présent">Présent</SelectItem>
+            <SelectItem value="Absent">Absent</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
       <div>
         <Label htmlFor="antenna">Antenne</Label>
-        <Input id="antenna" type="text" value={antenna} onChange={(e) => setAntenna(e.target.value)} placeholder="Ex: Présente, Absente" required className="mt-1" />
+        <Select value={antenna} onValueChange={setAntenna} required>
+          <SelectTrigger id="antenna" className="mt-1">
+            <SelectValue placeholder="Sélectionnez l'état" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="Présente">Présente</SelectItem>
+            <SelectItem value="Absente">Absente</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
       <div>
         <Label htmlFor="spareTireKit">Roue de secours / Kit anticrevaison</Label>
-        <Input id="spareTireKit" type="text" value={spareTireKit} onChange={(e) => setSpareTireKit(e.target.value)} placeholder="Ex: Roue de secours, Kit anticrevaison" required className="mt-1" />
+        <Select value={spareTireKit} onValueChange={setSpareTireKit} required>
+          <SelectTrigger id="spareTireKit" className="mt-1">
+            <SelectValue placeholder="Sélectionnez l'état" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="Roue de secours">Roue de secours</SelectItem>
+            <SelectItem value="Kit anticrevaison">Kit anticrevaison</SelectItem>
+            <SelectItem value="Absent">Absent</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
       <div>
         <Label htmlFor="safetyKit">Kit de sécurité (Triangle / Gilet)</Label>
-        <Input id="safetyKit" type="text" value={safetyKit} onChange={(e) => setSafetyKit(e.target.value)} placeholder="Ex: Présent, Absent" required className="mt-1" />
+        <Select value={safetyKit} onValueChange={setSafetyKit} required>
+          <SelectTrigger id="safetyKit" className="mt-1">
+            <SelectValue placeholder="Sélectionnez l'état" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="Présent">Présent</SelectItem>
+            <SelectItem value="Absent">Absent</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
       <div>
         <Label htmlFor="numberOfKeys">Nombre de clefs confiées</Label>
@@ -254,31 +287,88 @@ const ArrivalSheetForm: React.FC<ArrivalSheetFormProps> = ({ missionId, onSheetC
       </div>
       <div>
         <Label htmlFor="frontFloorMats">Tapis de sol avants</Label>
-        <Input id="frontFloorMats" type="text" value={frontFloorMats} onChange={(e) => setFrontFloorMats(e.target.value)} placeholder="Ex: Présents, Absents" required className="mt-1" />
+        <Select value={frontFloorMats} onValueChange={setFrontFloorMats} required>
+          <SelectTrigger id="frontFloorMats" className="mt-1">
+            <SelectValue placeholder="Sélectionnez l'état" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="Présents">Présents</SelectItem>
+            <SelectItem value="Absents">Absents</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
       <div>
         <Label htmlFor="rearFloorMats">Tapis de sol arrières</Label>
-        <Input id="rearFloorMats" type="text" value={rearFloorMats} onChange={(e) => setRearFloorMats(e.target.value)} placeholder="Ex: Présents, Absents" required className="mt-1" />
+        <Select value={rearFloorMats} onValueChange={setRearFloorMats} required>
+          <SelectTrigger id="rearFloorMats" className="mt-1">
+            <SelectValue placeholder="Sélectionnez l'état" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="Présents">Présents</SelectItem>
+            <SelectItem value="Absents">Absents</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
       <div>
         <Label htmlFor="registrationCard">Certificat d'immatriculation (carte grise) (originale ou copie)</Label>
-        <Input id="registrationCard" type="text" value={registrationCard} onChange={(e) => setRegistrationCard(e.target.value)} placeholder="Ex: Originale, Copie" required className="mt-1" />
+        <Select value={registrationCard} onValueChange={setRegistrationCard} required>
+          <SelectTrigger id="registrationCard" className="mt-1">
+            <SelectValue placeholder="Sélectionnez l'état" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="Originale">Originale</SelectItem>
+            <SelectItem value="Copie">Copie</SelectItem>
+            <SelectItem value="Absente">Absente</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
       <div>
         <Label htmlFor="fuelCard">Carte carburant</Label>
-        <Input id="fuelCard" type="text" value={fuelCard} onChange={(e) => setFuelCard(e.target.value)} placeholder="Ex: Présente, Absente" required className="mt-1" />
+        <Select value={fuelCard} onValueChange={setFuelCard} required>
+          <SelectTrigger id="fuelCard" className="mt-1">
+            <SelectValue placeholder="Sélectionnez l'état" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="Présente">Présente</SelectItem>
+            <SelectItem value="Absente">Absente</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
       <div>
         <Label htmlFor="critairSticker">Vignette crit'air</Label>
-        <Input id="critairSticker" type="text" value={critairSticker} onChange={(e) => setCritairSticker(e.target.value)} placeholder="Ex: Présente, Absente" required className="mt-1" />
+        <Select value={critairSticker} onValueChange={setCritairSticker} required>
+          <SelectTrigger id="critairSticker" className="mt-1">
+            <SelectValue placeholder="Sélectionnez l'état" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="Présente">Présente</SelectItem>
+            <SelectItem value="Absente">Absente</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
       <div>
         <Label htmlFor="userManual">Manuel d'utilisation du véhicule</Label>
-        <Input id="userManual" type="text" value={userManual} onChange={(e) => setUserManual(e.target.value)} placeholder="Ex: Présent, Absent" required className="mt-1" />
+        <Select value={userManual} onValueChange={setUserManual} required>
+          <SelectTrigger id="userManual" className="mt-1">
+            <SelectValue placeholder="Sélectionnez l'état" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="Présent">Présent</SelectItem>
+            <SelectItem value="Absent">Absent</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
       <div>
         <Label htmlFor="deliveryReport">PV de livraison</Label>
-        <Input id="deliveryReport" type="text" value={deliveryReport} onChange={(e) => setDeliveryReport(e.target.value)} placeholder="Ex: Présent, Absent" required className="mt-1" />
+        <Select value={deliveryReport} onValueChange={setDeliveryReport} required>
+          <SelectTrigger id="deliveryReport" className="mt-1">
+            <SelectValue placeholder="Sélectionnez l'état" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="Présent">Présent</SelectItem>
+            <SelectItem value="Absent">Absent</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
       {/* END NEW FIELDS */}
       <div>
