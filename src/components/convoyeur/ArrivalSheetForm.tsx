@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"; // Import Select components
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useMissions, ArrivalSheet } from "@/context/MissionsContext";
 import { showError, showSuccess } from "@/utils/toast";
 
@@ -17,118 +17,176 @@ const ArrivalSheetForm: React.FC<ArrivalSheetFormProps> = ({ missionId, onSheetC
   const { createArrivalSheet, updateArrivalSheet } = useMissions();
   const [mileage, setMileage] = useState<string>("");
   const [fuelLevel, setFuelLevel] = useState<string>("");
+  const [customFuelLevel, setCustomFuelLevel] = useState<string>("");
   const [interiorCleanliness, setInteriorCleanliness] = useState<string>("");
+  const [customInteriorCleanliness, setCustomInteriorCleanliness] = useState<string>("");
   const [exteriorCleanliness, setExteriorCleanliness] = useState<string>("");
+  const [customExteriorCleanliness, setCustomExteriorCleanliness] = useState<string>("");
   const [generalCondition, setGeneralCondition] = useState<string>("");
   const [convoyeurSignatureName, setConvoyeurSignatureName] = useState<string>("");
   const [clientSignatureName, setClientSignatureName] = useState<string>("");
   const [weatherConditions, setWeatherConditions] = useState<string>("");
-  // NEW STATES FOR NEW FIELDS (now using string for Select values)
+  
   const [pickupLocationType, setPickupLocationType] = useState<string>("");
+  const [customPickupLocationType, setCustomPickupLocationType] = useState<string>("");
   const [sdCardCdDvd, setSdCardCdDvd] = useState<string>("");
+  const [customSdCardCdDvd, setCustomSdCardCdDvd] = useState<string>("");
   const [antenna, setAntenna] = useState<string>("");
+  const [customAntenna, setCustomAntenna] = useState<string>("");
   const [spareTireKit, setSpareTireKit] = useState<string>("");
+  const [customSpareTireKit, setCustomSpareTireKit] = useState<string>("");
   const [safetyKit, setSafetyKit] = useState<string>("");
+  const [customSafetyKit, setCustomSafetyKit] = useState<string>("");
   const [numberOfKeys, setNumberOfKeys] = useState<string>("");
   const [frontFloorMats, setFrontFloorMats] = useState<string>("");
+  const [customFrontFloorMats, setCustomFrontFloorMats] = useState<string>("");
   const [rearFloorMats, setRearFloorMats] = useState<string>("");
+  const [customRearFloorMats, setCustomRearFloorMats] = useState<string>("");
   const [registrationCard, setRegistrationCard] = useState<string>("");
+  const [customRegistrationCard, setCustomRegistrationCard] = useState<string>("");
   const [fuelCard, setFuelCard] = useState<string>("");
+  const [customFuelCard, setCustomFuelCard] = useState<string>("");
   const [critairSticker, setCritairSticker] = useState<string>("");
+  const [customCritairSticker, setCustomCritairSticker] = useState<string>("");
   const [userManual, setUserManual] = useState<string>("");
+  const [customUserManual, setCustomUserManual] = useState<string>("");
   const [deliveryReport, setDeliveryReport] = useState<string>("");
+  const [customDeliveryReport, setCustomDeliveryReport] = useState<string>("");
 
   const [photos, setPhotos] = useState<FileList | null>(null);
   const [existingPhotosUrls, setExistingPhotosUrls] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  const ratingOptions = Array.from({ length: 8 }, (_, i) => String(i + 1));
+  const presentAbsentOptions = ["Présent", "Absent"];
+  const antennaOptions = ["Présente", "Absente"];
+  const spareTireKitOptions = ["Roue de secours", "Kit anticrevaison", "Absent"];
+  const floorMatsOptions = ["Présents", "Absents"];
+  const registrationCardOptions = ["Originale", "Copie", "Absente"];
+  const pickupLocationTypeOptions = ["Domicile", "Concession", "Point de livraison"];
+
+  const setSelectAndCustomValue = (setter: React.Dispatch<React.SetStateAction<string>>, customSetter: React.Dispatch<React.SetStateAction<string>>, options: string[], value: string | number | null | undefined) => {
+    const stringValue = String(value || "");
+    if (stringValue && !options.includes(stringValue)) {
+      setter("Autre");
+      customSetter(stringValue);
+    } else {
+      setter(stringValue);
+      customSetter("");
+    }
+  };
+
   useEffect(() => {
     if (initialData) {
       setMileage(initialData.mileage.toString());
-      setFuelLevel(initialData.fuel_level.toString());
-      setInteriorCleanliness(initialData.interior_cleanliness.toString());
-      setExteriorCleanliness(initialData.exterior_cleanliness.toString());
+      setSelectAndCustomValue(setFuelLevel, setCustomFuelLevel, ratingOptions, initialData.fuel_level);
+      setSelectAndCustomValue(setInteriorCleanliness, setCustomInteriorCleanliness, ratingOptions, initialData.interior_cleanliness);
+      setSelectAndCustomValue(setExteriorCleanliness, setCustomExteriorCleanliness, ratingOptions, initialData.exterior_cleanliness);
       setGeneralCondition(initialData.general_condition);
       setConvoyeurSignatureName(initialData.convoyeur_signature_name);
       setClientSignatureName(initialData.client_signature_name);
       setWeatherConditions(initialData.weather_conditions || "");
-      // NEW: Populate new fields
-      setPickupLocationType(initialData.pickup_location_type || "");
-      setSdCardCdDvd(initialData.sd_card_cd_dvd || "");
-      setAntenna(initialData.antenna || "");
-      setSpareTireKit(initialData.spare_tire_kit || "");
-      setSafetyKit(initialData.safety_kit || "");
+      
+      setSelectAndCustomValue(setPickupLocationType, setCustomPickupLocationType, pickupLocationTypeOptions, initialData.pickup_location_type);
+      setSelectAndCustomValue(setSdCardCdDvd, setCustomSdCardCdDvd, presentAbsentOptions, initialData.sd_card_cd_dvd);
+      setSelectAndCustomValue(setAntenna, setCustomAntenna, antennaOptions, initialData.antenna);
+      setSelectAndCustomValue(setSpareTireKit, setCustomSpareTireKit, spareTireKitOptions, initialData.spare_tire_kit);
+      setSelectAndCustomValue(setSafetyKit, setCustomSafetyKit, presentAbsentOptions, initialData.safety_kit);
       setNumberOfKeys(initialData.number_of_keys?.toString() || "");
-      setFrontFloorMats(initialData.front_floor_mats || "");
-      setRearFloorMats(initialData.rear_floor_mats || "");
-      setRegistrationCard(initialData.registration_card || "");
-      setFuelCard(initialData.fuel_card || "");
-      setCritairSticker(initialData.critair_sticker || "");
-      setUserManual(initialData.user_manual || "");
-      setDeliveryReport(initialData.delivery_report || "");
+      setSelectAndCustomValue(setFrontFloorMats, setCustomFrontFloorMats, floorMatsOptions, initialData.front_floor_mats);
+      setSelectAndCustomValue(setRearFloorMats, setCustomRearFloorMats, floorMatsOptions, initialData.rear_floor_mats);
+      setSelectAndCustomValue(setRegistrationCard, setCustomRegistrationCard, registrationCardOptions, initialData.registration_card);
+      setSelectAndCustomValue(setFuelCard, setCustomFuelCard, presentAbsentOptions, initialData.fuel_card);
+      setSelectAndCustomValue(setCritairSticker, setCustomCritairSticker, presentAbsentOptions, initialData.critair_sticker);
+      setSelectAndCustomValue(setUserManual, setCustomUserManual, presentAbsentOptions, initialData.user_manual);
+      setSelectAndCustomValue(setDeliveryReport, setCustomDeliveryReport, presentAbsentOptions, initialData.delivery_report);
+      
       setExistingPhotosUrls(initialData.photos || []);
     } else {
-      // Reset form if no initial data (for new sheet creation)
       setMileage("");
-      setFuelLevel("");
-      setInteriorCleanliness("");
-      setExteriorCleanliness("");
+      setFuelLevel(""); setCustomFuelLevel("");
+      setInteriorCleanliness(""); setCustomInteriorCleanliness("");
+      setExteriorCleanliness(""); setCustomExteriorCleanliness("");
       setGeneralCondition("");
       setConvoyeurSignatureName("");
       setClientSignatureName("");
       setWeatherConditions("");
-      // NEW: Reset new fields
-      setPickupLocationType("");
-      setSdCardCdDvd("");
-      setAntenna("");
-      setSpareTireKit("");
-      setSafetyKit("");
+      
+      setPickupLocationType(""); setCustomPickupLocationType("");
+      setSdCardCdDvd(""); setCustomSdCardCdDvd("");
+      setAntenna(""); setCustomAntenna("");
+      setSpareTireKit(""); setCustomSpareTireKit("");
+      setSafetyKit(""); setCustomSafetyKit("");
       setNumberOfKeys("");
-      setFrontFloorMats("");
-      setRearFloorMats("");
-      setRegistrationCard("");
-      setFuelCard("");
-      setCritairSticker("");
-      setUserManual("");
-      setDeliveryReport("");
+      setFrontFloorMats(""); setCustomFrontFloorMats("");
+      setRearFloorMats(""); setCustomRearFloorMats("");
+      setRegistrationCard(""); setCustomRegistrationCard("");
+      setFuelCard(""); setCustomFuelCard("");
+      setCritairSticker(""); setCustomCritairSticker("");
+      setUserManual(""); setCustomUserManual("");
+      setDeliveryReport(""); setCustomDeliveryReport("");
+      
       setPhotos(null);
       setExistingPhotosUrls([]);
     }
   }, [initialData]);
 
+  const getFinalValue = (selectValue: string, customValue: string) => {
+    return selectValue === "Autre" ? customValue.trim() : selectValue;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    const finalFuelLevel = getFinalValue(fuelLevel, customFuelLevel);
+    const finalInteriorCleanliness = getFinalValue(interiorCleanliness, customInteriorCleanliness);
+    const finalExteriorCleanliness = getFinalValue(exteriorCleanliness, customExteriorCleanliness);
+    const finalPickupLocationType = getFinalValue(pickupLocationType, customPickupLocationType);
+    const finalSdCardCdDvd = getFinalValue(sdCardCdDvd, customSdCardCdDvd);
+    const finalAntenna = getFinalValue(antenna, customAntenna);
+    const finalSpareTireKit = getFinalValue(spareTireKit, customSpareTireKit);
+    const finalSafetyKit = getFinalValue(safetyKit, customSafetyKit);
+    const finalFrontFloorMats = getFinalValue(frontFloorMats, customFrontFloorMats);
+    const finalRearFloorMats = getFinalValue(rearFloorMats, customRearFloorMats);
+    const finalRegistrationCard = getFinalValue(registrationCard, customRegistrationCard);
+    const finalFuelCard = getFinalValue(fuelCard, customFuelCard);
+    const finalCritairSticker = getFinalValue(critairSticker, customCritairSticker);
+    const finalUserManual = getFinalValue(userManual, customUserManual);
+    const finalDeliveryReport = getFinalValue(deliveryReport, customDeliveryReport);
+
     const parsedMileage = parseFloat(mileage);
-    const parsedFuelLevel = parseInt(fuelLevel);
-    const parsedInteriorCleanliness = parseInt(interiorCleanliness);
-    const parsedExteriorCleanliness = parseInt(exteriorCleanliness);
     const parsedNumberOfKeys = parseInt(numberOfKeys);
+
+    // Validation for 1-8 fields
+    const isValidRating = (value: string) => {
+      const num = parseInt(value);
+      return !isNaN(num) && num >= 1 && num <= 8;
+    };
 
     if (
       isNaN(parsedMileage) || parsedMileage <= 0 ||
-      isNaN(parsedFuelLevel) || parsedFuelLevel < 1 || parsedFuelLevel > 8 ||
-      isNaN(parsedInteriorCleanliness) || parsedInteriorCleanliness < 1 || parsedInteriorCleanliness > 8 ||
-      isNaN(parsedExteriorCleanliness) || parsedExteriorCleanliness < 1 || parsedExteriorCleanliness > 8 ||
+      !isValidRating(finalFuelLevel) ||
+      !isValidRating(finalInteriorCleanliness) ||
+      !isValidRating(finalExteriorCleanliness) ||
       !generalCondition.trim() ||
       !convoyeurSignatureName.trim() ||
       !clientSignatureName.trim() ||
       !weatherConditions.trim() ||
-      !pickupLocationType.trim() ||
-      !sdCardCdDvd.trim() ||
-      !antenna.trim() ||
-      !spareTireKit.trim() ||
-      !safetyKit.trim() ||
+      !finalPickupLocationType ||
+      !finalSdCardCdDvd ||
+      !finalAntenna ||
+      !finalSpareTireKit ||
+      !finalSafetyKit ||
       isNaN(parsedNumberOfKeys) || parsedNumberOfKeys < 0 ||
-      !frontFloorMats.trim() ||
-      !rearFloorMats.trim() ||
-      !registrationCard.trim() ||
-      !fuelCard.trim() ||
-      !critairSticker.trim() ||
-      !userManual.trim() ||
-      !deliveryReport.trim()
+      !finalFrontFloorMats ||
+      !finalRearFloorMats ||
+      !finalRegistrationCard ||
+      !finalFuelCard ||
+      !finalCritairSticker ||
+      !finalUserManual ||
+      !finalDeliveryReport
     ) {
-      showError("Veuillez remplir tous les champs obligatoires avec des valeurs valides (kilométrage > 0, notes entre 1 et 8, conditions météo, et tous les nouveaux champs).");
+      showError("Veuillez remplir tous les champs obligatoires avec des valeurs valides (kilométrage > 0, notes entre 1 et 8, et tous les autres champs).");
       return;
     }
 
@@ -136,27 +194,26 @@ const ArrivalSheetForm: React.FC<ArrivalSheetFormProps> = ({ missionId, onSheetC
     try {
       const sheetData = {
         mileage: parsedMileage,
-        fuel_level: parsedFuelLevel,
-        interior_cleanliness: parsedInteriorCleanliness,
-        exterior_cleanliness: parsedExteriorCleanliness,
+        fuel_level: parseInt(finalFuelLevel),
+        interior_cleanliness: parseInt(finalInteriorCleanliness),
+        exterior_cleanliness: parseInt(finalExteriorCleanliness),
         general_condition: generalCondition.trim(),
         convoyeur_signature_name: convoyeurSignatureName.trim(),
         client_signature_name: clientSignatureName.trim(),
         weather_conditions: weatherConditions.trim(),
-        // NEW: Include new fields in sheetData
-        pickup_location_type: pickupLocationType.trim(),
-        sd_card_cd_dvd: sdCardCdDvd.trim(),
-        antenna: antenna.trim(),
-        spare_tire_kit: spareTireKit.trim(),
-        safety_kit: safetyKit.trim(),
+        pickup_location_type: finalPickupLocationType,
+        sd_card_cd_dvd: finalSdCardCdDvd,
+        antenna: finalAntenna,
+        spare_tire_kit: finalSpareTireKit,
+        safety_kit: finalSafetyKit,
         number_of_keys: parsedNumberOfKeys,
-        front_floor_mats: frontFloorMats.trim(),
-        rear_floor_mats: rearFloorMats.trim(),
-        registration_card: registrationCard.trim(),
-        fuel_card: fuelCard.trim(),
-        critair_sticker: critairSticker.trim(),
-        user_manual: userManual.trim(),
-        delivery_report: deliveryReport.trim(),
+        front_floor_mats: finalFrontFloorMats,
+        rear_floor_mats: finalRearFloorMats,
+        registration_card: finalRegistrationCard,
+        fuel_card: finalFuelCard,
+        critair_sticker: finalCritairSticker,
+        user_manual: finalUserManual,
+        delivery_report: finalDeliveryReport,
       };
 
       if (initialData) {
@@ -187,11 +244,22 @@ const ArrivalSheetForm: React.FC<ArrivalSheetFormProps> = ({ missionId, onSheetC
             <SelectValue placeholder="Sélectionnez un niveau" />
           </SelectTrigger>
           <SelectContent>
-            {[1, 2, 3, 4, 5, 6, 7, 8].map(num => (
-              <SelectItem key={num} value={String(num)}>{num}</SelectItem>
+            {ratingOptions.map(num => (
+              <SelectItem key={num} value={num}>{num}</SelectItem>
             ))}
+            <SelectItem value="Autre">Autre (préciser)</SelectItem>
           </SelectContent>
         </Select>
+        {fuelLevel === "Autre" && (
+          <Input
+            type="text"
+            value={customFuelLevel}
+            onChange={(e) => setCustomFuelLevel(e.target.value)}
+            placeholder="Précisez le niveau de carburant"
+            className="mt-2"
+            required
+          />
+        )}
       </div>
       <div>
         <Label htmlFor="interiorCleanliness">Propreté intérieure (1-8)</Label>
@@ -200,11 +268,22 @@ const ArrivalSheetForm: React.FC<ArrivalSheetFormProps> = ({ missionId, onSheetC
             <SelectValue placeholder="Sélectionnez un niveau" />
           </SelectTrigger>
           <SelectContent>
-            {[1, 2, 3, 4, 5, 6, 7, 8].map(num => (
-              <SelectItem key={num} value={String(num)}>{num}</SelectItem>
+            {ratingOptions.map(num => (
+              <SelectItem key={num} value={num}>{num}</SelectItem>
             ))}
+            <SelectItem value="Autre">Autre (préciser)</SelectItem>
           </SelectContent>
         </Select>
+        {interiorCleanliness === "Autre" && (
+          <Input
+            type="text"
+            value={customInteriorCleanliness}
+            onChange={(e) => setCustomInteriorCleanliness(e.target.value)}
+            placeholder="Précisez la propreté intérieure"
+            className="mt-2"
+            required
+          />
+        )}
       </div>
       <div>
         <Label htmlFor="exteriorCleanliness">Propreté extérieure (1-8)</Label>
@@ -213,11 +292,22 @@ const ArrivalSheetForm: React.FC<ArrivalSheetFormProps> = ({ missionId, onSheetC
             <SelectValue placeholder="Sélectionnez un niveau" />
           </SelectTrigger>
           <SelectContent>
-            {[1, 2, 3, 4, 5, 6, 7, 8].map(num => (
-              <SelectItem key={num} value={String(num)}>{num}</SelectItem>
+            {ratingOptions.map(num => (
+              <SelectItem key={num} value={num}>{num}</SelectItem>
             ))}
+            <SelectItem value="Autre">Autre (préciser)</SelectItem>
           </SelectContent>
         </Select>
+        {exteriorCleanliness === "Autre" && (
+          <Input
+            type="text"
+            value={customExteriorCleanliness}
+            onChange={(e) => setCustomExteriorCleanliness(e.target.value)}
+            placeholder="Précisez la propreté extérieure"
+            className="mt-2"
+            required
+          />
+        )}
       </div>
       <div>
         <Label htmlFor="generalCondition">État général du véhicule (commentaires)</Label>
@@ -227,10 +317,29 @@ const ArrivalSheetForm: React.FC<ArrivalSheetFormProps> = ({ missionId, onSheetC
         <Label htmlFor="weatherConditions">Conditions Météo</Label>
         <Input id="weatherConditions" type="text" value={weatherConditions} onChange={(e) => setWeatherConditions(e.target.value)} placeholder="Ex: Ensoleillé, Pluie légère" required className="mt-1" />
       </div>
-      {/* NEW FIELDS */}
       <div>
         <Label htmlFor="pickupLocationType">Lieu de livraison</Label>
-        <Input id="pickupLocationType" type="text" value={pickupLocationType} onChange={(e) => setPickupLocationType(e.target.value)} placeholder="Ex: Domicile, Concession, Point de livraison" required className="mt-1" />
+        <Select value={pickupLocationType} onValueChange={setPickupLocationType} required>
+          <SelectTrigger id="pickupLocationType" className="mt-1">
+            <SelectValue placeholder="Sélectionnez le type de lieu" />
+          </SelectTrigger>
+          <SelectContent>
+            {pickupLocationTypeOptions.map(option => (
+              <SelectItem key={option} value={option}>{option}</SelectItem>
+            ))}
+            <SelectItem value="Autre">Autre (préciser)</SelectItem>
+          </SelectContent>
+        </Select>
+        {pickupLocationType === "Autre" && (
+          <Input
+            type="text"
+            value={customPickupLocationType}
+            onChange={(e) => setCustomPickupLocationType(e.target.value)}
+            placeholder="Précisez le lieu de livraison"
+            className="mt-2"
+            required
+          />
+        )}
       </div>
       <div>
         <Label htmlFor="sdCardCdDvd">Carte SD ou CD/DVD</Label>
@@ -239,10 +348,22 @@ const ArrivalSheetForm: React.FC<ArrivalSheetFormProps> = ({ missionId, onSheetC
             <SelectValue placeholder="Sélectionnez l'état" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="Présent">Présent</SelectItem>
-            <SelectItem value="Absent">Absent</SelectItem>
+            {presentAbsentOptions.map(option => (
+              <SelectItem key={option} value={option}>{option}</SelectItem>
+            ))}
+            <SelectItem value="Autre">Autre (préciser)</SelectItem>
           </SelectContent>
         </Select>
+        {sdCardCdDvd === "Autre" && (
+          <Input
+            type="text"
+            value={customSdCardCdDvd}
+            onChange={(e) => setCustomSdCardCdDvd(e.target.value)}
+            placeholder="Précisez l'état de la carte SD/CD/DVD"
+            className="mt-2"
+            required
+          />
+        )}
       </div>
       <div>
         <Label htmlFor="antenna">Antenne</Label>
@@ -251,10 +372,22 @@ const ArrivalSheetForm: React.FC<ArrivalSheetFormProps> = ({ missionId, onSheetC
             <SelectValue placeholder="Sélectionnez l'état" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="Présente">Présente</SelectItem>
-            <SelectItem value="Absente">Absente</SelectItem>
+            {antennaOptions.map(option => (
+              <SelectItem key={option} value={option}>{option}</SelectItem>
+            ))}
+            <SelectItem value="Autre">Autre (préciser)</SelectItem>
           </SelectContent>
         </Select>
+        {antenna === "Autre" && (
+          <Input
+            type="text"
+            value={customAntenna}
+            onChange={(e) => setCustomAntenna(e.target.value)}
+            placeholder="Précisez l'état de l'antenne"
+            className="mt-2"
+            required
+          />
+        )}
       </div>
       <div>
         <Label htmlFor="spareTireKit">Roue de secours / Kit anticrevaison</Label>
@@ -263,11 +396,22 @@ const ArrivalSheetForm: React.FC<ArrivalSheetFormProps> = ({ missionId, onSheetC
             <SelectValue placeholder="Sélectionnez l'état" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="Roue de secours">Roue de secours</SelectItem>
-            <SelectItem value="Kit anticrevaison">Kit anticrevaison</SelectItem>
-            <SelectItem value="Absent">Absent</SelectItem>
+            {spareTireKitOptions.map(option => (
+              <SelectItem key={option} value={option}>{option}</SelectItem>
+            ))}
+            <SelectItem value="Autre">Autre (préciser)</SelectItem>
           </SelectContent>
         </Select>
+        {spareTireKit === "Autre" && (
+          <Input
+            type="text"
+            value={customSpareTireKit}
+            onChange={(e) => setCustomSpareTireKit(e.target.value)}
+            placeholder="Précisez l'état de la roue de secours/kit"
+            className="mt-2"
+            required
+          />
+        )}
       </div>
       <div>
         <Label htmlFor="safetyKit">Kit de sécurité (Triangle / Gilet)</Label>
@@ -276,10 +420,22 @@ const ArrivalSheetForm: React.FC<ArrivalSheetFormProps> = ({ missionId, onSheetC
             <SelectValue placeholder="Sélectionnez l'état" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="Présent">Présent</SelectItem>
-            <SelectItem value="Absent">Absent</SelectItem>
+            {presentAbsentOptions.map(option => (
+              <SelectItem key={option} value={option}>{option}</SelectItem>
+            ))}
+            <SelectItem value="Autre">Autre (préciser)</SelectItem>
           </SelectContent>
         </Select>
+        {safetyKit === "Autre" && (
+          <Input
+            type="text"
+            value={customSafetyKit}
+            onChange={(e) => setCustomSafetyKit(e.target.value)}
+            placeholder="Précisez l'état du kit de sécurité"
+            className="mt-2"
+            required
+          />
+        )}
       </div>
       <div>
         <Label htmlFor="numberOfKeys">Nombre de clefs confiées</Label>
@@ -292,10 +448,22 @@ const ArrivalSheetForm: React.FC<ArrivalSheetFormProps> = ({ missionId, onSheetC
             <SelectValue placeholder="Sélectionnez l'état" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="Présents">Présents</SelectItem>
-            <SelectItem value="Absents">Absents</SelectItem>
+            {floorMatsOptions.map(option => (
+              <SelectItem key={option} value={option}>{option}</SelectItem>
+            ))}
+            <SelectItem value="Autre">Autre (préciser)</SelectItem>
           </SelectContent>
         </Select>
+        {frontFloorMats === "Autre" && (
+          <Input
+            type="text"
+            value={customFrontFloorMats}
+            onChange={(e) => setCustomFrontFloorMats(e.target.value)}
+            placeholder="Précisez l'état des tapis avants"
+            className="mt-2"
+            required
+          />
+        )}
       </div>
       <div>
         <Label htmlFor="rearFloorMats">Tapis de sol arrières</Label>
@@ -304,10 +472,22 @@ const ArrivalSheetForm: React.FC<ArrivalSheetFormProps> = ({ missionId, onSheetC
             <SelectValue placeholder="Sélectionnez l'état" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="Présents">Présents</SelectItem>
-            <SelectItem value="Absents">Absents</SelectItem>
+            {floorMatsOptions.map(option => (
+              <SelectItem key={option} value={option}>{option}</SelectItem>
+            ))}
+            <SelectItem value="Autre">Autre (préciser)</SelectItem>
           </SelectContent>
         </Select>
+        {rearFloorMats === "Autre" && (
+          <Input
+            type="text"
+            value={customRearFloorMats}
+            onChange={(e) => setCustomRearFloorMats(e.target.value)}
+            placeholder="Précisez l'état des tapis arrières"
+            className="mt-2"
+            required
+          />
+        )}
       </div>
       <div>
         <Label htmlFor="registrationCard">Certificat d'immatriculation (carte grise) (originale ou copie)</Label>
@@ -316,11 +496,22 @@ const ArrivalSheetForm: React.FC<ArrivalSheetFormProps> = ({ missionId, onSheetC
             <SelectValue placeholder="Sélectionnez l'état" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="Originale">Originale</SelectItem>
-            <SelectItem value="Copie">Copie</SelectItem>
-            <SelectItem value="Absente">Absente</SelectItem>
+            {registrationCardOptions.map(option => (
+              <SelectItem key={option} value={option}>{option}</SelectItem>
+            ))}
+            <SelectItem value="Autre">Autre (préciser)</SelectItem>
           </SelectContent>
         </Select>
+        {registrationCard === "Autre" && (
+          <Input
+            type="text"
+            value={customRegistrationCard}
+            onChange={(e) => setCustomRegistrationCard(e.target.value)}
+            placeholder="Précisez l'état du certificat"
+            className="mt-2"
+            required
+          />
+        )}
       </div>
       <div>
         <Label htmlFor="fuelCard">Carte carburant</Label>
@@ -329,10 +520,22 @@ const ArrivalSheetForm: React.FC<ArrivalSheetFormProps> = ({ missionId, onSheetC
             <SelectValue placeholder="Sélectionnez l'état" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="Présente">Présente</SelectItem>
-            <SelectItem value="Absente">Absente</SelectItem>
+            {presentAbsentOptions.map(option => (
+              <SelectItem key={option} value={option}>{option}</SelectItem>
+            ))}
+            <SelectItem value="Autre">Autre (préciser)</SelectItem>
           </SelectContent>
         </Select>
+        {fuelCard === "Autre" && (
+          <Input
+            type="text"
+            value={customFuelCard}
+            onChange={(e) => setCustomFuelCard(e.target.value)}
+            placeholder="Précisez l'état de la carte carburant"
+            className="mt-2"
+            required
+          />
+        )}
       </div>
       <div>
         <Label htmlFor="critairSticker">Vignette crit'air</Label>
@@ -341,10 +544,22 @@ const ArrivalSheetForm: React.FC<ArrivalSheetFormProps> = ({ missionId, onSheetC
             <SelectValue placeholder="Sélectionnez l'état" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="Présente">Présente</SelectItem>
-            <SelectItem value="Absente">Absente</SelectItem>
+            {presentAbsentOptions.map(option => (
+              <SelectItem key={option} value={option}>{option}</SelectItem>
+            ))}
+            <SelectItem value="Autre">Autre (préciser)</SelectItem>
           </SelectContent>
         </Select>
+        {critairSticker === "Autre" && (
+          <Input
+            type="text"
+            value={customCritairSticker}
+            onChange={(e) => setCustomCritairSticker(e.target.value)}
+            placeholder="Précisez l'état de la vignette crit'air"
+            className="mt-2"
+            required
+          />
+        )}
       </div>
       <div>
         <Label htmlFor="userManual">Manuel d'utilisation du véhicule</Label>
@@ -353,10 +568,22 @@ const ArrivalSheetForm: React.FC<ArrivalSheetFormProps> = ({ missionId, onSheetC
             <SelectValue placeholder="Sélectionnez l'état" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="Présent">Présent</SelectItem>
-            <SelectItem value="Absent">Absent</SelectItem>
+            {presentAbsentOptions.map(option => (
+              <SelectItem key={option} value={option}>{option}</SelectItem>
+            ))}
+            <SelectItem value="Autre">Autre (préciser)</SelectItem>
           </SelectContent>
         </Select>
+        {userManual === "Autre" && (
+          <Input
+            type="text"
+            value={customUserManual}
+            onChange={(e) => setCustomUserManual(e.target.value)}
+            placeholder="Précisez l'état du manuel d'utilisation"
+            className="mt-2"
+            required
+          />
+        )}
       </div>
       <div>
         <Label htmlFor="deliveryReport">PV de livraison</Label>
@@ -365,12 +592,23 @@ const ArrivalSheetForm: React.FC<ArrivalSheetFormProps> = ({ missionId, onSheetC
             <SelectValue placeholder="Sélectionnez l'état" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="Présent">Présent</SelectItem>
-            <SelectItem value="Absent">Absent</SelectItem>
+            {presentAbsentOptions.map(option => (
+              <SelectItem key={option} value={option}>{option}</SelectItem>
+            ))}
+            <SelectItem value="Autre">Autre (préciser)</SelectItem>
           </SelectContent>
         </Select>
+        {deliveryReport === "Autre" && (
+          <Input
+            type="text"
+            value={customDeliveryReport}
+            onChange={(e) => setCustomDeliveryReport(e.target.value)}
+            placeholder="Précisez l'état du PV de livraison"
+            className="mt-2"
+            required
+          />
+        )}
       </div>
-      {/* END NEW FIELDS */}
       <div>
         <Label htmlFor="convoyeurSignatureName">Nom du convoyeur (signature)</Label>
         <Input id="convoyeurSignatureName" type="text" value={convoyeurSignatureName} onChange={(e) => setConvoyeurSignatureName(e.target.value)} required className="mt-1" />
